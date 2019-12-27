@@ -2,7 +2,7 @@ const redis = require("../../config/redis");
 const isJson = require("../../utils/isJson");
 
 const cache = async (req, res, next) => {
-  const key = `API:${req.originalUrl}`;
+  const key = `playnows_api:${req.originalUrl}`;
   const val = await redis.get(key);
 
   if (val) {
@@ -32,7 +32,7 @@ const cache = async (req, res, next) => {
 };
 
 const invalidateCache = async (req, res, next) => {
-  const key = `API:${req.originalUrl}`;
+  const key = `playnows_api:${req.originalUrl}`;
 
   res.sendResponse = res.send;
   res.jsonResponse = res.json;

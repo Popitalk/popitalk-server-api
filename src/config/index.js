@@ -19,6 +19,8 @@ module.exports = {
   redisPassword: process.env.REDIS_PASSWORD,
   sessionName: process.env.SESSION_NAME,
   sessionSecret: process.env.SESSION_SECRET,
+  sessionPrefix: process.env.SESSION_PREFIX,
+  jobsPrefix: process.env.JOBS_PREFIX,
   s3Bucket: process.env.S3_BUCKET,
   awsAccessKeyId: process.env.AWS_ACCESS_KEY_ID,
   awsSecretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,

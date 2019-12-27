@@ -1,0 +1,24 @@
+name: deploy on push
+on:
+  push:
+    branches:
+      - master
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: SSH Remote Commands
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          password: ${{ secrets.SSH_PASSWORD }}
+          script_stop: true
+          script: |
+            cd projects/playnows-server/
+            pm2 delete playnows-server
+            git pull
+            npm install
+            npm run db-reset
+            env NODE_ENV=production pm2 start ./src/index.js --name "playnows-server"
+            exit

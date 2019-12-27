@@ -9,7 +9,8 @@ const registrationEmailQueue = new Queue("registrationEmail", {
     port: config.redisPort || 6379,
     db: config.redisIndex || 0,
     password: config.redisPassword || null
-  }
+  },
+  prefix: config.jobsPrefix || "bull"
 });
 
 const verificationEmailQueue = new Queue("verificationEmail", {
@@ -18,7 +19,8 @@ const verificationEmailQueue = new Queue("verificationEmail", {
     port: config.redisPort || 6379,
     db: config.redisIndex || 0,
     password: config.redisPassword || null
-  }
+  },
+  prefix: config.jobsPrefix || "bull"
 });
 
 registrationEmailQueue.process(async (job, done) => {

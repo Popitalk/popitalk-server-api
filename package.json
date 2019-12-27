@@ -28,7 +28,7 @@
     "db-create": "node ./tools/createDb.js",
     "db-drop": "node ./tools/dropDb.js",
     "db-seed": "node ./src/database/seeds/index.js",
-    "redis-flush": "node ./tools/flushRedis.js",
+    "redis-flush": "redis-cli --scan --pattern 'playnows*' | xargs redis-cli unlink",
     "db-reset": "run-s migrate-down migrate-up redis-flush",
     "db-reset2": "run-s db-reset db-seed",
     "reset": "node ./tools/reset.js"

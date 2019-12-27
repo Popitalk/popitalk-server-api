@@ -56,7 +56,10 @@ if (config.mode !== "testing") {
       secret: config.sessionSecret || "S34KR1T",
       resave: true,
       saveUninitialized: false,
-      store: new (RedisStore(session))({ client: redis })
+      store: new (RedisStore(session))({
+        client: redis,
+        prefix: (config.sessionPrefix && `${config.sessionPrefix}:`) || "sess:"
+      })
     })
   );
 }
