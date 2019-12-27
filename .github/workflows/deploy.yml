@@ -20,6 +20,6 @@ jobs:
             pm2 delete playnows-server
             git pull
             npm install
-            npm run db-reset
+            npm run db-reset2
             env NODE_ENV=production pm2 start ./src/index.js --name "playnows-server"
             exit

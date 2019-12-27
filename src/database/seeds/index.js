@@ -1,9 +1,12 @@
+/* eslint-disable no-param-reassign */
+/* eslint-disable no-return-assign */
 const bcrypt = require("bcryptjs");
+const faker = require("faker");
+const allSettled = require("promise.allsettled");
+const { format } = require("date-fns");
 const database = require("../../config/database");
 const logger = require("../../config/logger");
 const addUser = require("../queries/addUser");
-const addGuild = require("../queries/addGuild");
-const addMember = require("../queries/addMember");
 
 async function seedDb() {
   logger.debug("Seeding database...");
@@ -15,111 +18,20 @@ async function seedDb() {
   try {
     await client.query("BEGIN");
 
-    const user1 = await addUser(
-      {
-        username: "user1",
-        password,
-        email: "abc1@gmail.com"
-      },
-      client
-    );
-    const user2 = await addUser(
-      {
-        username: "user2",
-        password,
-        email: "abc2@gmail.com"
-      },
-      client
-    );
-    const user3 = await addUser(
-      {
-        username: "user3",
-        password,
-        email: "abc3@gmail.com"
-      },
-      client
-    );
-    const user4 = await addUser(
-      {
-        username: "user4",
-        password,
-        email: "abc4@gmail.com"
-      },
-      client
-    );
-    const user5 = await addUser(
-      {
-        username: "user5",
-        password,
-        email: "abc5@gmail.com"
-      },
-      client
-    );
+    const usersSeed = Array.from({ length: 2000 }).map(() => ({
+      firstName: faker.name.firstName(),
+      lastName: faker.name.lastName(),
+      username: faker.internet.userName(),
+      password,
+      email: faker.internet.email(),
+      dateOfBirth: format(
+        faker.date.between("1950-01-01", "2000-01-01"),
+        "yyyy-MM-dd"
+      ),
+      avatar: faker.image.avatar()
+    }));
 
-    const guild1 = await addGuild(
-      {
-        name: "someGuild",
-        ownerId: user1.id
-      },
-      client
-    );
-    const guild2 = await addGuild(
-      {
-        name: "other",
-        ownerId: user2.id
-      },
-      client
-    );
-
-    await addMember(
-      {
-        guildId: guild1.id,
-        userId: user1.id
-      },
-      client
-    );
-    await addMember(
-      {
-        guildId: guild1.id,
-        userId: user2.id
-      },
-      client
-    );
-    await addMember(
-      {
-        guildId: guild1.id,
-        userId: user3.id
-      },
-      client
-    );
-    await addMember(
-      {
-        guildId: guild2.id,
-        userId: user1.id
-      },
-      client
-    );
-    await addMember(
-      {
-        guildId: guild2.id,
-        userId: user2.id
-      },
-      client
-    );
-    await addMember(
-      {
-        guildId: guild2.id,
-        userId: user4.id
-      },
-      client
-    );
-    await addMember(
-      {
-        guildId: guild2.id,
-        userId: user5.id
-      },
-      client
-    );
+    await allSettled(usersSeed.map(user => addUser(user, client)));
 
     await client.query("COMMIT");
 
