@@ -17,7 +17,6 @@ jobs:
           script_stop: true
           script: |
             cd projects/playnows-server/
-            pm2 delete playnows-server
             git pull
             npm install
             npm run db-reset
