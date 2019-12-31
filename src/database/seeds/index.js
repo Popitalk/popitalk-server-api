@@ -16,9 +16,7 @@ async function seedDb() {
   const password = await bcrypt.hash("password", 10);
 
   try {
-    await client.query("BEGIN");
-
-    const usersSeed = Array.from({ length: 2000 }).map(() => ({
+    const usersSeed = Array.from({ length: 100000 }).map(() => ({
       firstName: faker.name.firstName(),
       lastName: faker.name.lastName(),
       username: faker.internet.userName(),
@@ -31,13 +29,41 @@ async function seedDb() {
       avatar: faker.image.avatar()
     }));
 
-    await allSettled(usersSeed.map(user => addUser(user, client)));
+    logger.debug("Generated users seed.");
 
-    await client.query("COMMIT");
+    await allSettled(
+      usersSeed.map(user =>
+        client.query(
+          /* SQL */ `
+      INSERT INTO
+      users
+        (
+          first_name,
+          last_name,
+          username,
+          date_of_birth,
+          password,
+          avatar,
+          email
+        )
+    VALUES
+      ($1, $2, $3, $4, $5, $6, $7)
+      `,
+          [
+            user.firstName,
+            user.lastName,
+            user.username,
+            user.dateOfBirth,
+            user.password,
+            user.avatar,
+            user.email
+          ]
+        )
+      )
+    );
 
     logger.debug("Seeded database.");
   } catch (error) {
-    await client.query("ROLLBACK");
     logger.error(error);
   } finally {
     await client.release();

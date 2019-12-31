@@ -36,7 +36,7 @@ const getSqlFilesStr = async () => {
   // TRIGGERS
   await concatFolderFiles("triggers");
   // INDICES
-  // await concatFolderFiles("indices");
+  await concatFolderFiles("indices");
 
   return sqlFiles;
 };

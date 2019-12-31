@@ -40,6 +40,7 @@ module.exports = async (
 
     return response;
   } catch (error) {
+    console.log("HELLO");
     throw createDatabaseError(error);
   }
 };
