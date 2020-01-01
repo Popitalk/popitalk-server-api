@@ -22,9 +22,7 @@ router.get(
     const { userId } = req.params;
 
     try {
-      const user = await getUser({
-        id: userId
-      });
+      const user = await getUser({ userId });
 
       if (!user) throw new ApiError(`User with id ${userId} not found`, 404);
 

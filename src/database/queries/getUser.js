@@ -3,7 +3,7 @@ const database = require("../../config/database");
 const createDatabaseError = require("../../helpers/createDatabaseError");
 
 module.exports = async (
-  { id, username, email, usernameOrEmail, withPassword },
+  { userId, username, email, usernameOrEmail, withPassword },
   db = database
 ) => {
   try {
@@ -17,18 +17,25 @@ module.exports = async (
       .select("email")
       .select("email_verified AS emailVerified")
       .select("created_at AS createdAt")
-      .from("users");
+      .from("users")
+      .whereNull("deleted_at");
 
     if (usernameOrEmail) {
-      query
-        .where("username", usernameOrEmail)
-        .orWhere("email", usernameOrEmail);
-    } else if (id) {
-      query.where("id", id);
+      query.andWhereRaw(
+        /* SQL */ `
+      (username = ? OR email = ?)
+      `,
+        [usernameOrEmail, usernameOrEmail]
+      );
+      // query
+      //   .andWhere("username", usernameOrEmail)
+      //   .orWhere("email", usernameOrEmail);
+    } else if (userId) {
+      query.andWhere("id", userId);
     } else if (username) {
-      query.where("username", username);
+      query.andWhere("username", username);
     } else if (email) {
-      query.where("email", email);
+      query.andWhere("email", email);
     }
 
     if (withPassword) {

@@ -6,8 +6,6 @@ const addUser = require("../../../database/queries/addUser");
 const config = require("../../../config");
 const { ApiError, DatabaseError } = require("../../../helpers/errors");
 
-// const cutoffDate = new Date(new Date() - 1000 * 60 * 60 * 24 * 365 * 13);
-
 router.post(
   "/",
   celebrate({
@@ -87,7 +85,6 @@ router.post(
           next(new ApiError(undefined, undefined, error));
         }
       } else {
-        // console.log("LOL");
         next(error);
       }
     }
