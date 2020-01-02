@@ -10,7 +10,7 @@ const getUser = require("../../../database/queries/getUser");
 const updateUser = require("../../../database/queries/updateUser");
 // const { publisher } = require("../../../config/pubSub");
 // const { USER_UPDATE } = require("../../../config/constants");
-// const { uploadFile } = require("../../../config/aws");
+const { uploadFile } = require("../../../config/aws");
 const multer = require("../../../helpers/middleware/multer");
 
 router.put(
@@ -93,19 +93,19 @@ router.put(
       }
 
       if (avatar) {
-        // const { buffer } = avatar;
-        // const type = fileType(buffer);
-        // const fileName = `avatar-${id}`;
-        // const uploadedImage = await uploadFile(buffer, fileName, type);
+        const { buffer } = avatar;
+        const type = fileType(buffer);
+        const fileName = `avatar-${userId}_${new Date().getTime()}`;
+        const uploadedImage = await uploadFile(buffer, fileName, type);
 
-        // if (!uploadedImage) throw new ApiError(`Couldn't upload avatar`, 500);
+        if (!uploadedImage) throw new ApiError(`Couldn't upload avatar`, 500);
 
-        // uploadedAvatar = uploadedImage.Location;
-        uploadedAvatar = faker.image.avatar();
+        uploadedAvatar = uploadedImage.Location;
+        // uploadedAvatar = faker.image.avatar();
       }
 
       const newUser = await updateUser({
-        id,
+        userId,
         firstName,
         lastName,
         dateOfBirth,

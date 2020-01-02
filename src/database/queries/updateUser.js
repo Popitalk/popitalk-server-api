@@ -4,7 +4,7 @@ const createDatabaseError = require("../../helpers/createDatabaseError");
 
 module.exports = async (
   {
-    id,
+    userId,
     firstName,
     lastName,
     dateOfBirth,
@@ -28,7 +28,7 @@ module.exports = async (
         updated_at: knex.raw("NOW()")
       })
       .from("users")
-      .where("id", id)
+      .where("id", userId)
       .returning([
         "id",
         "first_name AS firstName",
