@@ -115,7 +115,8 @@ router.put(
         removeAvatar
       });
 
-      if (!newUser) throw new ApiError(`User with id of ${id} not found`, 404);
+      if (!newUser)
+        throw new ApiError(`User with id of ${userId} not found`, 404);
 
       res.status(200).json(newUser);
     } catch (error) {
