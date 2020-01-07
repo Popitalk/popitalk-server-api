@@ -1,20 +1,13 @@
 const database = require("../../config/database");
 const createDatabaseError = require("../../helpers/createDatabaseError");
 
-module.exports = async ({ guildId, userId }, db = database) => {
+module.exports = async ({ userId1, userId2, type }, db = database) => {
   try {
     const response = (
       await db.query(
         /* SQL */ `
-    DELETE FROM
-      members
-    WHERE
-      members.guild_id = $1
-      AND members.user_id = $2
-    RETURNING
-      guild_id AS "guildId",
-      user_id AS "userId"`,
-        [guildId, userId]
+    SELECT update_user_relationship($1, $2, $3)`,
+        [userId1, userId2, type]
       )
     ).rows[0];
 

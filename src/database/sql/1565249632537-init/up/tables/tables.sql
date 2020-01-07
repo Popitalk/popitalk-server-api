@@ -28,19 +28,36 @@ CREATE TABLE email_verification_tokens (
   PRIMARY KEY (user_id, verification_token)
 );
 
+CREATE TABLE user_relationships (
+  first_user_id UUID NOT NULL REFERENCES users(id),
+  second_user_id UUID NOT NULL REFERENCES users(id),
+  type TEXT NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  PRIMARY KEY (first_user_id, second_user_id),
+  CONSTRAINT unique_user_pairs CHECK(first_user_id < second_user_id),
+  CONSTRAINT bounded_type CHECK(
+    type = 'pending_first_second'
+    OR type = 'pending_second_first'
+    OR type = 'friends'
+    OR type = 'block_first_second'
+    OR type = 'block_second_first'
+    OR type = 'block_both')
+);
+
 CREATE TABLE friends (
   first_user_id UUID NOT NULL REFERENCES users(id),
   second_user_id UUID NOT NULL REFERENCES users(id),
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  PRIMARY KEY (first_user_id, second_user_id)
+  PRIMARY KEY (first_user_id, second_user_id),
+  CONSTRAINT not_friends_with_self CHECK(first_user_id != second_user_id),
+  CONSTRAINT unique_friend_pairs CHECK(first_user_id > second_user_id)
 );
 
 CREATE TABLE friend_requests (
   sender_id UUID NOT NULL REFERENCES users(id),
   receiver_id UUID NOT NULL REFERENCES users(id),
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   PRIMARY KEY (sender_id, receiver_id)
 );
 

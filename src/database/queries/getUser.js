@@ -3,7 +3,7 @@ const database = require("../../config/database");
 const createDatabaseError = require("../../helpers/createDatabaseError");
 
 module.exports = async (
-  { userId, username, email, usernameOrEmail, withPassword },
+  { userId, username, email, usernameOrEmail, withPassword, withFriends },
   db = database
 ) => {
   try {
@@ -27,9 +27,6 @@ module.exports = async (
       `,
         [usernameOrEmail, usernameOrEmail]
       );
-      // query
-      //   .andWhere("username", usernameOrEmail)
-      //   .orWhere("email", usernameOrEmail);
     } else if (userId) {
       query.andWhere("id", userId);
     } else if (username) {

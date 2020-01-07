@@ -6,5 +6,6 @@ router.use(require("./searchUsers"));
 // router.use(require("./verifyEmail"));
 router.use(require("./updateUser"));
 router.use(require("./deleteUser"));
+router.use(require("./updateUserRelationships"));
 
 module.exports = router;
