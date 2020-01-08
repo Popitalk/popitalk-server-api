@@ -13,7 +13,7 @@ const formatUsersAndRelationships = (id, relationships) => {
   };
 
   relationships.forEach(relationship => {
-    if (relationship.type === "friends") {
+    if (relationship.type === "friend_both") {
       fuar.relationships.friends.push(
         notMe(relationship.firstUserId, relationship.secondUserId)
       );
@@ -30,9 +30,9 @@ const formatUsersAndRelationships = (id, relationships) => {
         relationship.userInfo;
     } else if (
       (id === relationship.firstUserId &&
-        relationship.type === "pending_first_second") ||
+        relationship.type === "friend_first_second") ||
       (id === relationship.secondUserId &&
-        relationship.type === "pending_second_first")
+        relationship.type === "friend_second_first")
     ) {
       fuar.relationships.sentFriendRequests.push(
         notMe(relationship.firstUserId, relationship.secondUserId)
@@ -41,9 +41,9 @@ const formatUsersAndRelationships = (id, relationships) => {
         relationship.userInfo;
     } else if (
       (id === relationship.firstUserId &&
-        relationship.type === "pending_second_first") ||
+        relationship.type === "friend_second_first") ||
       (id === relationship.secondUserId &&
-        relationship.type === "pending_first_second")
+        relationship.type === "friend_first_second")
     ) {
       fuar.relationships.receivedFriendRequests.push(
         notMe(relationship.firstUserId, relationship.secondUserId)

@@ -16,7 +16,7 @@ router.put(
           .uuid()
           .required(),
         type: Joi.string()
-          .valid("friend", "reject", "block", "unblock")
+          .valid("friend", "unfriend", "block", "unblock")
           .required()
       })
       .required()

@@ -26,7 +26,7 @@ const getSqlFilesStr = async () => {
   // EXTENSIONS
   await concatFolderFiles("extensions");
   // FUNCTIONS
-  // await concatFolderFiles("functions");
+  await concatFolderFiles("functions");
   // TABLES
   await concatFolderFiles("tables");
   // VIEWS

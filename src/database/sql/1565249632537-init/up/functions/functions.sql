@@ -21,19 +21,19 @@ BEGIN
     OR (ur.first_user_id = to_user AND ur.second_user_id = from_user);
 
   IF (type = 'friend') THEN
-    IF (old_type = 'pending_first_second' AND from_user = old_second_user_id) THEN
+    IF (old_type = 'friend_first_second' AND from_user = old_second_user_id) THEN
       UPDATE
         user_relationships
       SET
-        type = 'friends',
+        type = 'friend_both',
         updated_at = NOW()
       WHERE
         first_user_id = to_user AND second_user_id = from_user;
-    ELSIF (old_type = 'pending_second_first' AND from_user = old_first_user_id) THEN
+    ELSIF (old_type = 'friend_second_first' AND from_user = old_first_user_id) THEN
       UPDATE
         user_relationships
       SET
-        type = 'friends',
+        type = 'friend_both',
         updated_at = NOW()
       WHERE
         first_user_id = from_user AND second_user_id = to_user;
@@ -47,37 +47,47 @@ BEGIN
           WHEN
             from_user < to_user
           THEN
-            'pending_first_second'
+            'friend_first_second'
           ELSE
-            'pending_second_first'
+            'friend_second_first'
         END
       );
     ELSE
-      RAISE NOTICE 'cant add friend';
+      RAISE NOTICE 'cant friend';
     END IF;
-  ELSIF (type = 'reject') THEN
-    IF (old_type = 'pending_first_second' AND from_user = old_second_user_id) THEN
+  ELSIF (type = 'unfriend') THEN
+    IF (old_type = 'friend_first_second' AND from_user = old_first_user_id) THEN
+      DELETE FROM
+        user_relationships
+      WHERE
+        first_user_id = from_user AND second_user_id = to_user;
+    ELSIF (old_type = 'friend_first_second' AND from_user = old_second_user_id) THEN
       DELETE FROM
         user_relationships
       WHERE
         first_user_id = to_user AND second_user_id = from_user;
-    ELSIF (old_type = 'pending_second_first' AND from_user = old_first_user_id) THEN
+    ELSIF (old_type = 'friend_second_first' AND from_user = old_first_user_id) THEN
       DELETE FROM
         user_relationships
       WHERE
         first_user_id = from_user AND second_user_id = to_user;
-    ELSIF (old_type = 'friends' AND from_user = old_first_user_id) THEN
+    ELSIF (old_type = 'friend_second_first' AND from_user = old_second_user_id) THEN
+      DELETE FROM
+        user_relationships
+      WHERE
+        first_user_id = to_user AND second_user_id = from_user;
+    ELSIF (old_type = 'friend_both' AND from_user = old_first_user_id) THEN
       DELETE FROM
         user_relationships
       WHERE
         first_user_id = from_user AND second_user_id = to_user;
-    ELSIF (old_type = 'friends' AND from_user = old_second_user_id) THEN
+    ELSIF (old_type = 'friend_both' AND from_user = old_second_user_id) THEN
       DELETE FROM
         user_relationships
       WHERE
         first_user_id = to_user AND second_user_id = from_user;
     ELSE
-      RAISE NOTICE 'cant reject friend request';
+      RAISE NOTICE 'cant unfriend';
     END IF;
   ELSIF (type = 'block') THEN
     IF (old_type = 'block_first_second' AND from_user = old_second_user_id) THEN
@@ -128,7 +138,7 @@ BEGIN
         END
       );
     ELSE
-      RAISE NOTICE 'cant block user';
+      RAISE NOTICE 'cant block';
     END IF;
   ELSIF (type = 'unblock') THEN
     IF (old_type = 'block_first_second' AND from_user = old_first_user_id) THEN
@@ -158,7 +168,7 @@ BEGIN
       WHERE
         first_user_id = from_user AND second_user_id = to_user;
     ELSE
-      RAISE NOTICE 'cant unblock user';
+      RAISE NOTICE 'cant unblock';
     END IF;
   END IF;
 
