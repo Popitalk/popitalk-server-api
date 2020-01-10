@@ -1,20 +1,23 @@
 const database = require("../../config/database");
 const createDatabaseError = require("../../helpers/createDatabaseError");
 
-module.exports = async ({ firstUserId, secondUserId, type }, db = database) => {
+module.exports = async ({ fromUser, toUser }, db = database) => {
   try {
     const response = (
       await db.query(
         /* SQL */ `
-      UPDATE
-        user_relationships
-      SET
-        type = $3,
-        updated_at = NOW()
-      WHERE
-        first_user_id = $1
-        AND second_user_id = $2`,
-        [firstUserId, secondUserId, type]
+    SELECT
+      first_user_id AS "firstUserId",
+      second_user_id AS "secondUserId",
+      type
+    FROM
+      user_relationships
+    WHERE
+      first_user_id = least($1, $2)::UUID
+      AND second_user_id = greatest($1, $2)::UUID
+
+      `,
+        [fromUser, toUser]
       )
     ).rows[0];
 

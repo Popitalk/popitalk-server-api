@@ -3,6 +3,7 @@ const LocalStrategy = require("passport-local").Strategy;
 const bcrypt = require("bcryptjs");
 const getUser = require("../database/queries/getUser");
 const getUsersAndRelationships = require("../database/queries/getUsersAndRelationships");
+const getChannels = require("../database/queries/getChannels");
 const formatUsersAndRelationships = require("../helpers/formatUsersAndRelationships");
 
 passport.use(
@@ -10,7 +11,9 @@ passport.use(
     { usernameField: "usernameOrEmail", passwordField: "password" },
     async (usernameOrEmail, password, done) => {
       try {
-        let response;
+        let response = {
+          users: {}
+        };
 
         const user = await getUser({
           usernameOrEmail,
@@ -29,18 +32,39 @@ passport.use(
           userId: user.id
         });
 
+        response = {
+          ...user,
+          ...response
+        };
+
         if (usersAndRelationships) {
           const formattedUsersAndRelationships = formatUsersAndRelationships(
             user.id,
             usersAndRelationships
           );
           response = {
-            ...user,
+            ...response,
             relationships: formattedUsersAndRelationships.relationships,
             users: formattedUsersAndRelationships.users
           };
-        } else {
-          response = user;
+        }
+
+        const { roomsAndChannels } = await getChannels({ userId: user.id });
+
+        if (roomsAndChannels) {
+          Object.entries(roomsAndChannels.rooms).forEach(([roomId, room]) => {
+            const usersIds = Object.keys(room.users);
+            response.users = {
+              ...response.users,
+              ...room.users
+            };
+            roomsAndChannels.rooms[roomId].users = usersIds;
+          });
+          response = {
+            ...response,
+            channels: roomsAndChannels.channels || {},
+            rooms: roomsAndChannels.rooms || {}
+          };
         }
 
         return done(null, response);
@@ -55,14 +79,19 @@ passport.serializeUser((user, done) => done(null, user.id));
 
 passport.deserializeUser(async (id, done) => {
   try {
+    let response;
+
     const user = await getUser({ userId: id });
 
     if (user) {
-      let response;
-
       const usersAndRelationships = await getUsersAndRelationships({
         userId: user.id
       });
+
+      response = {
+        ...user,
+        ...response
+      };
 
       if (usersAndRelationships) {
         const formattedUsersAndRelationships = formatUsersAndRelationships(
@@ -70,12 +99,28 @@ passport.deserializeUser(async (id, done) => {
           usersAndRelationships
         );
         response = {
-          ...user,
+          ...response,
           relationships: formattedUsersAndRelationships.relationships,
           users: formattedUsersAndRelationships.users
         };
-      } else {
-        response = user;
+      }
+
+      const { roomsAndChannels } = await getChannels({ userId: user.id });
+
+      if (roomsAndChannels) {
+        Object.entries(roomsAndChannels.rooms).forEach(([roomId, room]) => {
+          const usersIds = Object.keys(room.users);
+          response.users = {
+            ...response.users,
+            ...room.users
+          };
+          roomsAndChannels.rooms[roomId].users = usersIds;
+        });
+        response = {
+          ...response,
+          channels: roomsAndChannels.channels || {},
+          rooms: roomsAndChannels.rooms || {}
+        };
       }
 
       return done(null, response);

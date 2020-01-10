@@ -1,20 +1,18 @@
 const database = require("../../config/database");
 const createDatabaseError = require("../../helpers/createDatabaseError");
 
-module.exports = async ({ firstUserId, secondUserId, type }, db = database) => {
+module.exports = async ({ channelId }, db = database) => {
   try {
     const response = (
       await db.query(
         /* SQL */ `
-      UPDATE
-        user_relationships
-      SET
-        type = $3,
-        updated_at = NOW()
-      WHERE
-        first_user_id = $1
-        AND second_user_id = $2`,
-        [firstUserId, secondUserId, type]
+    DELETE FROM
+      channels
+    WHERE
+      id = $1
+    RETURNING
+      id`,
+        [channelId]
       )
     ).rows[0];
 

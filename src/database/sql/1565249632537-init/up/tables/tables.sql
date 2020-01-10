@@ -45,30 +45,6 @@ CREATE TABLE user_relationships (
     OR type = 'block_both')
 );
 
-CREATE TABLE friends (
-  first_user_id UUID NOT NULL REFERENCES users(id),
-  second_user_id UUID NOT NULL REFERENCES users(id),
-  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  PRIMARY KEY (first_user_id, second_user_id),
-  CONSTRAINT not_friends_with_self CHECK(first_user_id != second_user_id),
-  CONSTRAINT unique_friend_pairs CHECK(first_user_id > second_user_id)
-);
-
-CREATE TABLE friend_requests (
-  sender_id UUID NOT NULL REFERENCES users(id),
-  receiver_id UUID NOT NULL REFERENCES users(id),
-  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  PRIMARY KEY (sender_id, receiver_id)
-);
-
-CREATE TABLE blocked_users (
-  blocker_id UUID NOT NULL REFERENCES users(id),
-  blocked_id UUID NOT NULL REFERENCES users(id),
-  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  PRIMARY KEY (blocker_id, blocked_id)
-);
-
 CREATE TABLE categories (
   name CITEXT NOT NULL PRIMARY KEY,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -79,14 +55,14 @@ CREATE TABLE categories (
 CREATE TABLE channels (
   id UUID NOT NULL DEFAULT uuid_generate_v4() PRIMARY KEY,
   type TEXT NOT NULL,
-  name TEXT NOT NULL,
+  name TEXT,
   description TEXT,
   icon TEXT,
-  private BOOLEAN NOT NULL,
+  public BOOLEAN NOT NULL DEFAULT FALSE,
   owner_id UUID REFERENCES users(id) ON UPDATE CASCADE ON DELETE CASCADE,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  CONSTRAINT bounded_type CHECK(type = 'dm_room' OR type = 'group_room' OR type = 'channel'),
+  CONSTRAINT bounded_type CHECK(type = 'room' OR type = 'channel'),
   CONSTRAINT name_length CHECK(length(name) >= 3 AND length(name) <= 20),
   CONSTRAINT description_length CHECK(description IS NULL OR (length(description) >= 1 AND length(description) <= 150)),
   CONSTRAINT channel_owner CHECK(
@@ -99,15 +75,23 @@ CREATE TABLE channels (
   ),
   CONSTRAINT private_room CHECK(
     CASE
-      WHEN (type = 'dm_room' OR type = 'group_room') THEN
-        private = FALSE
+      WHEN (type = 'room') THEN
+        public = FALSE
+      ELSE
+        TRUE
+    END
+  ),
+  CONSTRAINT no_nameless_channel CHECK(
+    CASE
+      WHEN (type = 'channel') THEN
+        name IS NOT NULL
       ELSE
         TRUE
     END
   ),
   CONSTRAINT no_room_description CHECK(
     CASE
-      WHEN (type = 'dm_room' OR type = 'group_room') THEN
+      WHEN (type = 'room') THEN
         description IS NULL
       ELSE
         TRUE

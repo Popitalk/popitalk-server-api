@@ -1,24 +1,19 @@
 const database = require("../../config/database");
 const createDatabaseError = require("../../helpers/createDatabaseError");
 
-module.exports = async ({ firstUser, secondUser }, db = database) => {
+module.exports = async ({ firstUserId, secondUserId }, db = database) => {
   try {
     const response = (
       await db.query(
         /* SQL */ `
-    INSERT INTO
-      friends
-        (
-          first_user_id,
-          second_user_id
-        )
-    VALUES
-      ($1, $2)
+    DELETE FROM
+      user_relationships
+    WHERE
+      first_user_id = $1
+      AND second_user_id = $2
     RETURNING
-      first_user_id AS "firstUserId",
-      second_user_id AS "secondUserId",
-      created_at AS "createdAt"`,
-        [firstUser, secondUser]
+      1`,
+        [firstUserId, secondUserId]
       )
     ).rows[0];
 
