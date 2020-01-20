@@ -49,21 +49,25 @@ passport.use(
           };
         }
 
-        const { roomsAndChannels } = await getChannels({ userId: user.id });
+        const { channels } = await getChannels({ userId: user.id });
 
-        if (roomsAndChannels) {
-          Object.entries(roomsAndChannels.rooms).forEach(([roomId, room]) => {
-            const usersIds = Object.keys(room.users);
-            response.users = {
-              ...response.users,
-              ...room.users
-            };
-            roomsAndChannels.rooms[roomId].users = usersIds;
+        if (channels) {
+          Object.entries(channels).forEach(([channelId, channel]) => {
+            if (channel.users) {
+              const usersIds = Object.keys(channel.users);
+
+              response.users = {
+                ...response.users,
+                ...channel.users
+              };
+
+              channels[channelId].users = usersIds;
+            }
           });
+
           response = {
             ...response,
-            channels: roomsAndChannels.channels || {},
-            rooms: roomsAndChannels.rooms || {}
+            channels
           };
         }
 
@@ -105,21 +109,25 @@ passport.deserializeUser(async (id, done) => {
         };
       }
 
-      const { roomsAndChannels } = await getChannels({ userId: user.id });
+      const { channels } = await getChannels({ userId: user.id });
 
-      if (roomsAndChannels) {
-        Object.entries(roomsAndChannels.rooms).forEach(([roomId, room]) => {
-          const usersIds = Object.keys(room.users);
-          response.users = {
-            ...response.users,
-            ...room.users
-          };
-          roomsAndChannels.rooms[roomId].users = usersIds;
+      if (channels) {
+        Object.entries(channels).forEach(([channelId, channel]) => {
+          if (channel.users) {
+            const usersIds = Object.keys(channel.users);
+
+            response.users = {
+              ...response.users,
+              ...channel.users
+            };
+
+            channels[channelId].users = usersIds;
+          }
         });
+
         response = {
           ...response,
-          channels: roomsAndChannels.channels || {},
-          rooms: roomsAndChannels.rooms || {}
+          channels
         };
       }
 

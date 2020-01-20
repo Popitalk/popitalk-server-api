@@ -6,29 +6,12 @@ module.exports = async ({ userId }, db = database) => {
     const response = (
       await db.query(
         /* SQL */ `
-      SELECT
-      JSON_STRIP_NULLS(
-      JSON_OBJECT_AGG(
-          (
-            CASE
-              WHEN
-                ch.type = 'channel'
-              THEN
-                'channels'
-              ELSE
-                'rooms'
-            END
-          ),
-          ch.info
-        )
-      ) AS "roomsAndChannels"
-      FROM
-      (
         SELECT
-          channels.type,
           JSON_OBJECT_AGG(
             channels.id,
             JSON_BUILD_OBJECT(
+              'type',
+              channels.type,
               'name',
               channels.name,
               'description',
@@ -85,7 +68,7 @@ module.exports = async ({ userId }, db = database) => {
                 END
               )
             )
-          ) AS info
+          ) AS channels
         FROM
           channels
         JOIN
@@ -93,9 +76,7 @@ module.exports = async ({ userId }, db = database) => {
         ON
           channels.id = members.channel_id
           AND members.user_id = $1
-        GROUP BY
-          channels.type
-      ) AS ch`,
+      `,
         [userId]
       )
     ).rows[0];
