@@ -2,11 +2,11 @@ const knex = require("../../config/knex");
 const database = require("../../config/database");
 const createDatabaseError = require("../../helpers/createDatabaseError");
 
-module.exports = async ({ roomId, userId, name }, db = database) => {
+module.exports = async ({ roomId, userId, name, resetName }, db = database) => {
   try {
     const query = knex
       .update({
-        name,
+        name: resetName ? null : name,
         updated_at: knex.raw("NOW()")
       })
       .from("channels")

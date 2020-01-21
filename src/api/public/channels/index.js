@@ -4,5 +4,6 @@ router.use(require("./getChannel"));
 router.use(require("./addRoom"));
 router.use(require("./inviteFriends"));
 router.use(require("./updateRoom"));
+router.use(require("./leaveRoom"));
 
 module.exports = router;

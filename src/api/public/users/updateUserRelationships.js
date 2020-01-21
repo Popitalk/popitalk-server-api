@@ -69,7 +69,7 @@ router.put(
             { firstUserId, secondUserId, type: friendBoth },
             client
           );
-          const room = await addChannel({ type: "room" }, client);
+          const room = await addChannel({ type: "friend" }, client);
           await addMembers(
             { channelId: room.id, userIds: [firstUserId, secondUserId] },
             client

@@ -3,52 +3,46 @@ const { celebrate, Joi } = require("celebrate");
 const { ApiError, DatabaseError } = require("../../../helpers/errors");
 const { cache } = require("../../../helpers/middleware/cache");
 const authenticateUser = require("../../../helpers/middleware/authenticateUser");
-const addChannel = require("../../../database/queries/addRoom");
-const addMembers = require("../../../database/queries/addMembers");
+const deleteMember = require("../../../database/queries/deleteMember");
+const getMemberIds = require("../../../database/queries/getMemberIds");
+const deleteChannel = require("../../../database/queries/deleteChannel");
 const database = require("../../../config/database");
 
-router.post(
-  "/room",
+router.delete(
+  "/rooms/:roomId",
   // cache,
   authenticateUser,
   celebrate({
-    body: Joi.object()
+    params: Joi.object()
       .keys({
-        userIds: Joi.array()
-          .items(
-            Joi.string()
-              .uuid()
-              .required()
-          )
-          .min(2)
-          .max(19)
-          .unique()
+        roomId: Joi.string()
+          .uuid()
           .required()
       })
       .required()
   }),
   async (req, res, next) => {
     const { id: userId } = req.user;
-    const { userIds } = req.body;
+    const { roomId: channelId } = req.params;
 
     const client = await database.connect();
     try {
       await client.query("BEGIN");
-      const newUserIds = [userId, ...userIds];
-      const newRoom = await addChannel({ type: "group" }, client);
 
-      if (!newRoom) throw new ApiError();
+      const deletedMember = await deleteMember({ channelId, userId }, client);
 
-      const newMembers = await addMembers(
-        { channelId: newRoom.id, userIds: newUserIds },
-        client
-      );
+      if (!deletedMember) throw new ApiError();
+
+      const members = await getMemberIds({ channelId }, client);
+
+      if (!members) {
+        const deletedChannel = await deleteChannel({ channelId }, client);
+
+        if (!deletedChannel) throw new ApiError();
+      }
 
       await client.query("COMMIT");
-      res.status(201).json({
-        ...newRoom,
-        users: newMembers.map(member => member.userId)
-      });
+      res.status(204).json({});
     } catch (error) {
       await client.query("ROLLBACK");
       if (error instanceof DatabaseError) {

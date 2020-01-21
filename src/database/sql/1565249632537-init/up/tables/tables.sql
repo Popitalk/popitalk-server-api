@@ -62,7 +62,7 @@ CREATE TABLE channels (
   owner_id UUID REFERENCES users(id) ON UPDATE CASCADE ON DELETE CASCADE,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  CONSTRAINT bounded_type CHECK(type = 'room' OR type = 'channel'),
+  CONSTRAINT bounded_type CHECK(type = 'self' OR type = 'friend' OR type = 'group' OR type = 'channel'),
   CONSTRAINT name_length CHECK(length(name) >= 3 AND length(name) <= 20),
   CONSTRAINT description_length CHECK(description IS NULL OR (length(description) >= 1 AND length(description) <= 150)),
   CONSTRAINT channel_owner CHECK(
@@ -75,7 +75,7 @@ CREATE TABLE channels (
   ),
   CONSTRAINT private_room CHECK(
     CASE
-      WHEN (type = 'room') THEN
+      WHEN (type != 'channel') THEN
         public = FALSE
       ELSE
         TRUE
@@ -91,7 +91,7 @@ CREATE TABLE channels (
   ),
   CONSTRAINT no_room_description CHECK(
     CASE
-      WHEN (type = 'room') THEN
+      WHEN (type != 'channel') THEN
         description IS NULL
       ELSE
         TRUE

@@ -9,7 +9,7 @@ module.exports = async ({ userIds }, db = database) => {
       INSERT INTO
         channels (type)
       SELECT
-        'room'
+        'group'
       WHERE
         NOT EXISTS (
           SELECT

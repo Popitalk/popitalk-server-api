@@ -28,7 +28,7 @@ module.exports = async ({ userId }, db = database) => {
               (
                 CASE
                   WHEN
-                    channels.type = 'room'
+                    channels.type != 'channel'
                   THEN
                     (
                       SELECT

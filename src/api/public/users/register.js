@@ -3,8 +3,11 @@ const bcrypt = require("bcryptjs");
 const { celebrate, Joi } = require("celebrate");
 const { sendRegistrationEmail } = require("../../../config/jobs");
 const addUser = require("../../../database/queries/addUser");
+const addChannel = require("../../../database/queries/addChannel");
+const addMembers = require("../../../database/queries/addMembers");
 const config = require("../../../config");
 const { ApiError, DatabaseError } = require("../../../helpers/errors");
+const database = require("../../../config/database");
 
 router.post(
   "/",
@@ -49,27 +52,54 @@ router.post(
       password
     } = req.body;
 
+    const client = await database.connect();
+
     try {
+      await client.query("BEGIN");
       const hashedPassword = await bcrypt.hash(password, 10);
 
-      const newUser = await addUser({
-        firstName,
-        lastName,
-        username,
-        dateOfBirth,
-        password: hashedPassword,
-        email
-      });
+      const newUser = await addUser(
+        {
+          firstName,
+          lastName,
+          username,
+          dateOfBirth,
+          password: hashedPassword,
+          email
+        },
+        client
+      );
 
       if (!newUser) throw new ApiError();
+
+      const newChannel = await addChannel({ type: "self" }, client);
+
+      if (!newChannel) throw new ApiError();
+
+      const newMember = await addMembers(
+        { channelId: newChannel.id, userIds: [newUser.id] },
+        client
+      );
+
+      if (!newMember) throw new ApiError();
 
       if (!config.benchmark) {
         await sendRegistrationEmail(email);
       }
 
       res.location(`${req.baseUrl}/${newUser.id}`);
+      await client.query("COMMIT");
       res.status(201).json(newUser);
+      // res.status(201).json({
+      //   ...newUser,
+      //   channels: {
+      //     [newChannel.id]: {
+      //       ...newChannel
+      //     }
+      //   }
+      // });
     } catch (error) {
+      await client.query("ROLLBACK");
       if (error instanceof DatabaseError) {
         if (
           error.codeName === "unique_violation" &&
@@ -87,6 +117,8 @@ router.post(
       } else {
         next(error);
       }
+    } finally {
+      client.release();
     }
   }
 );

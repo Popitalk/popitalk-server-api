@@ -3,7 +3,7 @@ const { celebrate, Joi } = require("celebrate");
 const { ApiError, DatabaseError } = require("../../../helpers/errors");
 const { cache } = require("../../../helpers/middleware/cache");
 const authenticateUser = require("../../../helpers/middleware/authenticateUser");
-const getUsers = require("../../../database/queries/getUsers");
+const getSearchedUsers = require("../../../database/queries/getSearchedUsers");
 
 router.get(
   "",
@@ -22,7 +22,7 @@ router.get(
     const { username } = req.query;
 
     try {
-      const users = await getUsers({ username });
+      const users = await getSearchedUsers({ username });
 
       if (!users) throw new ApiError(`No users found`, 404);
 

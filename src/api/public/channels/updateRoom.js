@@ -22,6 +22,9 @@ router.put(
         name: Joi.string()
           .min(3)
           .max(20)
+          .optional(),
+        resetName: Joi.boolean()
+          .allow(true)
           .optional()
       })
       .required()
@@ -29,13 +32,14 @@ router.put(
   async (req, res, next) => {
     const { id: userId } = req.user;
     const { roomId } = req.params;
-    const { name } = req.body;
+    const { name, resetName } = req.body;
 
     try {
       const updatedRoom = await updateRoom({
         roomId,
         userId,
-        name
+        name,
+        resetName
       });
 
       if (!updatedRoom)
