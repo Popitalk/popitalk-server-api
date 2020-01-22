@@ -7,14 +7,38 @@ module.exports = async ({ channelId }, db = database) => {
       await db.query(
         /* SQL */ `
     SELECT
-      id,
-      type,
-      name,
-      description,
-      icon,
-      public,
-      owner_id AS "ownerId",
-      created_at AS "createdAt",
+      channels.id,
+      channels.type,
+      channels.name,
+      channels.description,
+      channels.icon,
+      channels.public,
+      channels.owner_id AS "ownerId",
+      channels.created_at AS "createdAt",
+      (
+        SELECT
+          messages.id
+        FROM
+          messages
+        WHERE
+          messages.channel_id = channels.id
+        ORDER BY
+          messages.created_at ASC
+        LIMIT
+          1
+      ) AS "firstMessageId",
+      (
+        SELECT
+          messages.created_at
+        FROM
+          messages
+        WHERE
+          messages.channel_id = channels.id
+        ORDER BY
+          messages.created_at DESC
+        LIMIT
+          1
+      ) AS "lastMessageAt",
       (
         SELECT
           JSON_OBJECT_AGG(
@@ -37,7 +61,43 @@ module.exports = async ({ channelId }, db = database) => {
         ON
           members.channel_id = channels.id
           AND members.user_id = users.id
-      ) AS "users"
+      ) AS "users",
+      COALESCE((
+        SELECT
+          JSON_AGG(m ORDER BY "createdAt")
+        FROM
+        (
+          SELECT
+            messages.id,
+            messages.user_id AS "userId",
+            messages.content,
+            messages.upload,
+            messages.created_at AS "createdAt",
+            (
+              SELECT
+                JSON_BUILD_OBJECT(
+                  'id',
+                  users.id,
+                  'username',
+                  users.username,
+                  'avatar',
+                  users.avatar
+                )
+              FROM
+                users
+              WHERE
+                users.id = messages.user_id
+            ) AS "author"
+          FROM
+            messages
+          WHERE
+            messages.channel_id = channels.id
+          ORDER BY
+            messages.created_at DESC
+          LIMIT
+            50
+        ) AS m
+      ), '[]') AS messages
     FROM
       channels
     WHERE
