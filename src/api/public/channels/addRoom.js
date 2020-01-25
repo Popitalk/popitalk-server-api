@@ -3,7 +3,7 @@ const { celebrate, Joi } = require("celebrate");
 const { ApiError, DatabaseError } = require("../../../helpers/errors");
 const { cache } = require("../../../helpers/middleware/cache");
 const authenticateUser = require("../../../helpers/middleware/authenticateUser");
-const addChannel = require("../../../database/queries/addRoom");
+const addChannel = require("../../../database/queries/addChannel");
 const addMembers = require("../../../database/queries/addMembers");
 const database = require("../../../config/database");
 
