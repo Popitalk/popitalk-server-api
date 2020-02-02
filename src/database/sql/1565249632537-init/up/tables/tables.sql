@@ -107,29 +107,24 @@ CREATE TABLE channel_categories (
   PRIMARY KEY (channel_id, category_name)
 );
 
-CREATE TABLE admins (
-  channel_id UUID NOT NULL REFERENCES channels(id) ON UPDATE CASCADE ON DELETE CASCADE,
-  user_id UUID NOT NULL REFERENCES users(id) ON UPDATE CASCADE ON DELETE CASCADE,
-  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  PRIMARY KEY (channel_id, user_id)
-);
-
 CREATE TABLE members (
   channel_id UUID NOT NULL REFERENCES channels(id) ON UPDATE CASCADE ON DELETE CASCADE,
   user_id UUID NOT NULL REFERENCES users(id) ON UPDATE CASCADE ON DELETE CASCADE,
+  admin BOOLEAN NOT NULL DEFAULT FALSE,
+  banned BOOLEAN NOT NULL DEFAULT FALSE,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  PRIMARY KEY (channel_id, user_id)
-);
-
-CREATE TABLE banned_members (
-  channel_id UUID NOT NULL REFERENCES channels(id) ON UPDATE CASCADE ON DELETE CASCADE,
-  banned_id UUID NOT NULL REFERENCES users(id) ON UPDATE CASCADE ON DELETE CASCADE,
-  banner_id UUID NOT NULL REFERENCES users(id) ON UPDATE CASCADE ON DELETE CASCADE,
-  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  PRIMARY KEY (channel_id, banned_id)
+  PRIMARY KEY (channel_id, user_id),
+  CONSTRAINT no_banned_admins CHECK(
+    CASE
+      WHEN
+        admin = TRUE
+      THEN
+        banned = FALSE
+      ELSE
+        TRUE
+    END
+  )
 );
 
 CREATE TABLE videos (
@@ -186,7 +181,7 @@ CREATE TABLE post_likes (
   PRIMARY KEY (post_id, user_id)
 );
 
-CREATE TABLE replies (
+CREATE TABLE comments (
   id UUID NOT NULL DEFAULT uuid_generate_v4() PRIMARY KEY,
   post_id UUID NOT NULL REFERENCES posts(id) ON UPDATE CASCADE ON DELETE CASCADE,
   user_id UUID NOT NULL REFERENCES users(id) ON UPDATE CASCADE ON DELETE CASCADE,
@@ -196,12 +191,12 @@ CREATE TABLE replies (
   CONSTRAINT content_length CHECK(length(content) >= 1 AND length(content) <= 2000)
 );
 
-CREATE TABLE reply_likes (
-  reply_id UUID NOT NULL REFERENCES replies(id) ON UPDATE CASCADE ON DELETE CASCADE,
+CREATE TABLE comment_likes (
+  comment_id UUID NOT NULL REFERENCES comments(id) ON UPDATE CASCADE ON DELETE CASCADE,
   user_id UUID NOT NULL REFERENCES users(id) ON UPDATE CASCADE ON DELETE CASCADE,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  PRIMARY KEY (reply_id, user_id)
+  PRIMARY KEY (comment_id, user_id)
 );
 
 CREATE TABLE notifications (

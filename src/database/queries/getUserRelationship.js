@@ -15,7 +15,6 @@ module.exports = async ({ fromUser, toUser }, db = database) => {
     WHERE
       first_user_id = least($1, $2)::UUID
       AND second_user_id = greatest($1, $2)::UUID
-
       `,
         [fromUser, toUser]
       )

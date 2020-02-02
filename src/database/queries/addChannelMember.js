@@ -6,20 +6,15 @@ module.exports = async ({ channelId, userId }, db = database) => {
     const response = (
       await db.query(
         /* SQL */ `
-    DELETE FROM
-      channels
-    WHERE
-      (
-        type = 'channel'
-        AND owner_id = $2
-        AND id = $1
-      )
-      OR (
-        type != 'channel'
-        AND id = $1
-      )
+    INSERT INTO
+      members
+        (channel_id, user_id)
+    VALUES
+      ($1, $2)
     RETURNING
-      id`,
+      channel_id AS "channelId",
+      user_id AS "userId",
+      created_at AS "createdAt"`,
         [channelId, userId]
       )
     ).rows[0];

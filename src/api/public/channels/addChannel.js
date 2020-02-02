@@ -6,7 +6,6 @@ const { cache } = require("../../../helpers/middleware/cache");
 const authenticateUser = require("../../../helpers/middleware/authenticateUser");
 const addChannel = require("../../../database/queries/addChannel");
 const addMembers = require("../../../database/queries/addMembers");
-const addAdmins = require("../../../database/queries/addAdmins");
 const updateChannel = require("../../../database/queries/updateChannel");
 const database = require("../../../config/database");
 const { uploadFile } = require("../../../config/aws");
@@ -17,21 +16,21 @@ router.post(
   // cache,
   authenticateUser,
   multer.single("icon"),
-  // celebrate({
-  //   body: Joi.object()
-  //     .keys({
-  //       name: Joi.string()
-  //         .min(3)
-  //         .max(20)
-  //         .required(),
-  //       description: Joi.string()
-  //         .min(1)
-  //         .max(150)
-  //         .required(),
-  //       public: Joi.boolean().required()
-  //     })
-  //     .required()
-  // }),
+  celebrate({
+    body: Joi.object()
+      .keys({
+        name: Joi.string()
+          .min(3)
+          .max(20)
+          .required(),
+        description: Joi.string()
+          .min(1)
+          .max(150)
+          .required(),
+        public: Joi.boolean().required()
+      })
+      .required()
+  }),
   async (req, res, next) => {
     const { name, description, public } = req.body;
     const { id: userId } = req.user;
@@ -41,7 +40,6 @@ router.post(
 
     const client = await database.connect();
     try {
-      console.log("STUF", req.body);
       await client.query("BEGIN");
 
       const newChannel = await addChannel(
@@ -50,6 +48,13 @@ router.post(
       );
 
       if (!newChannel) throw new ApiError();
+
+      const newMembers = await addMembers(
+        { channelId: newChannel.id, userIds: [userId], admin: true },
+        client
+      );
+
+      if (!newMembers) throw new ApiError();
 
       if (icon) {
         const { buffer } = icon;
@@ -65,7 +70,7 @@ router.post(
         updatedChannel = await updateChannel(
           {
             channelId: newChannel.id,
-            ownerId: userId,
+            userId,
             icon: uploadedIcon
           },
           client
@@ -74,22 +79,12 @@ router.post(
         if (!updatedChannel) throw new ApiError();
       }
 
-      const newMembers = await addMembers(
-        { channelId: newChannel.id, userIds: [userId] },
-        client
-      );
-
-      const newAdmins = await addAdmins(
-        { channelId: newChannel.id, userIds: [userId] },
-        client
-      );
-
       await client.query("COMMIT");
 
       res.status(201).json({
         ...(updatedChannel ? { ...updatedChannel } : { ...newChannel }),
         users: newMembers.map(member => member.userId),
-        admins: newAdmins.map(admin => admin.userId)
+        admins: newMembers.map(admin => admin.userId)
       });
     } catch (error) {
       await client.query("ROLLBACK");

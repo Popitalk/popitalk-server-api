@@ -16,10 +16,11 @@ module.exports = async ({ messageId, userId }, db = database) => {
           SELECT
             1
           FROM
-            admins
+            members
           WHERE
-            admins.channel_id = messages.channel_id
-            AND admins.user_id = $2
+            members.channel_id = messages.channel_id
+            AND members.user_id = $2
+            AND members.admin = TRUE
         )
       )
     RETURNING

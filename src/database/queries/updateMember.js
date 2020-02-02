@@ -1,44 +1,41 @@
-/* eslint-disable no-nested-ternary */
 const knex = require("../../config/knex");
 const database = require("../../config/database");
 const createDatabaseError = require("../../helpers/createDatabaseError");
 
 module.exports = async (
-  { channelId, userId, name, description, public, icon, removeIcon },
+  { channelId, fromUser, toUser, admin, ban },
   db = database
 ) => {
   try {
     const query = knex
       .update({
-        name,
-        description:
-          description === undefined
-            ? undefined
-            : description.length === 0
-            ? null
-            : description,
-        public,
-        icon: removeIcon ? null : icon,
+        admin,
+        ban,
         updated_at: knex.raw("NOW()")
       })
-      .from("channels")
-      .where("id", channelId)
+      .from("members")
+      .where("channel_id", channelId)
+      .andWhere("user_id", toUser)
       .whereExists(q =>
         q
           .select("*")
           .from("members")
           .where("channel_id", channelId)
-          .andWhere("user_id", userId)
+          .andWhere("user_id", fromUser)
           .andWhere("admin", true)
       )
+      .whereNotExists(q =>
+        q
+          .select("*")
+          .from("channels")
+          .where("id", channelId)
+          .andWhere("owner_id", toUser)
+      )
       .returning([
-        "id",
-        "type",
-        "name",
-        "description",
-        "icon",
-        "public",
-        "owner_id AS ownerId",
+        "channel_id AS channelId",
+        "user_id AS userId",
+        "admin",
+        "banned",
         "created_at AS createdAt"
       ]);
 
