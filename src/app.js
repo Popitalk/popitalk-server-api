@@ -15,6 +15,7 @@ let redis;
 
 if (config.mode !== "testing") {
   redis = require("./config/redis");
+  require("./config/pubSub");
 }
 
 const app = express();
@@ -48,20 +49,20 @@ app.use(requestId());
 app.use(express.json());
 // app.use(express.urlencoded({ extended: false }));
 
+const sessionParser = session({
+  name: config.sessionName || "S3SS10N",
+  secret: config.sessionSecret || "S34KR1T",
+  resave: true,
+  saveUninitialized: false,
+  store: new (RedisStore(session))({
+    client: redis,
+    prefix: (config.sessionPrefix && `${config.sessionPrefix}:`) || "sess:"
+  })
+});
+
 app.use(cookieParser());
 if (config.mode !== "testing") {
-  app.use(
-    session({
-      name: config.sessionName || "S3SS10N",
-      secret: config.sessionSecret || "S34KR1T",
-      resave: true,
-      saveUninitialized: false,
-      store: new (RedisStore(session))({
-        client: redis,
-        prefix: (config.sessionPrefix && `${config.sessionPrefix}:`) || "sess:"
-      })
-    })
-  );
+  app.use(sessionParser);
 }
 if (config.mode === "production") {
   app.use(helmet());
@@ -78,4 +79,4 @@ app.use("/api", require("./api/"));
 
 app.use(errorHandler);
 
-module.exports = { app };
+module.exports = { app, sessionParser };

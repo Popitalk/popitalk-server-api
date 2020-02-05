@@ -6,6 +6,7 @@ module.exports = {
   host: process.env.HOST,
   port: process.env.PORT,
   serverId: process.env.SERVER_ID,
+  allServerIds: process.env.ALL_SERVER_IDS.split(","),
   corsOrigin: process.env.CORS_ORIGIN,
   logsPathDev: resolve(process.cwd(), "./logs/"),
   dbHost: process.env.DB_HOST,
@@ -24,5 +25,5 @@ module.exports = {
   s3Bucket: process.env.S3_BUCKET,
   awsAccessKeyId: process.env.AWS_ACCESS_KEY_ID,
   awsSecretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-  heartbeatInterval: process.env.WS_HEARTBEAR_INTERVAL
+  heartbeatInterval: process.env.WS_HEARTBEAT_INTERVAL
 };

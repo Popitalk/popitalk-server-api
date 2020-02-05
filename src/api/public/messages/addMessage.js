@@ -4,6 +4,8 @@ const { ApiError, DatabaseError } = require("../../../helpers/errors");
 const { cache } = require("../../../helpers/middleware/cache");
 const authenticateUser = require("../../../helpers/middleware/authenticateUser");
 const addMessage = require("../../../database/queries/addMessage");
+const { publisher } = require("../../../config/pubSub");
+const { WS_ADD_MESSAGE } = require("../../../config/constants");
 
 router.post(
   "/",
@@ -36,6 +38,26 @@ router.post(
       if (!newMessage) throw new ApiError();
 
       res.status(201).json(newMessage);
+
+      // publisher({
+      //   type: WS_ADD_MESSAGE,
+      //   guildId: newMessage.guildId,
+      //   payload: {
+      //     guildId: newMessage.guildId,
+      //     channelId: newMessage.channelId,
+      //     message: {
+      //       id: newMessage.id,
+      //       userId: newMessage.userId,
+      //       message: newMessage.message,
+      //       author: {
+      //         username,
+      //         discriminator,
+      //         avatar
+      //       },
+      //       createdAt: newMessage.createdAt
+      //     }
+      //   }
+      // });
     } catch (error) {
       if (error instanceof DatabaseError) {
         next(new ApiError(undefined, undefined, error));
