@@ -7,14 +7,17 @@ const {
 } = require("../../config/state");
 const { HELLO, PING } = require("../../config/constants");
 const redis = require("../../config/redis");
+const { subscriber } = require("../../config/pubSub");
 
 const loginEvent = async (ws, request) => {
   const userId = request.session.passport.user;
   // #1
-  const pipeline = redis.pipeline();
-  await pipeline.set(userId, serverId);
-  // #2
+  subscriber.subscribe(userId);
   websocketsOfUsers.set(userId, ws);
+  // const pipeline = redis.pipeline();
+  // await pipeline.set(userId, serverId);
+  // #2
+
   // #3
   const allChannels = request.session.user.channels;
   if (allChannels) {
@@ -23,19 +26,21 @@ const loginEvent = async (ws, request) => {
     Object.entries(allChannels).forEach(([channelId, channel]) => {
       channelsOfUsers.get(userId).set(channelId, channel.type);
     });
+
+    for await (const cid of channelsOfUsers.get(userId).keys()) {
+      // await pipeline.sadd(cid, serverId);
+
+      if (!usersOfChannels.has(cid)) {
+        usersOfChannels.set(cid, new Set());
+        subscriber.subscribe(cid);
+      }
+
+      usersOfChannels.get(cid).add(userId);
+    }
   }
   // #4 and #5
-  for await (const cid of channelsOfUsers.get(userId).keys()) {
-    await pipeline.sadd(cid, serverId);
 
-    if (!usersOfChannels.has(cid)) {
-      usersOfChannels.set(cid, new Set());
-    }
-
-    usersOfChannels.get(cid).add(userId);
-  }
-
-  await pipeline.exec();
+  // await pipeline.exec();
   // #6
   // Publish here (online status to friends room)
   // #7

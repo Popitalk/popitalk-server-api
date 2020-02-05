@@ -1,7 +1,8 @@
 /* eslint-disable no-param-reassign */
 const { serverId } = require("../../config");
 const { usersOfChannels, channelsOfUsers } = require("../../config/state");
-const redis = require("../../config/redis");
+// const redis = require("../../config/redis");
+const { subscriber } = require("../../config/pubSub");
 
 const logoutEvent = async userId => {
   for await (const cid of channelsOfUsers.get(userId).entries()) {
@@ -11,7 +12,7 @@ const logoutEvent = async userId => {
   // #1
   // Broadcast offline status to all friend channels
   // #2 and #3
-  const pipeline = redis.pipeline();
+  // const pipeline = redis.pipeline();
 
   for await (const cid of channelsOfUsers.get(userId).keys()) {
     if (usersOfChannels.has(cid)) {
@@ -19,18 +20,20 @@ const logoutEvent = async userId => {
 
       if (usersOfChannels.get(cid).size === 0) {
         usersOfChannels.delete(cid);
-        await pipeline.srem(cid, serverId);
+        // await pipeline.srem(cid, serverId);
+        subscriber.unsubscribe(cid);
       }
     }
   }
 
   // #4
-  await pipeline.del(userId, serverId);
+  // await pipeline.del(userId, serverId);
   // 5
+  subscriber.unsubscribe(userId);
   channelsOfUsers.delete(userId);
   // websocketsOfUsers.delete(userId);
 
-  await pipeline.exec();
+  // await pipeline.exec();
 };
 
 module.exports = logoutEvent;

@@ -39,25 +39,15 @@ router.post(
 
       res.status(201).json(newMessage);
 
-      // publisher({
-      //   type: WS_ADD_MESSAGE,
-      //   guildId: newMessage.guildId,
-      //   payload: {
-      //     guildId: newMessage.guildId,
-      //     channelId: newMessage.channelId,
-      //     message: {
-      //       id: newMessage.id,
-      //       userId: newMessage.userId,
-      //       message: newMessage.message,
-      //       author: {
-      //         username,
-      //         discriminator,
-      //         avatar
-      //       },
-      //       createdAt: newMessage.createdAt
-      //     }
-      //   }
-      // });
+      publisher({
+        type: WS_ADD_MESSAGE,
+        channelId,
+        payload: {
+          userId,
+          channelId,
+          message: newMessage
+        }
+      });
     } catch (error) {
       if (error instanceof DatabaseError) {
         next(new ApiError(undefined, undefined, error));

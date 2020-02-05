@@ -19,7 +19,7 @@ const subscriber = new Redis({
   password: config.redisPassword || null
 });
 
-subscriber.subscribe(config.serverId);
+// subscriber.subscribe(config.serverId);
 
 subscriber.on("message", async (channel, message) => {
   const parsedMessage = JSON.parse(message);
@@ -31,38 +31,42 @@ subscriber.on("message", async (channel, message) => {
 
 const publisher = async ({ type, channelId, userId, payload }) => {
   if (userEvents.includes(type)) {
-    const serverIdOfUser = await redis.get(userId);
-
     await pub.publish(
-      serverIdOfUser,
+      userId,
       JSON.stringify({
         type,
         payload
       })
     );
   } else if (channelEvents.includes(type)) {
-    const serverIdsOfChannel = await redis.smembers(channelId);
+    await pub.publish(
+      channelId,
+      JSON.stringify({
+        type,
+        payload
+      })
+    );
 
-    for await (const sid of serverIdsOfChannel) {
-      await pub.publish(
-        sid,
-        JSON.stringify({
-          type,
-          payload
-        })
-      );
-    }
+    // for await (const sid of serverIdsOfChannel) {
+    //   await pub.publish(
+    //     sid,
+    //     JSON.stringify({
+    //       type,
+    //       payload
+    //     })
+    //   );
+    // }
   } else if (channelsEvents.includes(type)) {
-    for await (const sid of config.allServerIds) {
-      await pub.publish(
-        sid,
-        JSON.stringify({
-          type,
-          payload
-        })
-      );
-    }
+    // for await (const sid of config.allServerIds) {
+    //   await pub.publish(
+    //     sid,
+    //     JSON.stringify({
+    //       type,
+    //       payload
+    //     })
+    //   );
+    // }
   }
 };
 
-module.exports = { pub, publisher };
+module.exports = { pub, publisher, subscriber };

@@ -7,15 +7,38 @@ const {
 const {
   userEvents,
   channelEvents,
-  channelsEvents
+  channelsEvents,
+  WS_ADD_CHANNEL,
+  WS_JOIN_CHANNEL,
+  WS_LEAVE_CHANNEL
 } = require("../config/constants");
+const { subscriber } = require("../config/pubSub");
 
 const sender = async (messageType, messagePayload) => {
   if (userEvents.includes(messageType)) {
-    const { userId } = messagePayload;
+    // eslint-disable-next-line prefer-const
+    let { userId, channelId } = messagePayload;
 
     const ws = websocketsOfUsers.get(userId);
 
+    if (messageType === WS_ADD_CHANNEL || messageType === WS_JOIN_CHANNEL) {
+      channelsOfUsers.get(userId).set(channelId, messagePayload.type);
+
+      if (!usersOfChannels.has(channelId)) {
+        usersOfChannels.set(channelId, new Set());
+        usersOfChannels.get(channelId).add(userId);
+        subscriber.subscribe(channelId);
+      }
+    } else if (messageType === WS_LEAVE_CHANNEL) {
+      channelsOfUsers.get(userId).delete(channelId);
+
+      usersOfChannels.get(channelId).delete(userId);
+
+      if (usersOfChannels.get(channelId).size === 0) {
+        usersOfChannels.delete(channelId);
+        subscriber.unsubscribe(channelId);
+      }
+    }
     ws.send(
       JSON.stringify({
         type: messageType,
