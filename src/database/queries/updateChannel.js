@@ -4,7 +4,7 @@ const database = require("../../config/database");
 const createDatabaseError = require("../../helpers/createDatabaseError");
 
 module.exports = async (
-  { channelId, userId, name, description, public, icon, removeIcon },
+  { channelId, userId, name, description, publicChannel, icon, removeIcon },
   db = database
 ) => {
   try {
@@ -17,7 +17,7 @@ module.exports = async (
             : description.length === 0
             ? null
             : description,
-        public,
+        public: publicChannel === undefined ? undefined : publicChannel,
         icon: removeIcon ? null : icon,
         updated_at: knex.raw("NOW()")
       })

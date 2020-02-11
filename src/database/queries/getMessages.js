@@ -52,9 +52,9 @@ module.exports = async (
               [channelId, userId]
             )
           )
-          .orderBy("created_at", "desc")
           .limit(50)
           .as("m");
+
         if (afterMessageId) {
           q.andWhere(
             knex.raw(
@@ -69,7 +69,7 @@ module.exports = async (
             )`,
               [afterMessageId]
             )
-          );
+          ).orderBy("created_at", "asc");
         }
         if (beforeMessageId) {
           q.andWhere(
@@ -85,7 +85,10 @@ module.exports = async (
             )`,
               [beforeMessageId]
             )
-          );
+          ).orderBy("created_at", "desc");
+        }
+        if (!afterMessageId && !beforeMessageId) {
+          q.orderBy("created_at", "desc");
         }
       })
       .orderBy("createdAt", "asc");

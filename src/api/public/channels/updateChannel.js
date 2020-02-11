@@ -39,7 +39,7 @@ router.put(
   async (req, res, next) => {
     const { id: userId } = req.user;
     const { channelId } = req.params;
-    const { name, description, public, removeIcon } = req.body;
+    const { name, description, public: publicChannel, removeIcon } = req.body;
     const icon = req.file;
     let uploadedIcon;
 
@@ -47,7 +47,7 @@ router.put(
       if (icon && removeIcon)
         throw new ApiError(`Either icon must be provided or removeIcon.`, 400);
 
-      if (!name && !description && !public && !removeIcon && !icon)
+      if (!name && !description && !publicChannel && !removeIcon && !icon)
         throw new ApiError(`Haven't passed anything to update.`, 400);
 
       if (icon) {
@@ -66,7 +66,7 @@ router.put(
         userId,
         name,
         description,
-        public,
+        publicChannel,
         icon: uploadedIcon,
         removeIcon
       });

@@ -101,7 +101,6 @@ router.put(
         if (!uploadedImage) throw new ApiError(`Couldn't upload avatar`, 500);
 
         uploadedAvatar = uploadedImage.Location;
-        // uploadedAvatar = faker.image.avatar();
       }
 
       const newUser = await updateUser({

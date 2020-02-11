@@ -17,7 +17,7 @@
     "lint": "eslint ./src/ -c ./.eslintrc --ext js",
     "fix": "eslint ./src/ --fix",
     "validate": "run-p lint unprettified",
-    "test": "cross-env NODE_ENV=testing jest --runInBand",
+    "test": "cross-env NODE_ENV=testing jest --runInBand --detectOpenHandles",
     "test-watch": "cross-env NODE_ENV=testing jest --watch --runInBand",
     "test-watchall": "cross-env NODE_ENV=testing jest --watchAll --runInBand",
     "coverage": "cross-env NODE_ENV=testing jest --coverage",
@@ -61,6 +61,9 @@
   "jest": {
     "testEnvironment": "node",
     "verbose": true,
+    "roots": [
+      "<rootDir>/__tests__"
+    ],
     "watchPlugins": [
       "jest-watch-typeahead/filename",
       "jest-watch-typeahead/testname"

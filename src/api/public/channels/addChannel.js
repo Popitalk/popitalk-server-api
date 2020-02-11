@@ -32,7 +32,7 @@ router.post(
       .required()
   }),
   async (req, res, next) => {
-    const { name, description, public } = req.body;
+    const { name, description, public: publicChannel } = req.body;
     const { id: userId } = req.user;
     const icon = req.file;
     let uploadedIcon;
@@ -43,7 +43,7 @@ router.post(
       await client.query("BEGIN");
 
       const newChannel = await addChannel(
-        { name, description, public, ownerId: userId, type: "channel" },
+        { name, description, publicChannel, ownerId: userId, type: "channel" },
         client
       );
 
@@ -84,7 +84,8 @@ router.post(
       res.status(201).json({
         ...(updatedChannel ? { ...updatedChannel } : { ...newChannel }),
         users: newMembers.map(member => member.userId),
-        admins: newMembers.map(admin => admin.userId)
+        admins: newMembers.map(admin => admin.userId),
+        banned: []
       });
     } catch (error) {
       await client.query("ROLLBACK");

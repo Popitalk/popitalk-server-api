@@ -11,12 +11,12 @@ const passport = require("./config/passport");
 const errorHandler = require("./helpers/middleware/errorHandler");
 const requestLogger = require("./helpers/middleware/requestLogger");
 
-let redis;
+// let redis;
 
-if (config.mode !== "testing") {
-  redis = require("./config/redis");
-  require("./config/pubSub");
-}
+// if (config.mode !== "testing") {
+const redis = require("./config/redis");
+require("./config/pubSub");
+// }
 
 const app = express();
 
@@ -61,9 +61,9 @@ const sessionParser = session({
 });
 
 app.use(cookieParser());
-if (config.mode !== "testing") {
-  app.use(sessionParser);
-}
+// if (config.mode !== "testing") {
+app.use(sessionParser);
+// }
 if (config.mode === "production") {
   app.use(helmet());
 }

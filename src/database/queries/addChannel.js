@@ -2,7 +2,7 @@ const database = require("../../config/database");
 const createDatabaseError = require("../../helpers/createDatabaseError");
 
 module.exports = async (
-  { type, name, description, icon, public, ownerId },
+  { type, name, description, icon, publicChannel, ownerId },
   db = database
 ) => {
   try {
@@ -30,7 +30,7 @@ module.exports = async (
       public,
       owner_id AS "ownerId",
       created_at AS "createdAt"`,
-        [type, name, description, icon, public, ownerId]
+        [type, name, description, icon, publicChannel, ownerId]
       )
     ).rows[0];
 
