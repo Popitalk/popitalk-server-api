@@ -7,6 +7,8 @@ const { invalidateCache } = require("../../../helpers/middleware/cache");
 const updateChannel = require("../../../database/queries/updateChannel");
 const { uploadFile } = require("../../../config/aws");
 const multer = require("../../../helpers/middleware/multer");
+const { publisher } = require("../../../config/pubSub");
+const { WS_UPDATE_CHANNEL } = require("../../../config/constants");
 
 router.put(
   "/:channelId",
@@ -74,7 +76,21 @@ router.put(
       if (!updatedChannel)
         throw new ApiError(`Channel with id of ${channelId} not found`, 404);
 
-      res.status(200).json(updatedChannel);
+      res.status(200).json({
+        channelId,
+        updatedChannel
+      });
+
+      publisher({
+        type: WS_UPDATE_CHANNEL,
+        channelId,
+        initiator: userId,
+        payload: {
+          userId,
+          channelId,
+          updatedChannel
+        }
+      });
     } catch (error) {
       if (error instanceof DatabaseError) {
         next(new ApiError(undefined, undefined, error));

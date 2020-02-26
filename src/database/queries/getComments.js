@@ -29,8 +29,34 @@ module.exports = async ({ postId, userId, limit = 3 }, db = database) => {
             FROM
               users
             WHERE
-              users.id = members.user_id
-          ) AS "author"
+              users.id = comments.user_id
+          ) AS "author",
+          (
+            CASE
+              WHEN
+                EXISTS (
+                  SELECT
+                    1
+                  FROM
+                    comment_likes
+                  WHERE
+                    comment_likes.comment_id = comments.id
+                    AND comment_likes.user_id = members.user_id
+                )
+              THEN
+                TRUE
+              ELSE
+                FALSE
+            END
+          ) AS "liked",
+          (
+            SELECT
+              COUNT(*)
+            FROM
+              comment_likes
+            WHERE
+              comment_likes.comment_id = comments.id
+          ) AS "likeCount"
         FROM
           comments
         JOIN

@@ -2,8 +2,8 @@
 const { serverId, heartbeatInterval } = require("../../config");
 const {
   websocketsOfUsers,
-  usersOfChannels,
-  channelsOfUsers
+  channelsState,
+  usersState
 } = require("../../config/state");
 const { HELLO, PING } = require("../../config/constants");
 const redis = require("../../config/redis");
@@ -20,22 +20,24 @@ const loginEvent = async (ws, request) => {
 
   // #3
   const allChannels = request.session.user.channels;
+
+  // console.log("XXX", userId, allChannels);
   if (allChannels) {
-    channelsOfUsers.set(userId, new Map());
+    usersState.set(userId, new Map());
 
     Object.entries(allChannels).forEach(([channelId, channel]) => {
-      channelsOfUsers.get(userId).set(channelId, channel.type);
+      usersState.get(userId).set(channelId, channel.type);
     });
 
-    for await (const cid of channelsOfUsers.get(userId).keys()) {
+    for await (const cid of usersState.get(userId).keys()) {
       // await pipeline.sadd(cid, serverId);
 
-      if (!usersOfChannels.has(cid)) {
-        usersOfChannels.set(cid, new Set());
+      if (!channelsState.has(cid)) {
+        channelsState.set(cid, new Set());
         subscriber.subscribe(cid);
       }
 
-      usersOfChannels.get(cid).add(userId);
+      channelsState.get(cid).add(userId);
     }
   }
   // #4 and #5

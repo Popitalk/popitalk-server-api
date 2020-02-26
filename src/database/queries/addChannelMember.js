@@ -14,7 +14,25 @@ module.exports = async ({ channelId, userId }, db = database) => {
     RETURNING
       channel_id AS "channelId",
       user_id AS "userId",
-      created_at AS "createdAt"`,
+      created_at AS "createdAt",
+      (
+        SELECT
+          JSON_BUILD_OBJECT(
+            'username',
+            users.username,
+            'firstName',
+            users.first_name,
+            'lastName',
+            users.last_name,
+            'avatar',
+            users.avatar
+          )
+        FROM
+          users
+        WHERE
+          users.id = user_id
+      ) AS user
+      `,
         [channelId, userId]
       )
     ).rows[0];

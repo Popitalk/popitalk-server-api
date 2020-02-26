@@ -1,17 +1,21 @@
 const database = require("../../config/database");
 const createDatabaseError = require("../../helpers/createDatabaseError");
 
-module.exports = async ({ channelId, userId, content }, db = database) => {
+module.exports = async (
+  { channelId, userId, content, upload },
+  db = database
+) => {
   try {
     const response = (
       await db.query(
         /* SQL */ `
     INSERT INTO
-      posts (channel_id, user_id, content)
+      posts (channel_id, user_id, content, upload)
     SELECT
       members.channel_id AS "channel_id",
       members.user_id AS "user_id",
-      $3 AS "content"
+      $3 AS "content",
+      $4 AS "upload"
     FROM
       members
     WHERE
@@ -23,9 +27,28 @@ module.exports = async ({ channelId, userId, content }, db = database) => {
       channel_id AS "channelId",
       user_id AS "userId",
       content AS "content",
-      created_at AS "createdAt"
+      upload AS "upload",
+      created_at AS "createdAt",
+      (
+        SELECT
+          JSON_BUILD_OBJECT(
+            'id',
+            users.id,
+            'username',
+            users.username,
+            'avatar',
+            users.avatar
+          )
+        FROM
+          users
+        WHERE
+          users.id = user_id
+      ) AS author,
+      0 AS "commentCount",
+      0 AS "likeCount",
+      FALSE AS "liked"
       `,
-        [channelId, userId, content]
+        [channelId, userId, content, upload]
       )
     ).rows[0];
 

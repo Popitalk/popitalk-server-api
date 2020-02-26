@@ -7,6 +7,11 @@ const deleteMember = require("../../../database/queries/deleteMember");
 const getMemberIds = require("../../../database/queries/getMemberIds");
 const deleteChannel = require("../../../database/queries/deleteChannel");
 const database = require("../../../config/database");
+const { publisher } = require("../../../config/pubSub");
+const {
+  WS_UNSUBSCRIBE_CHANNEL,
+  WS_DELETE_MEMBER
+} = require("../../../config/constants");
 
 router.delete(
   "/rooms/:roomId",
@@ -42,7 +47,32 @@ router.delete(
       }
 
       await client.query("COMMIT");
-      res.status(204).json({});
+
+      res.status(200).json({
+        channelId,
+        userId
+      });
+
+      publisher({
+        type: WS_UNSUBSCRIBE_CHANNEL,
+        channelId,
+        userId,
+        payload: {
+          userId,
+          channelId,
+          type: "channel"
+        }
+      });
+
+      publisher({
+        type: WS_DELETE_MEMBER,
+        channelId,
+        initiator: userId,
+        payload: {
+          channelId,
+          userId
+        }
+      });
     } catch (error) {
       await client.query("ROLLBACK");
       if (error instanceof DatabaseError) {

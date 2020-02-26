@@ -24,7 +24,9 @@ module.exports = async ({ messageId, userId }, db = database) => {
         )
       )
     RETURNING
-      id`,
+      id,
+      channel_id AS "channelId"
+      `,
         [messageId, userId]
       )
     ).rows[0];

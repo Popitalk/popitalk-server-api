@@ -24,7 +24,46 @@ module.exports = async ({ userId }, db = database) => {
               channels.owner_id,
               'createdAt',
               channels.created_at,
-              'users',
+              'firstMessageId',
+              (
+                SELECT
+                  messages.id
+                FROM
+                  messages
+                WHERE
+                  messages.channel_id = channels.id
+                ORDER BY
+                  messages.created_at ASC
+                LIMIT
+                  1
+              ),
+              'lastMessageId',
+              (
+                SELECT
+                  messages.id
+                FROM
+                  messages
+                WHERE
+                  messages.channel_id = channels.id
+                ORDER BY
+                  messages.created_at DESC
+                LIMIT
+                  1
+              ),
+              'lastMessageAt',
+              (
+                SELECT
+                  messages.created_at
+                FROM
+                  messages
+                WHERE
+                  messages.channel_id = channels.id
+                ORDER BY
+                  messages.created_at DESC
+                LIMIT
+                  1
+              ),
+              'members',
               (
                 CASE
                   WHEN

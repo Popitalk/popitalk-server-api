@@ -29,7 +29,11 @@ module.exports = async (
       icon,
       public,
       owner_id AS "ownerId",
-      created_at AS "createdAt"`,
+      created_at AS "createdAt",
+      NULL AS "firstMessageId",
+      NULL AS "lastMessageId",
+      NULL AS "lastMessageAt"
+      `,
         [type, name, description, icon, publicChannel, ownerId]
       )
     ).rows[0];

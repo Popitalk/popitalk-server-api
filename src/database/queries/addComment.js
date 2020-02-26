@@ -10,7 +10,7 @@ module.exports = async ({ postId, userId, content }, db = database) => {
       comments (post_id, user_id, content)
     SELECT
       posts.id AS "post_id",
-      $2 AS "user_id",
+      members.user_id AS "user_id",
       $3 AS "content"
     FROM
       posts
@@ -46,7 +46,7 @@ module.exports = async ({ postId, userId, content }, db = database) => {
                 ) AS cuid
               WHERE
                 cuid.user_id = $2
-            ) != 5
+            ) < 5
         END
       )
     RETURNING
@@ -55,6 +55,31 @@ module.exports = async ({ postId, userId, content }, db = database) => {
       user_id AS "userId",
       content AS "content",
       created_at AS "createdAt",
+      (
+        SELECT
+          posts.channel_id
+        FROM
+          posts
+        WHERE
+          posts.id = post_id
+      ) AS "channelId",
+      (
+        SELECT
+          JSON_BUILD_OBJECT(
+            'id',
+            users.id,
+            'username',
+            users.username,
+            'avatar',
+            users.avatar
+          )
+        FROM
+          users
+        WHERE
+          users.id = user_id
+      ) AS author,
+      0 AS "likeCount",
+      FALSE AS "liked",
       (
         CASE
           WHEN

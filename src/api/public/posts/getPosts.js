@@ -33,40 +33,21 @@ router.get(
     let response;
 
     try {
-      const posts = await getPosts({
+      const gottenPosts = await getPosts({
         channelId,
         userId,
         beforePostId
       });
 
-      if (!posts) throw new ApiError(`Posts couldn't be retrieved`, 404);
+      if (!gottenPosts) throw new ApiError(`Posts couldn't be retrieved`, 404);
 
-      response = {
-        posts
-      };
+      const { posts, comments } = gottenPosts;
 
-      let comments = {};
-
-      posts.forEach(post => {
-        if (post.comments.length !== 0) {
-          comments = {
-            ...comments,
-            [post.id]: post.comments
-          };
-        }
-        // eslint-disable-next-line no-param-reassign
-        delete post.comments;
-      });
-
-      if (isEmpty(comments)) {
-        comments = null;
-      }
-      response = {
-        ...response,
+      res.json({
+        channelId,
+        posts,
         comments
-      };
-
-      res.json(response);
+      });
     } catch (error) {
       if (error instanceof DatabaseError) {
         next(new ApiError(undefined, undefined, error));

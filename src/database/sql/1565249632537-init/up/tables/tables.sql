@@ -168,6 +168,7 @@ CREATE TABLE posts (
   channel_id UUID NOT NULL REFERENCES channels(id) ON UPDATE CASCADE ON DELETE CASCADE,
   user_id UUID NOT NULL REFERENCES users(id) ON UPDATE CASCADE ON DELETE CASCADE,
   content TEXT NOT NULL,
+  upload TEXT,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   CONSTRAINT content_length CHECK(length(content) >= 1 AND length(content) <= 20000)

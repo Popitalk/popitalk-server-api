@@ -4,6 +4,8 @@ const { ApiError, DatabaseError } = require("../../../helpers/errors");
 const { cache } = require("../../../helpers/middleware/cache");
 const authenticateUser = require("../../../helpers/middleware/authenticateUser");
 const addComment = require("../../../database/queries/addComment");
+const { publisher } = require("../../../config/pubSub");
+const { WS_ADD_COMMENT } = require("../../../config/constants");
 
 router.post(
   "/",
@@ -35,6 +37,13 @@ router.post(
       if (!newComment) throw new ApiError();
 
       res.status(201).json(newComment);
+
+      publisher({
+        type: WS_ADD_COMMENT,
+        channelId: newComment.channelId,
+        initiator: userId,
+        payload: newComment
+      });
     } catch (error) {
       if (error instanceof DatabaseError) {
         next(new ApiError(undefined, undefined, error));

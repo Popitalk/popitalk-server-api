@@ -42,6 +42,7 @@ router.post(
       publisher({
         type: WS_ADD_MESSAGE,
         channelId,
+        initiator: userId,
         payload: {
           userId,
           channelId,

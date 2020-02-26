@@ -11,6 +11,21 @@ const addChannel = require("../../../database/queries/addChannel");
 const addMembers = require("../../../database/queries/addMembers");
 const getFriendRoomId = require("../../../database/queries/getFriendRoomId");
 const deleteChannel = require("../../../database/queries/deleteChannel");
+const getUser = require("../../../database/queries/getUser");
+const getUsers = require("../../../database/queries/getUsers");
+const { publisher } = require("../../../config/pubSub");
+const {
+  WS_DELETE_SENT_FRIEND_REQUEST,
+  WS_ADD_RECEIVED_FRIEND_REQUEST,
+  WS_DELETE_RECEIVED_FRIEND_REQUEST,
+  WS_ADD_FRIEND,
+  WS_DELETE_FRIEND,
+  WS_UNFRIEND,
+  WS_ADD_BLOCKER,
+  WS_DELETE_BLOCKER,
+  WS_SUBSCRIBE_CHANNEL,
+  WS_BLOCK_FRIEND
+} = require("../../../config/constants");
 
 const database = require("../../../config/database");
 
@@ -64,20 +79,92 @@ router.put(
       }
 
       if (type === friend) {
+        /* -------------------------------------------------------------------------- */
+        /*                                   FRIEND                                   */
+        /* -------------------------------------------------------------------------- */
+
+        // REWORK, subscribe both users
+        // HAVE TO PUBLISH TWICE FOR BOTH USERS?
         if (oldType === friendFirstSecond || oldType === friendSecondFirst) {
           await updateUserRelationship(
             { firstUserId, secondUserId, type: friendBoth },
             client
           );
-          const room = await addChannel({ type: "friend" }, client);
+          const channel = await addChannel({ type: "friend" }, client);
           await addMembers(
-            { channelId: room.id, userIds: [firstUserId, secondUserId] },
+            { channelId: channel.id, userIds: [firstUserId, secondUserId] },
             client
           );
+          const users = await getUsers({ userIds: [fromUser, toUser] }, client);
+          channel.members = Object.keys(users);
+          const messages = [];
+
+          await client.query("COMMIT");
+
+          res.status(201).json({
+            userId: toUser,
+            channelId: channel.id,
+            channel,
+            users,
+            messages
+          });
+
+          publisher({
+            type: WS_SUBSCRIBE_CHANNEL,
+            userId: fromUser,
+            channelId: channel.id,
+            payload: {
+              userId: fromUser,
+              channelId: channel.id,
+              type: "friend"
+            }
+          });
+
+          publisher({
+            type: WS_ADD_FRIEND,
+            userId: toUser,
+            channelId: channel.id,
+            payload: {
+              userId: fromUser,
+              channelId: channel.id,
+              type: "friend",
+              channel,
+              users,
+              messages
+            }
+          });
         } else if (!oldType) {
           await addUserRelationship({ fromUser, toUser, type: friend }, client);
+          const userInfo = await getUser({ userId: fromUser }, client);
+
+          await client.query("COMMIT");
+
+          res.status(201).json({
+            userId: toUser
+          });
+
+          publisher({
+            type: WS_ADD_RECEIVED_FRIEND_REQUEST,
+            userId: toUser,
+            payload: {
+              userId: fromUser,
+              user: {
+                id: userInfo.id,
+                username: userInfo.username,
+                firstName: userInfo.firstName,
+                lastName: userInfo.lastName,
+                avatar: userInfo.avatar
+              }
+            }
+          });
         }
       } else if (type === unfriend) {
+        /* -------------------------------------------------------------------------- */
+        /*                                  UNFRIEND                                  */
+        /* -------------------------------------------------------------------------- */
+        let sendType;
+        let channelId;
+
         if (
           oldType === friendFirstSecond ||
           oldType === friendSecondFirst ||
@@ -85,14 +172,55 @@ router.put(
         ) {
           await deleteUserRelationship({ firstUserId, secondUserId }, client);
         }
-        if (oldType === friendBoth) {
+
+        if (oldType === friendFirstSecond || oldType === friendSecondFirst) {
+          if (
+            (fromUser > toUser && oldType === friendSecondFirst) ||
+            (fromUser < toUser && oldType === friendFirstSecond)
+          ) {
+            sendType = WS_DELETE_RECEIVED_FRIEND_REQUEST;
+          } else if (
+            (fromUser > toUser && oldType === friendFirstSecond) ||
+            (fromUser < toUser && oldType === friendSecondFirst)
+          ) {
+            sendType = WS_DELETE_SENT_FRIEND_REQUEST;
+          }
+        } else if (oldType === friendBoth) {
           const room = await getFriendRoomId(
             { userId1: firstUserId, userId2: secondUserId },
             client
           );
-          await deleteChannel({ channelId: room.channelId }, client);
+          deleteChannel({ channelId: room.channelId }, client);
+
+          channelId = room.channelId;
+
+          sendType = WS_UNFRIEND;
         }
+
+        await client.query("COMMIT");
+
+        res.status(201).json({
+          userId: toUser,
+          channelId
+        });
+
+        publisher({
+          type: sendType,
+          userId: toUser,
+          channelId,
+          payload: {
+            userId: fromUser,
+            channelId
+          }
+        });
       } else if (type === block) {
+        /* -------------------------------------------------------------------------- */
+        /*                                    BLOCK                                   */
+        /* -------------------------------------------------------------------------- */
+        let channelId;
+        let publisherPayload;
+        let user;
+
         if (
           oldType === friendFirstSecond ||
           oldType === friendSecondFirst ||
@@ -117,14 +245,55 @@ router.put(
         } else if (!oldType) {
           await addUserRelationship({ fromUser, toUser, type: block }, client);
         }
+
+        const userInfo = await getUser({ userId: toUser }, client);
+
         if (oldType === friendBoth) {
           const room = await getFriendRoomId(
             { userId1: firstUserId, userId2: secondUserId },
             client
           );
           await deleteChannel({ channelId: room.channelId }, client);
+          channelId = room.channelId;
+
+          publisherPayload = {
+            type: WS_BLOCK_FRIEND,
+            channelId,
+            userId: toUser,
+            payload: {
+              userId: fromUser,
+              channelId
+            }
+          };
+        } else {
+          publisherPayload = {
+            type: WS_ADD_BLOCKER,
+            userId: toUser,
+            payload: {
+              userId: fromUser
+            }
+          };
         }
+
+        await client.query("COMMIT");
+
+        res.status(201).json({
+          userId: toUser,
+          channelId,
+          user: {
+            id: userInfo.id,
+            username: userInfo.username,
+            firstName: userInfo.firstName,
+            lastName: userInfo.lastName,
+            avatar: userInfo.avatar
+          }
+        });
+
+        publisher(publisherPayload);
       } else if (type === unblock) {
+        /* -------------------------------------------------------------------------- */
+        /*                                   UNBLOCK                                  */
+        /* -------------------------------------------------------------------------- */
         if (oldType === blockBoth) {
           await updateUserRelationship(
             {
@@ -140,10 +309,21 @@ router.put(
         ) {
           await deleteUserRelationship({ firstUserId, secondUserId }, client);
         }
-      }
 
-      await client.query("COMMIT");
-      res.status(201).json({});
+        await client.query("COMMIT");
+
+        res.status(201).json({
+          userId: toUser
+        });
+
+        publisher({
+          type: WS_DELETE_BLOCKER,
+          userId: toUser,
+          payload: {
+            userId: fromUser
+          }
+        });
+      }
     } catch (error) {
       await client.query("ROLLBACK");
       if (error instanceof DatabaseError) {

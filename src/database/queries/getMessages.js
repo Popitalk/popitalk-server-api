@@ -15,6 +15,7 @@ module.exports = async (
           .select("channel_id AS channelId")
           .select("content")
           .select("upload")
+          .select("created_at AS createdAt")
           .select(
             knex.raw(/* SQL */ `
           (
@@ -34,10 +35,13 @@ module.exports = async (
           ) AS "author"
           `)
           )
-          .select("created_at AS createdAt")
           .from("messages")
           .where("channel_id", channelId)
-          .andWhere(
+          .limit(50)
+          .as("m");
+
+        if (userId) {
+          q.andWhere(
             knex.raw(
               /* SQL */ `
             EXISTS (
@@ -48,12 +52,12 @@ module.exports = async (
               WHERE
                 members.channel_id = ?
                 AND members.user_id = ?
+                AND NOT members.banned
             )`,
               [channelId, userId]
             )
-          )
-          .limit(50)
-          .as("m");
+          );
+        }
 
         if (afterMessageId) {
           q.andWhere(

@@ -38,10 +38,10 @@ module.exports = async (
             'avatar',
             users.avatar
           )
-      FROM
-        users
-      WHERE
-        users.id = user_id
+        FROM
+          users
+        WHERE
+          users.id = user_id
       ) AS author
       `,
         [channelId, userId, content, upload]

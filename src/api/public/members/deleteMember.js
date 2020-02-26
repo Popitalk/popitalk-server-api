@@ -3,17 +3,17 @@ const { celebrate, Joi } = require("celebrate");
 const { ApiError, DatabaseError } = require("../../../helpers/errors");
 const { cache } = require("../../../helpers/middleware/cache");
 const authenticateUser = require("../../../helpers/middleware/authenticateUser");
-const addChannelMember = require("../../../database/queries/addChannelMember");
+const deleteMember = require("../../../database/queries/deleteMember");
 const getChannelPublicAndType = require("../../../database/queries/getChannelPublicAndType");
 const { publisher } = require("../../../config/pubSub");
-const { WS_JOIN_CHANNEL } = require("../../../config/constants");
+const { WS_LEAVE_CHANNEL } = require("../../../config/constants");
 
-router.post(
-  "/",
+router.delete(
+  "/:channelId",
   // cache,
   authenticateUser,
   celebrate({
-    body: Joi.object()
+    params: Joi.object()
       .keys({
         channelId: Joi.string()
           .uuid()
@@ -23,7 +23,7 @@ router.post(
   }),
   async (req, res, next) => {
     const { id: userId } = req.user;
-    const { channelId } = req.body;
+    const { channelId } = req.params;
 
     try {
       const channelPublicAndType = await getChannelPublicAndType({
@@ -32,38 +32,25 @@ router.post(
 
       if (!channelPublicAndType) throw new ApiError();
 
-      const { type, public } = channelPublicAndType;
+      const deletedMember = await deleteMember({
+        channelId,
+        userId
+      });
 
-      if (public) {
-        const newMember = await addChannelMember({
-          channelId,
-          userId
-        });
+      if (!deletedMember) throw new ApiError();
 
-        if (!newMember) throw new ApiError();
+      res.status(200).json(deletedMember);
 
-        res.status(201).json({
-          userId,
-          channelId,
-          type,
-          user: newMember.user
-        });
-
-        publisher({
-          type: WS_JOIN_CHANNEL,
-          userId,
-          channelId,
-          initiator: userId,
-          payload: {
-            userId,
-            channelId,
-            type,
-            user: newMember.user
-          }
-        });
-      } else {
-        res.send({});
-      }
+      publisher({
+        type: WS_LEAVE_CHANNEL,
+        userId,
+        channelId,
+        initiator: userId,
+        payload: {
+          ...deletedMember,
+          ...channelPublicAndType
+        }
+      });
     } catch (error) {
       if (error instanceof DatabaseError) {
         next(new ApiError(undefined, undefined, error));

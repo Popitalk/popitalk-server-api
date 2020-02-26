@@ -1,10 +1,20 @@
+/* eslint-disable prefer-const */
 const router = require("express").Router();
 const { celebrate, Joi } = require("celebrate");
 const { isEmpty } = require("lodash");
 const { ApiError, DatabaseError } = require("../../../helpers/errors");
 const { cache } = require("../../../helpers/middleware/cache");
 const authenticateUser = require("../../../helpers/middleware/authenticateUser");
-const getChannel = require("../../../database/queries/getChannel");
+const getRoomChannel = require("../../../database/queries/getRoomChannel");
+const getAdminChannel = require("../../../database/queries/getAdminChannel");
+const getPublicChannel = require("../../../database/queries/getPublicChannel");
+const getPrivateChannel = require("../../../database/queries/getPrivateChannel");
+const getUsers = require("../../../database/queries/getUsers");
+const getMessages = require("../../../database/queries/getMessages");
+const getPosts = require("../../../database/queries/getPosts");
+const getChannelTypePublicMemberAdminBanned = require("../../../database/queries/getChannelTypePublicMemberAdminBanned");
+const { publisher } = require("../../../config/pubSub");
+const { WS_SUBSCRIBE_CHANNEL } = require("../../../config/constants");
 
 router.get(
   "/:channelId",
@@ -25,36 +35,87 @@ router.get(
     let response;
 
     try {
-      const channel = await getChannel({ channelId, userId });
+      const channelInfo = await getChannelTypePublicMemberAdminBanned({
+        channelId,
+        userId
+      });
 
-      if (!channel)
+      if (!channelInfo)
         throw new ApiError(`Channel with id ${channelId} not found`, 404);
 
-      response = channel;
+      const { type, isPublic, isMember, isAdmin, isBanned } = channelInfo;
 
-      if (response.posts) {
-        let comments = {};
-
-        response.posts.forEach(post => {
-          if (post.comments.length !== 0) {
-            comments = {
-              ...comments,
-              [post.id]: post.comments
-            };
-          }
-          // eslint-disable-next-line no-param-reassign
-          delete post.comments;
-        });
-
-        if (isEmpty(comments)) {
-          comments = null;
-        }
+      if (isBanned) {
+        throw new ApiError(`You're banned fromt his channel`, 401);
+      } else if (type !== "channel" && isMember) {
+        const channel = await getRoomChannel({ channelId });
+        const users = await getUsers({ userIds: channel.members });
+        const messages = await getMessages({ channelId });
         response = {
-          ...response,
-          comments
+          channel,
+          users,
+          messages
+        };
+      } else if (isAdmin) {
+        const channel = await getAdminChannel({ channelId });
+        const users = await getUsers({ userIds: channel.members });
+        const banned = await getUsers({ userIds: channel.banned });
+        const messages = await getMessages({ channelId });
+        const postsAndComments = await getPosts({
+          channelId,
+          userId,
+          validateMember: false
+        });
+        // console.log("comments", comments);
+        response = {
+          channel,
+          users: {
+            ...users,
+            ...banned
+          },
+          messages,
+          ...postsAndComments
+        };
+      } else if (isMember || isPublic) {
+        const channel = await getPublicChannel({ channelId });
+        const users = await getUsers({ userIds: channel.members });
+        const messages = await getMessages({ channelId });
+        let postsAndComments = await getPosts({
+          channelId,
+          userId,
+          validateMember: false
+        });
+        response = {
+          channel,
+          users,
+          messages,
+          ...postsAndComments
+        };
+      } else if (!isMember && !isPublic) {
+        const channel = await getPrivateChannel({ channelId });
+        const users = await getUsers({ userIds: channel.admins });
+        response = {
+          channel,
+          users
         };
       }
-      res.json(response);
+      res.json({
+        channelId,
+        ...response
+      });
+      // Check also if private, in that case don't subscribe
+      if (!isMember && isPublic) {
+        publisher({
+          type: WS_SUBSCRIBE_CHANNEL,
+          channelId,
+          userId,
+          payload: {
+            userId,
+            channelId,
+            type: "channel"
+          }
+        });
+      }
     } catch (error) {
       if (error instanceof DatabaseError) {
         next(new ApiError(undefined, undefined, error));

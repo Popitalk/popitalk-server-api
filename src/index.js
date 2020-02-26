@@ -36,6 +36,7 @@ wss.on("connection", async (ws, request) => {
 const heartbeat = setInterval(() => {
   websocketsOfUsers.forEach(client => {
     try {
+      // Check if this triggers logoutHandler
       if (client.isAlive === false) return client.terminate();
 
       client.isAlive = false;

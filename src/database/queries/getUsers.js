@@ -31,7 +31,7 @@ module.exports = async ({ userIds }, db = database) => {
 
     if (!response) return null;
 
-    return response;
+    return response.users;
   } catch (error) {
     throw createDatabaseError(error);
   }

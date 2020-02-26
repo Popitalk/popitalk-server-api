@@ -10,6 +10,8 @@ const updateChannel = require("../../../database/queries/updateChannel");
 const database = require("../../../config/database");
 const { uploadFile } = require("../../../config/aws");
 const multer = require("../../../helpers/middleware/multer");
+const { publisher } = require("../../../config/pubSub");
+const { WS_SUBSCRIBE_CHANNEL } = require("../../../config/constants");
 
 router.post(
   "/",
@@ -42,24 +44,28 @@ router.post(
     try {
       await client.query("BEGIN");
 
-      const newChannel = await addChannel(
+      const channel = await addChannel(
         { name, description, publicChannel, ownerId: userId, type: "channel" },
         client
       );
 
-      if (!newChannel) throw new ApiError();
+      if (!channel) throw new ApiError();
 
       const newMembers = await addMembers(
-        { channelId: newChannel.id, userIds: [userId], admin: true },
+        { channelId: channel.id, userIds: [userId], admin: true },
         client
       );
 
       if (!newMembers) throw new ApiError();
 
+      channel.members = [userId];
+      channel.admins = [userId];
+      channel.banned = [];
+
       if (icon) {
         const { buffer } = icon;
         const type = fileType(buffer);
-        const fileName = `channelIcon-${newChannel.id}_${new Date().getTime()}`;
+        const fileName = `channelIcon-${channel.id}_${new Date().getTime()}`;
         const uploadedImage = await uploadFile(buffer, fileName, type);
 
         if (!uploadedImage)
@@ -69,7 +75,7 @@ router.post(
 
         updatedChannel = await updateChannel(
           {
-            channelId: newChannel.id,
+            channelId: channel.id,
             userId,
             icon: uploadedIcon
           },
@@ -81,11 +87,34 @@ router.post(
 
       await client.query("COMMIT");
 
-      res.status(201).json({
-        ...(updatedChannel ? { ...updatedChannel } : { ...newChannel }),
-        users: newMembers.map(member => member.userId),
-        admins: newMembers.map(admin => admin.userId),
-        banned: []
+      let payload;
+
+      if (updatedChannel) {
+        payload = {
+          channelId: channel.id,
+          channel: {
+            ...channel,
+            ...updatedChannel
+          }
+        };
+      } else {
+        payload = {
+          channelId: channel.id,
+          channel
+        };
+      }
+
+      res.status(201).json(payload);
+
+      publisher({
+        type: WS_SUBSCRIBE_CHANNEL,
+        channelId: channel.id,
+        userId,
+        payload: {
+          userId,
+          channelId: channel.id,
+          type: "channel"
+        }
       });
     } catch (error) {
       await client.query("ROLLBACK");

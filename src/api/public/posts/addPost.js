@@ -4,6 +4,8 @@ const { ApiError, DatabaseError } = require("../../../helpers/errors");
 const { cache } = require("../../../helpers/middleware/cache");
 const authenticateUser = require("../../../helpers/middleware/authenticateUser");
 const addPost = require("../../../database/queries/addPost");
+const { publisher } = require("../../../config/pubSub");
+const { WS_ADD_POST } = require("../../../config/constants");
 
 router.post(
   "/",
@@ -30,11 +32,19 @@ router.post(
         channelId,
         userId,
         content
+        // upload
       });
 
       if (!newPost) throw new ApiError();
 
       res.status(201).json(newPost);
+
+      publisher({
+        type: WS_ADD_POST,
+        channelId,
+        initiator: userId,
+        payload: newPost
+      });
     } catch (error) {
       if (error instanceof DatabaseError) {
         next(new ApiError(undefined, undefined, error));

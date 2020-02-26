@@ -5,7 +5,13 @@ const { cache } = require("../../../helpers/middleware/cache");
 const authenticateUser = require("../../../helpers/middleware/authenticateUser");
 const addChannel = require("../../../database/queries/addChannel");
 const addMembers = require("../../../database/queries/addMembers");
+const getUsers = require("../../../database/queries/getUsers");
 const database = require("../../../config/database");
+const { publisher } = require("../../../config/pubSub");
+const {
+  WS_ADD_CHANNEL,
+  WS_SUBSCRIBE_CHANNEL
+} = require("../../../config/constants");
 
 router.post(
   "/room",
@@ -34,20 +40,53 @@ router.post(
     const client = await database.connect();
     try {
       await client.query("BEGIN");
-      const newUserIds = [userId, ...userIds];
-      const newRoom = await addChannel({ type: "group" }, client);
 
-      if (!newRoom) throw new ApiError();
+      if (userIds.includes(userId)) throw new ApiError();
+
+      const newUserIds = [userId, ...userIds];
+      const channel = await addChannel({ type: "group" }, client);
+
+      if (!channel) throw new ApiError();
 
       const newMembers = await addMembers(
-        { channelId: newRoom.id, userIds: newUserIds },
+        { channelId: channel.id, userIds: newUserIds },
         client
       );
 
+      channel.members = newMembers.map(member => member.userId);
+
+      const users = await getUsers({ userIds: channel.members }, client);
+
       await client.query("COMMIT");
+
       res.status(201).json({
-        ...newRoom,
-        users: newMembers.map(member => member.userId)
+        channelId: channel.id,
+        channel
+      });
+
+      publisher({
+        type: WS_SUBSCRIBE_CHANNEL,
+        channelId: channel.id,
+        userId,
+        payload: {
+          userId,
+          channelId: channel.id,
+          type: "channel"
+        }
+      });
+
+      userIds.forEach(uid => {
+        publisher({
+          type: WS_ADD_CHANNEL,
+          channelId: channel.id,
+          userId: uid,
+          payload: {
+            channel,
+            users,
+            channelId: channel.id,
+            type: "group"
+          }
+        });
       });
     } catch (error) {
       await client.query("ROLLBACK");

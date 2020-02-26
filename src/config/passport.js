@@ -5,6 +5,7 @@ const getUser = require("../database/queries/getUser");
 const getUsersAndRelationships = require("../database/queries/getUsersAndRelationships");
 const getChannels = require("../database/queries/getChannels");
 const formatUsersAndRelationships = require("../helpers/formatUsersAndRelationships");
+const loginUserData = require("../helpers/loginUserData");
 
 passport.use(
   new LocalStrategy(
@@ -21,6 +22,8 @@ passport.use(
         });
 
         if (!user) return done(null, false);
+
+        // await loginUserData({ userId: user.id });
 
         const passwordCorrect = await bcrypt.compare(password, user.password);
 
@@ -53,15 +56,15 @@ passport.use(
 
         if (channels) {
           Object.entries(channels).forEach(([channelId, channel]) => {
-            if (channel.users) {
-              const usersIds = Object.keys(channel.users);
+            if (channel.members) {
+              const usersIds = Object.keys(channel.members);
 
               response.users = {
                 ...response.users,
-                ...channel.users
+                ...channel.members
               };
 
-              channels[channelId].users = usersIds;
+              channels[channelId].members = usersIds;
             }
           });
 
@@ -84,6 +87,8 @@ passport.serializeUser((user, done) => done(null, user.id));
 passport.deserializeUser(async (id, done) => {
   try {
     let response;
+
+    // await loginUserData({ userId: id });
 
     const user = await getUser({ userId: id });
 
@@ -113,15 +118,15 @@ passport.deserializeUser(async (id, done) => {
 
       if (channels) {
         Object.entries(channels).forEach(([channelId, channel]) => {
-          if (channel.users) {
-            const usersIds = Object.keys(channel.users);
+          if (channel.members) {
+            const usersIds = Object.keys(channel.members);
 
             response.users = {
               ...response.users,
-              ...channel.users
+              ...channel.members
             };
 
-            channels[channelId].users = usersIds;
+            channels[channelId].members = usersIds;
           }
         });
 

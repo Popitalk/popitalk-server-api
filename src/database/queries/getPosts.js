@@ -1,8 +1,12 @@
+const { isEmpty } = require("lodash");
 const knex = require("../../config/knex");
 const database = require("../../config/database");
 const createDatabaseError = require("../../helpers/createDatabaseError");
 
-module.exports = async ({ channelId, userId, beforePostId }, db = database) => {
+module.exports = async (
+  { channelId, userId, beforePostId, validateMember = true },
+  db = database
+) => {
   try {
     const query = knex
       .select("*")
@@ -11,6 +15,7 @@ module.exports = async ({ channelId, userId, beforePostId }, db = database) => {
           .select("channel_id AS channelId")
           .select("user_id AS userId")
           .select("content")
+          .select("upload")
           .select("created_at AS createdAt")
           .select(
             knex.raw(/* SQL */ `
@@ -35,12 +40,69 @@ module.exports = async ({ channelId, userId, beforePostId }, db = database) => {
             knex.raw(/* SQL */ `
             (
               SELECT
+                comments.id
+              FROM
+                comments
+              WHERE
+                comments.post_id = posts.id
+              ORDER BY
+                comments.created_at ASC
+              LIMIT
+                1
+            ) AS "firstCommentId"
+          `)
+          )
+          .select(
+            knex.raw(/* SQL */ `
+            (
+              SELECT
+                comments.id
+              FROM
+                comments
+              WHERE
+                comments.post_id = posts.id
+              ORDER BY
+                comments.created_at DESC
+              LIMIT
+                1
+            ) AS "lastCommentId"
+          `)
+          )
+          .select(
+            knex.raw(
+              /* SQL */ `
+            (
+              CASE
+                WHEN
+                  EXISTS (
+                    SELECT
+                      1
+                    FROM
+                      post_likes
+                    WHERE
+                      post_likes.post_id = posts.id
+                      AND post_likes.user_id = ?
+                  )
+                THEN
+                  TRUE
+                ELSE
+                  FALSE
+              END
+            ) AS "liked"
+          `,
+              [userId]
+            )
+          )
+          .select(
+            knex.raw(/* SQL */ `
+            (
+              SELECT
                 COUNT(*)
               FROM
                 post_likes
               WHERE
                 post_likes.post_id = posts.id
-            ) AS "likesCount"
+            ) AS "likeCount"
           `)
           )
           .select(
@@ -52,11 +114,12 @@ module.exports = async ({ channelId, userId, beforePostId }, db = database) => {
                 comments
               WHERE
                 comments.post_id = posts.id
-            ) AS "commentsCount"
+            ) AS "commentCount"
           `)
           )
           .select(
-            knex.raw(/* SQL */ `
+            knex.raw(
+              /* SQL */ `
             COALESCE((
               SELECT
                 JSON_AGG(c ORDER BY "createdAt" DESC)
@@ -64,7 +127,7 @@ module.exports = async ({ channelId, userId, beforePostId }, db = database) => {
               (
                 SELECT
                   comments.id,
-                  comments.post_id AS "channelId",
+                  comments.post_id AS "postId",
                   comments.user_id AS "userId",
                   comments.content,
                   comments.created_at AS "createdAt",
@@ -84,13 +147,31 @@ module.exports = async ({ channelId, userId, beforePostId }, db = database) => {
                       users.id = comments.user_id
                   ) AS "author",
                   (
+                    CASE
+                      WHEN
+                        EXISTS (
+                          SELECT
+                            1
+                          FROM
+                            comment_likes
+                          WHERE
+                            comment_likes.comment_id = comments.id
+                            AND comment_likes.user_id = ?
+                        )
+                      THEN
+                        TRUE
+                      ELSE
+                        FALSE
+                    END
+                  ) AS "liked",
+                  (
                     SELECT
                       COUNT(*)
                     FROM
                       comment_likes
                     WHERE
                       comment_likes.comment_id = comments.id
-                  ) AS "likesCount"
+                  ) AS "likeCount"
                 FROM
                   comments
                 WHERE
@@ -101,28 +182,34 @@ module.exports = async ({ channelId, userId, beforePostId }, db = database) => {
                   3
               ) AS c
             ), '[]') AS comments
-          `)
+          `,
+              [userId]
+            )
           )
           .from("posts")
           .where("channel_id", channelId)
-          .andWhere(
-            knex.raw(
-              /* SQL */ `
-            EXISTS (
-              SELECT
-                1
-              FROM
-                members
-              WHERE
-                members.channel_id = ?
-                AND members.user_id = ?
-            )`,
-              [channelId, userId]
-            )
-          )
           .orderBy("created_at", "desc")
           .limit(7)
           .as("p");
+
+        if (validateMember) {
+          q.andWhere(
+            knex.raw(
+              /* SQL */ `
+              EXISTS (
+                SELECT
+                  1
+                FROM
+                  members
+                WHERE
+                  members.channel_id = ?
+                  AND members.user_id = ?
+              )`,
+              [channelId, userId]
+            )
+          );
+        }
+
         if (beforePostId) {
           q.andWhere(
             knex.raw(
@@ -144,9 +231,32 @@ module.exports = async ({ channelId, userId, beforePostId }, db = database) => {
 
     const response = (await db.query(query.toString())).rows;
 
-    if (!response) return null;
+    if (response.length === 0) return null;
 
-    return response;
+    let posts = response;
+    let comments = {};
+
+    if (posts) {
+      posts.forEach(post => {
+        if (post.comments.length !== 0) {
+          comments = {
+            ...comments,
+            [post.id]: post.comments
+          };
+        }
+        // eslint-disable-next-line no-param-reassign
+        delete post.comments;
+      });
+
+      if (isEmpty(comments)) {
+        comments = {};
+      }
+    }
+    if (isEmpty(posts)) {
+      posts = {};
+    }
+
+    return { posts, comments };
   } catch (error) {
     throw createDatabaseError(error);
   }

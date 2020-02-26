@@ -6,7 +6,6 @@ const allSettled = require("promise.allsettled");
 const { format } = require("date-fns");
 const database = require("../../config/database");
 const logger = require("../../config/logger");
-const addUser = require("../queries/addUser");
 
 async function seedDb() {
   logger.debug("Seeding database...");

@@ -6,6 +6,8 @@ const authenticateUser = require("../../../helpers/middleware/authenticateUser")
 const addMembers = require("../../../database/queries/addMembers");
 const getUsers = require("../../../database/queries/getUsers");
 const getMemberIds = require("../../../database/queries/getMemberIds");
+const { publisher } = require("../../../config/pubSub");
+const { WS_ADD_MEMBERS } = require("../../../config/constants");
 
 router.post(
   "/roomInvite",
@@ -31,6 +33,7 @@ router.post(
       .required()
   }),
   async (req, res, next) => {
+    const { id: userId } = req.user;
     const { channelId, userIds } = req.body;
 
     try {
@@ -45,14 +48,39 @@ router.post(
 
       if (!newMembers) throw new ApiError();
 
-      const { users } = await getUsers({ userIds });
+      const users = await getUsers({ userIds });
 
       if (!users) throw new ApiError();
 
       res.status(201).json({
         channelId,
-        users
+        userIds
       });
+
+      publisher({
+        type: WS_ADD_MEMBERS,
+        channelId,
+        initiator: userId,
+        payload: {
+          channelId,
+          userIds,
+          users
+        }
+      });
+
+      // userIds.forEach(uid => {
+      //   publisher({
+      //     type: WS_ADD_CHANNEL,
+      //     channelId: channel.id,
+      //     userId: uid,
+      //     payload: {
+      //       channel,
+      //       users,
+      //       channelId: channel.id,
+      //       type: "group"
+      //     }
+      //   });
+      // });
     } catch (error) {
       if (error instanceof DatabaseError) {
         next(new ApiError(undefined, undefined, error));

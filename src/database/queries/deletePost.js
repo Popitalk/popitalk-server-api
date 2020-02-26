@@ -1,30 +1,30 @@
 const database = require("../../config/database");
 const createDatabaseError = require("../../helpers/createDatabaseError");
 
-module.exports = async ({ channelId, userId }, db = database) => {
+module.exports = async ({ postId, userId }, db = database) => {
   try {
     const response = (
       await db.query(
         /* SQL */ `
     DELETE FROM
-      members
+      posts
     WHERE
-      channel_id = $1
-      AND user_id = $2
-      AND NOT EXISTS (
+      posts.id = $1
+      AND EXISTS (
         SELECT
           1
         FROM
-          channels
+          members
         WHERE
-          channels.id = channel_id
-          AND owner_id = user_id
+          members.channel_id = posts.channel_id
+          AND members.user_id = $2
+          AND members.admin = TRUE
       )
     RETURNING
-      channel_id AS "channelId",
-      user_id AS "userId"
-    `,
-        [channelId, userId]
+      id,
+      channel_id AS "channelId"
+      `,
+        [postId, userId]
       )
     ).rows[0];
 

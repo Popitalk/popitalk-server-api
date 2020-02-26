@@ -1,11 +1,11 @@
 /* eslint-disable no-param-reassign */
 const { serverId } = require("../../config");
-const { usersOfChannels, channelsOfUsers } = require("../../config/state");
+const { channelsState, usersState } = require("../../config/state");
 // const redis = require("../../config/redis");
 const { subscriber } = require("../../config/pubSub");
 
 const logoutEvent = async userId => {
-  for await (const cid of channelsOfUsers.get(userId).entries()) {
+  for await (const cid of usersState.get(userId).entries()) {
     // ... broadcast
   }
 
@@ -14,12 +14,12 @@ const logoutEvent = async userId => {
   // #2 and #3
   // const pipeline = redis.pipeline();
 
-  for await (const cid of channelsOfUsers.get(userId).keys()) {
-    if (usersOfChannels.has(cid)) {
-      usersOfChannels.get(cid).delete(userId);
+  for await (const cid of usersState.get(userId).keys()) {
+    if (channelsState.has(cid)) {
+      channelsState.get(cid).delete(userId);
 
-      if (usersOfChannels.get(cid).size === 0) {
-        usersOfChannels.delete(cid);
+      if (channelsState.get(cid).size === 0) {
+        channelsState.delete(cid);
         // await pipeline.srem(cid, serverId);
         subscriber.unsubscribe(cid);
       }
@@ -30,7 +30,7 @@ const logoutEvent = async userId => {
   // await pipeline.del(userId, serverId);
   // 5
   subscriber.unsubscribe(userId);
-  channelsOfUsers.delete(userId);
+  usersState.delete(userId);
   // websocketsOfUsers.delete(userId);
 
   // await pipeline.exec();
