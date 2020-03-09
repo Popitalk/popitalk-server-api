@@ -1,18 +1,24 @@
 /* eslint-disable no-param-reassign */
-const { serverId } = require("../../config");
 const { channelsState, usersState } = require("../../config/state");
 // const redis = require("../../config/redis");
-const { subscriber } = require("../../config/pubSub");
+const { subscriber, publisher } = require("../../config/pubSub");
+const { WS_FRIEND_OFFLINE } = require("../../config/constants");
+// const redis = require("../../config/redis");
 
 const logoutEvent = async userId => {
+  // entries error, why?
   for await (const cid of usersState.get(userId).entries()) {
-    // ... broadcast
+    if (cid[1] === "friend") {
+      publisher({
+        type: WS_FRIEND_OFFLINE,
+        channelId: cid[0],
+        initiator: userId,
+        payload: {
+          channelId: cid[0]
+        }
+      });
+    }
   }
-
-  // #1
-  // Broadcast offline status to all friend channels
-  // #2 and #3
-  // const pipeline = redis.pipeline();
 
   for await (const cid of usersState.get(userId).keys()) {
     if (channelsState.has(cid)) {
@@ -26,9 +32,6 @@ const logoutEvent = async userId => {
     }
   }
 
-  // #4
-  // await pipeline.del(userId, serverId);
-  // 5
   subscriber.unsubscribe(userId);
   usersState.delete(userId);
   // websocketsOfUsers.delete(userId);

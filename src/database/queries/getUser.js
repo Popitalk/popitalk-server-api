@@ -45,6 +45,7 @@ module.exports = async (
 
     return response;
   } catch (error) {
+    console.error("D", error);
     throw createDatabaseError(error);
   }
 };

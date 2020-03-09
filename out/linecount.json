@@ -1,0 +1,1073 @@
+{
+    "extension": "linecount",
+    "version": "0.1.7",
+    "workspace": "/home/sulaiman/Desktop/playnows/playnows-server",
+    "linecount": [
+        {
+            "version": "0.1.7",
+            "counttime": "2020-03-09 20:03:47",
+            "filesum": 176,
+            "codesum": 7947,
+            "commentsum": 812,
+            "blanksum": 868,
+            "filelist": [
+                {
+                    "blank": 2,
+                    "code": 10,
+                    "comment": 0,
+                    "filename": ".editorconfig"
+                },
+                {
+                    "blank": 0,
+                    "code": 24,
+                    "comment": 0,
+                    "filename": ".env"
+                },
+                {
+                    "blank": 0,
+                    "code": 24,
+                    "comment": 0,
+                    "filename": ".env.example"
+                },
+                {
+                    "blank": 0,
+                    "code": 4,
+                    "comment": 0,
+                    "filename": ".eslintignore"
+                },
+                {
+                    "blank": 2,
+                    "code": 38,
+                    "comment": 0,
+                    "filename": ".eslintrc"
+                },
+                {
+                    "blank": 0,
+                    "code": 25,
+                    "comment": 0,
+                    "filename": ".github/workflows/deploy.yml"
+                },
+                {
+                    "blank": 1,
+                    "code": 20,
+                    "comment": 0,
+                    "filename": ".gitignore"
+                },
+                {
+                    "blank": 0,
+                    "code": 10,
+                    "comment": 0,
+                    "filename": ".migrate"
+                },
+                {
+                    "blank": 0,
+                    "code": 4,
+                    "comment": 0,
+                    "filename": ".prettierignore"
+                },
+                {
+                    "blank": 0,
+                    "code": 13,
+                    "comment": 0,
+                    "filename": ".prettierrc"
+                },
+                {
+                    "blank": 9,
+                    "code": 33,
+                    "comment": 9,
+                    "filename": "__tests__/abc.js"
+                },
+                {
+                    "blank": 2,
+                    "code": 4,
+                    "comment": 1,
+                    "filename": "src/api/index.js"
+                },
+                {
+                    "blank": 2,
+                    "code": 19,
+                    "comment": 0,
+                    "filename": "src/api/private/health/check.js"
+                },
+                {
+                    "blank": 2,
+                    "code": 3,
+                    "comment": 0,
+                    "filename": "src/api/private/health/index.js"
+                },
+                {
+                    "blank": 2,
+                    "code": 3,
+                    "comment": 0,
+                    "filename": "src/api/private/index.js"
+                },
+                {
+                    "blank": 9,
+                    "code": 62,
+                    "comment": 1,
+                    "filename": "src/api/public/channels/addChannel.js"
+                },
+                {
+                    "blank": 13,
+                    "code": 90,
+                    "comment": 1,
+                    "filename": "src/api/public/channels/addRoom.js"
+                },
+                {
+                    "blank": 6,
+                    "code": 45,
+                    "comment": 1,
+                    "filename": "src/api/public/channels/deleteChannel.js"
+                },
+                {
+                    "blank": 6,
+                    "code": 64,
+                    "comment": 2,
+                    "filename": "src/api/public/channels/getChannel.js"
+                },
+                {
+                    "blank": 2,
+                    "code": 10,
+                    "comment": 0,
+                    "filename": "src/api/public/channels/index.js"
+                },
+                {
+                    "blank": 10,
+                    "code": 70,
+                    "comment": 14,
+                    "filename": "src/api/public/channels/inviteFriends.js"
+                },
+                {
+                    "blank": 12,
+                    "code": 76,
+                    "comment": 1,
+                    "filename": "src/api/public/channels/leaveRoom.js"
+                },
+                {
+                    "blank": 9,
+                    "code": 86,
+                    "comment": 1,
+                    "filename": "src/api/public/channels/updateChannel.js"
+                },
+                {
+                    "blank": 5,
+                    "code": 53,
+                    "comment": 1,
+                    "filename": "src/api/public/channels/updateRoom.js"
+                },
+                {
+                    "blank": 6,
+                    "code": 50,
+                    "comment": 1,
+                    "filename": "src/api/public/comments/addComment.js"
+                },
+                {
+                    "blank": 0,
+                    "code": 0,
+                    "comment": 0,
+                    "filename": "src/api/public/comments/deleteComment.js"
+                },
+                {
+                    "blank": 3,
+                    "code": 37,
+                    "comment": 1,
+                    "filename": "src/api/public/comments/getComments.js"
+                },
+                {
+                    "blank": 2,
+                    "code": 4,
+                    "comment": 1,
+                    "filename": "src/api/public/comments/index.js"
+                },
+                {
+                    "blank": 2,
+                    "code": 12,
+                    "comment": 0,
+                    "filename": "src/api/public/index.js"
+                },
+                {
+                    "blank": 6,
+                    "code": 62,
+                    "comment": 5,
+                    "filename": "src/api/public/likes/addLike.js"
+                },
+                {
+                    "blank": 6,
+                    "code": 62,
+                    "comment": 5,
+                    "filename": "src/api/public/likes/deleteLike.js"
+                },
+                {
+                    "blank": 2,
+                    "code": 4,
+                    "comment": 0,
+                    "filename": "src/api/public/likes/index.js"
+                },
+                {
+                    "blank": 9,
+                    "code": 67,
+                    "comment": 1,
+                    "filename": "src/api/public/members/addMember.js"
+                },
+                {
+                    "blank": 8,
+                    "code": 55,
+                    "comment": 1,
+                    "filename": "src/api/public/members/deleteMember.js"
+                },
+                {
+                    "blank": 2,
+                    "code": 5,
+                    "comment": 0,
+                    "filename": "src/api/public/members/index.js"
+                },
+                {
+                    "blank": 11,
+                    "code": 159,
+                    "comment": 1,
+                    "filename": "src/api/public/members/updateMember.js"
+                },
+                {
+                    "blank": 6,
+                    "code": 54,
+                    "comment": 2,
+                    "filename": "src/api/public/messages/addMessage.js"
+                },
+                {
+                    "blank": 11,
+                    "code": 59,
+                    "comment": 1,
+                    "filename": "src/api/public/messages/deleteMessage.js"
+                },
+                {
+                    "blank": 3,
+                    "code": 40,
+                    "comment": 1,
+                    "filename": "src/api/public/messages/getMessages.js"
+                },
+                {
+                    "blank": 2,
+                    "code": 5,
+                    "comment": 0,
+                    "filename": "src/api/public/messages/index.js"
+                },
+                {
+                    "blank": 6,
+                    "code": 50,
+                    "comment": 2,
+                    "filename": "src/api/public/posts/addPost.js"
+                },
+                {
+                    "blank": 11,
+                    "code": 59,
+                    "comment": 1,
+                    "filename": "src/api/public/posts/deletePost.js"
+                },
+                {
+                    "blank": 3,
+                    "code": 38,
+                    "comment": 1,
+                    "filename": "src/api/public/posts/getPosts.js"
+                },
+                {
+                    "blank": 2,
+                    "code": 5,
+                    "comment": 0,
+                    "filename": "src/api/public/posts/index.js"
+                },
+                {
+                    "blank": 2,
+                    "code": 5,
+                    "comment": 0,
+                    "filename": "src/api/public/sessions/index.js"
+                },
+                {
+                    "blank": 2,
+                    "code": 7,
+                    "comment": 0,
+                    "filename": "src/api/public/sessions/login.js"
+                },
+                {
+                    "blank": 5,
+                    "code": 10,
+                    "comment": 0,
+                    "filename": "src/api/public/sessions/logout.js"
+                },
+                {
+                    "blank": 2,
+                    "code": 7,
+                    "comment": 0,
+                    "filename": "src/api/public/sessions/validate.js"
+                },
+                {
+                    "blank": 5,
+                    "code": 26,
+                    "comment": 1,
+                    "filename": "src/api/public/users/deleteUser.js"
+                },
+                {
+                    "blank": 5,
+                    "code": 40,
+                    "comment": 1,
+                    "filename": "src/api/public/users/getUser.js"
+                },
+                {
+                    "blank": 2,
+                    "code": 8,
+                    "comment": 1,
+                    "filename": "src/api/public/users/index.js"
+                },
+                {
+                    "blank": 12,
+                    "code": 106,
+                    "comment": 8,
+                    "filename": "src/api/public/users/register.js"
+                },
+                {
+                    "blank": 5,
+                    "code": 34,
+                    "comment": 1,
+                    "filename": "src/api/public/users/searchUsers.js"
+                },
+                {
+                    "blank": 7,
+                    "code": 100,
+                    "comment": 3,
+                    "filename": "src/api/public/users/updateUser.js"
+                },
+                {
+                    "blank": 33,
+                    "code": 292,
+                    "comment": 15,
+                    "filename": "src/api/public/users/updateUserRelationships.js"
+                },
+                {
+                    "blank": 6,
+                    "code": 43,
+                    "comment": 0,
+                    "filename": "src/api/public/users/verifyEmail.js"
+                },
+                {
+                    "blank": 17,
+                    "code": 83,
+                    "comment": 7,
+                    "filename": "src/api/public/videos/addVideo.js"
+                },
+                {
+                    "blank": 2,
+                    "code": 4,
+                    "comment": 0,
+                    "filename": "src/api/public/videos/index.js"
+                },
+                {
+                    "blank": 9,
+                    "code": 89,
+                    "comment": 2,
+                    "filename": "src/api/public/videos/searchVideos.js"
+                },
+                {
+                    "blank": 5,
+                    "code": 49,
+                    "comment": 1,
+                    "filename": "src/api/public/watchers/addWatcher.js"
+                },
+                {
+                    "blank": 5,
+                    "code": 48,
+                    "comment": 1,
+                    "filename": "src/api/public/watchers/deleteWatcher.js"
+                },
+                {
+                    "blank": 2,
+                    "code": 4,
+                    "comment": 0,
+                    "filename": "src/api/public/watchers/index.js"
+                },
+                {
+                    "blank": 14,
+                    "code": 49,
+                    "comment": 19,
+                    "filename": "src/app.js"
+                },
+                {
+                    "blank": 5,
+                    "code": 20,
+                    "comment": 0,
+                    "filename": "src/config/aws.js"
+                },
+                {
+                    "blank": 21,
+                    "code": 151,
+                    "comment": 0,
+                    "filename": "src/config/constants.js"
+                },
+                {
+                    "blank": 2,
+                    "code": 10,
+                    "comment": 0,
+                    "filename": "src/config/database.js"
+                },
+                {
+                    "blank": 1,
+                    "code": 29,
+                    "comment": 0,
+                    "filename": "src/config/index.js"
+                },
+                {
+                    "blank": 6,
+                    "code": 33,
+                    "comment": 0,
+                    "filename": "src/config/jobs.js"
+                },
+                {
+                    "blank": 1,
+                    "code": 2,
+                    "comment": 0,
+                    "filename": "src/config/knex.js"
+                },
+                {
+                    "blank": 8,
+                    "code": 49,
+                    "comment": 0,
+                    "filename": "src/config/logger.js"
+                },
+                {
+                    "blank": 30,
+                    "code": 114,
+                    "comment": 2,
+                    "filename": "src/config/passport.js"
+                },
+                {
+                    "blank": 1,
+                    "code": 8,
+                    "comment": 0,
+                    "filename": "src/config/pii.js"
+                },
+                {
+                    "blank": 7,
+                    "code": 152,
+                    "comment": 3,
+                    "filename": "src/config/pubSub.js"
+                },
+                {
+                    "blank": 2,
+                    "code": 9,
+                    "comment": 0,
+                    "filename": "src/config/redis.js"
+                },
+                {
+                    "blank": 1,
+                    "code": 8,
+                    "comment": 0,
+                    "filename": "src/config/state.js"
+                },
+                {
+                    "blank": 12,
+                    "code": 59,
+                    "comment": 9,
+                    "filename": "src/database/migrations/1565249632537-init.js"
+                },
+                {
+                    "blank": 5,
+                    "code": 21,
+                    "comment": 0,
+                    "filename": "src/database/queries/addAdmins.js"
+                },
+                {
+                    "blank": 4,
+                    "code": 43,
+                    "comment": 1,
+                    "filename": "src/database/queries/addChannel.js"
+                },
+                {
+                    "blank": 4,
+                    "code": 42,
+                    "comment": 1,
+                    "filename": "src/database/queries/addChannelMember.js"
+                },
+                {
+                    "blank": 4,
+                    "code": 130,
+                    "comment": 1,
+                    "filename": "src/database/queries/addComment.js"
+                },
+                {
+                    "blank": 4,
+                    "code": 58,
+                    "comment": 1,
+                    "filename": "src/database/queries/addCommentLike.js"
+                },
+                {
+                    "blank": 1,
+                    "code": 21,
+                    "comment": 1,
+                    "filename": "src/database/queries/addEmailVerificationToken.js"
+                },
+                {
+                    "blank": 4,
+                    "code": 32,
+                    "comment": 1,
+                    "filename": "src/database/queries/addMembers.js"
+                },
+                {
+                    "blank": 4,
+                    "code": 47,
+                    "comment": 1,
+                    "filename": "src/database/queries/addMembersToRoom.js"
+                },
+                {
+                    "blank": 4,
+                    "code": 53,
+                    "comment": 1,
+                    "filename": "src/database/queries/addMessage.js"
+                },
+                {
+                    "blank": 4,
+                    "code": 57,
+                    "comment": 1,
+                    "filename": "src/database/queries/addPost.js"
+                },
+                {
+                    "blank": 4,
+                    "code": 42,
+                    "comment": 1,
+                    "filename": "src/database/queries/addPostLike.js"
+                },
+                {
+                    "blank": 5,
+                    "code": 49,
+                    "comment": 1,
+                    "filename": "src/database/queries/addRoom.js"
+                },
+                {
+                    "blank": 4,
+                    "code": 41,
+                    "comment": 1,
+                    "filename": "src/database/queries/addUser.js"
+                },
+                {
+                    "blank": 8,
+                    "code": 36,
+                    "comment": 1,
+                    "filename": "src/database/queries/addUserRelationship.js"
+                },
+                {
+                    "blank": 4,
+                    "code": 39,
+                    "comment": 1,
+                    "filename": "src/database/queries/adminMember.js"
+                },
+                {
+                    "blank": 4,
+                    "code": 56,
+                    "comment": 1,
+                    "filename": "src/database/queries/banMember.js"
+                },
+                {
+                    "blank": 4,
+                    "code": 29,
+                    "comment": 1,
+                    "filename": "src/database/queries/deleteChannel.js"
+                },
+                {
+                    "blank": 4,
+                    "code": 44,
+                    "comment": 1,
+                    "filename": "src/database/queries/deleteCommentLike.js"
+                },
+                {
+                    "blank": 4,
+                    "code": 33,
+                    "comment": 1,
+                    "filename": "src/database/queries/deleteMember.js"
+                },
+                {
+                    "blank": 4,
+                    "code": 36,
+                    "comment": 1,
+                    "filename": "src/database/queries/deleteMessage.js"
+                },
+                {
+                    "blank": 4,
+                    "code": 33,
+                    "comment": 1,
+                    "filename": "src/database/queries/deletePost.js"
+                },
+                {
+                    "blank": 4,
+                    "code": 32,
+                    "comment": 1,
+                    "filename": "src/database/queries/deletePostLike.js"
+                },
+                {
+                    "blank": 4,
+                    "code": 23,
+                    "comment": 1,
+                    "filename": "src/database/queries/deleteUser.js"
+                },
+                {
+                    "blank": 4,
+                    "code": 22,
+                    "comment": 1,
+                    "filename": "src/database/queries/deleteUserRelationship.js"
+                },
+                {
+                    "blank": 4,
+                    "code": 98,
+                    "comment": 1,
+                    "filename": "src/database/queries/getAdminChannel.js"
+                },
+                {
+                    "blank": 4,
+                    "code": 22,
+                    "comment": 1,
+                    "filename": "src/database/queries/getBanned.js"
+                },
+                {
+                    "blank": 7,
+                    "code": 425,
+                    "comment": 527,
+                    "filename": "src/database/queries/getChannel.js"
+                },
+                {
+                    "blank": 4,
+                    "code": 165,
+                    "comment": 1,
+                    "filename": "src/database/queries/getChannelPosts.js"
+                },
+                {
+                    "blank": 4,
+                    "code": 23,
+                    "comment": 1,
+                    "filename": "src/database/queries/getChannelPublicAndType.js"
+                },
+                {
+                    "blank": 4,
+                    "code": 126,
+                    "comment": 1,
+                    "filename": "src/database/queries/getChannels.js"
+                },
+                {
+                    "blank": 4,
+                    "code": 36,
+                    "comment": 1,
+                    "filename": "src/database/queries/getChannelTypePublicMemberAdminBanned.js"
+                },
+                {
+                    "blank": 4,
+                    "code": 87,
+                    "comment": 1,
+                    "filename": "src/database/queries/getComments.js"
+                },
+                {
+                    "blank": 5,
+                    "code": 28,
+                    "comment": 0,
+                    "filename": "src/database/queries/getEmailVerificationToken.js"
+                },
+                {
+                    "blank": 4,
+                    "code": 25,
+                    "comment": 1,
+                    "filename": "src/database/queries/getFriendRoomId.js"
+                },
+                {
+                    "blank": 4,
+                    "code": 57,
+                    "comment": 1,
+                    "filename": "src/database/queries/getLastMessageInfo.js"
+                },
+                {
+                    "blank": 4,
+                    "code": 57,
+                    "comment": 1,
+                    "filename": "src/database/queries/getLastPostInfo.js"
+                },
+                {
+                    "blank": 6,
+                    "code": 76,
+                    "comment": 25,
+                    "filename": "src/database/queries/getLoginData.js"
+                },
+                {
+                    "blank": 4,
+                    "code": 22,
+                    "comment": 1,
+                    "filename": "src/database/queries/getMemberIds.js"
+                },
+                {
+                    "blank": 9,
+                    "code": 99,
+                    "comment": 3,
+                    "filename": "src/database/queries/getMessages.js"
+                },
+                {
+                    "blank": 13,
+                    "code": 249,
+                    "comment": 5,
+                    "filename": "src/database/queries/getPosts.js"
+                },
+                {
+                    "blank": 4,
+                    "code": 40,
+                    "comment": 1,
+                    "filename": "src/database/queries/getPrivateChannel.js"
+                },
+                {
+                    "blank": 4,
+                    "code": 96,
+                    "comment": 1,
+                    "filename": "src/database/queries/getPublicChannel.js"
+                },
+                {
+                    "blank": 4,
+                    "code": 24,
+                    "comment": 1,
+                    "filename": "src/database/queries/getRoomByMembers.js"
+                },
+                {
+                    "blank": 4,
+                    "code": 63,
+                    "comment": 1,
+                    "filename": "src/database/queries/getRoomChannel.js"
+                },
+                {
+                    "blank": 4,
+                    "code": 31,
+                    "comment": 1,
+                    "filename": "src/database/queries/getSearchedUsers.js"
+                },
+                {
+                    "blank": 7,
+                    "code": 44,
+                    "comment": 1,
+                    "filename": "src/database/queries/getUser.js"
+                },
+                {
+                    "blank": 4,
+                    "code": 25,
+                    "comment": 1,
+                    "filename": "src/database/queries/getUserRelationship.js"
+                },
+                {
+                    "blank": 4,
+                    "code": 34,
+                    "comment": 1,
+                    "filename": "src/database/queries/getUsers.js"
+                },
+                {
+                    "blank": 4,
+                    "code": 47,
+                    "comment": 1,
+                    "filename": "src/database/queries/getUsersAndRelationships.js"
+                },
+                {
+                    "blank": 4,
+                    "code": 38,
+                    "comment": 1,
+                    "filename": "src/database/queries/unadminMember.js"
+                },
+                {
+                    "blank": 4,
+                    "code": 39,
+                    "comment": 1,
+                    "filename": "src/database/queries/unbanMember.js"
+                },
+                {
+                    "blank": 5,
+                    "code": 47,
+                    "comment": 1,
+                    "filename": "src/database/queries/updateChannel.js"
+                },
+                {
+                    "blank": 5,
+                    "code": 45,
+                    "comment": 0,
+                    "filename": "src/database/queries/updateMember.js"
+                },
+                {
+                    "blank": 5,
+                    "code": 33,
+                    "comment": 0,
+                    "filename": "src/database/queries/updateRoom.js"
+                },
+                {
+                    "blank": 5,
+                    "code": 47,
+                    "comment": 0,
+                    "filename": "src/database/queries/updateUser.js"
+                },
+                {
+                    "blank": 4,
+                    "code": 23,
+                    "comment": 1,
+                    "filename": "src/database/queries/updateUserRelationship.js"
+                },
+                {
+                    "blank": 4,
+                    "code": 40,
+                    "comment": 1,
+                    "filename": "src/database/queries/verifyEmail.js"
+                },
+                {
+                    "blank": 10,
+                    "code": 61,
+                    "comment": 3,
+                    "filename": "src/database/seeds/index.js"
+                },
+                {
+                    "blank": 0,
+                    "code": 5,
+                    "comment": 0,
+                    "filename": "src/database/sql/1565249632537-init/down/init-down.sql"
+                },
+                {
+                    "blank": 0,
+                    "code": 4,
+                    "comment": 0,
+                    "filename": "src/database/sql/1565249632537-init/up/extensions/extensions.sql"
+                },
+                {
+                    "blank": 6,
+                    "code": 170,
+                    "comment": 3,
+                    "filename": "src/database/sql/1565249632537-init/up/functions/functions.sql"
+                },
+                {
+                    "blank": 0,
+                    "code": 1,
+                    "comment": 0,
+                    "filename": "src/database/sql/1565249632537-init/up/indices/indices.sql"
+                },
+                {
+                    "blank": 16,
+                    "code": 193,
+                    "comment": 0,
+                    "filename": "src/database/sql/1565249632537-init/up/tables/tables.sql"
+                },
+                {
+                    "blank": 1,
+                    "code": 16,
+                    "comment": 3,
+                    "filename": "src/database/sql/1565249632537-init/up/triggers/triggers.sql"
+                },
+                {
+                    "blank": 1,
+                    "code": 6,
+                    "comment": 0,
+                    "filename": "src/helpers/closeAllConnections.js"
+                },
+                {
+                    "blank": 1,
+                    "code": 17,
+                    "comment": 0,
+                    "filename": "src/helpers/createDatabaseError.js"
+                },
+                {
+                    "blank": 1,
+                    "code": 9,
+                    "comment": 0,
+                    "filename": "src/helpers/createProjectDirectories.js"
+                },
+                {
+                    "blank": 1,
+                    "code": 8,
+                    "comment": 0,
+                    "filename": "src/helpers/errorHandlers/ApiErrorHandler.js"
+                },
+                {
+                    "blank": 1,
+                    "code": 8,
+                    "comment": 0,
+                    "filename": "src/helpers/errorHandlers/index.js"
+                },
+                {
+                    "blank": 1,
+                    "code": 18,
+                    "comment": 0,
+                    "filename": "src/helpers/errorHandlers/MulterErrorHandler.js"
+                },
+                {
+                    "blank": 3,
+                    "code": 21,
+                    "comment": 0,
+                    "filename": "src/helpers/errorHandlers/RequestValidationErrorHandler.js"
+                },
+                {
+                    "blank": 1,
+                    "code": 11,
+                    "comment": 0,
+                    "filename": "src/helpers/errors/ApiError.js"
+                },
+                {
+                    "blank": 1,
+                    "code": 33,
+                    "comment": 0,
+                    "filename": "src/helpers/errors/DatabaseError.js"
+                },
+                {
+                    "blank": 1,
+                    "code": 3,
+                    "comment": 0,
+                    "filename": "src/helpers/errors/index.js"
+                },
+                {
+                    "blank": 4,
+                    "code": 77,
+                    "comment": 0,
+                    "filename": "src/helpers/formatUsersAndRelationships.js"
+                },
+                {
+                    "blank": 13,
+                    "code": 55,
+                    "comment": 0,
+                    "filename": "src/helpers/gracefulExit.js"
+                },
+                {
+                    "blank": 5,
+                    "code": 31,
+                    "comment": 0,
+                    "filename": "src/helpers/jobs/sendRegistrationEmail.js"
+                },
+                {
+                    "blank": 4,
+                    "code": 27,
+                    "comment": 0,
+                    "filename": "src/helpers/jobs/sendVerificationEmail.js"
+                },
+                {
+                    "blank": 13,
+                    "code": 17,
+                    "comment": 41,
+                    "filename": "src/helpers/loginUserData.js"
+                },
+                {
+                    "blank": 1,
+                    "code": 9,
+                    "comment": 0,
+                    "filename": "src/helpers/middleware/authenticateUser.js"
+                },
+                {
+                    "blank": 11,
+                    "code": 42,
+                    "comment": 0,
+                    "filename": "src/helpers/middleware/cache.js"
+                },
+                {
+                    "blank": 6,
+                    "code": 30,
+                    "comment": 2,
+                    "filename": "src/helpers/middleware/errorHandler.js"
+                },
+                {
+                    "blank": 3,
+                    "code": 17,
+                    "comment": 0,
+                    "filename": "src/helpers/middleware/multer.js"
+                },
+                {
+                    "blank": 1,
+                    "code": 5,
+                    "comment": 0,
+                    "filename": "src/helpers/middleware/requestId.js"
+                },
+                {
+                    "blank": 2,
+                    "code": 27,
+                    "comment": 0,
+                    "filename": "src/helpers/middleware/requestLogger.js"
+                },
+                {
+                    "blank": 4,
+                    "code": 14,
+                    "comment": 0,
+                    "filename": "src/helpers/resetDb.js"
+                },
+                {
+                    "blank": 12,
+                    "code": 52,
+                    "comment": 6,
+                    "filename": "src/index.js"
+                },
+                {
+                    "blank": 0,
+                    "code": 10,
+                    "comment": 0,
+                    "filename": "src/utils/isJson.js"
+                },
+                {
+                    "blank": 2,
+                    "code": 10,
+                    "comment": 1,
+                    "filename": "src/websockets/closeHandler.js"
+                },
+                {
+                    "blank": 9,
+                    "code": 47,
+                    "comment": 1,
+                    "filename": "src/websockets/events/loginEvent.js"
+                },
+                {
+                    "blank": 6,
+                    "code": 29,
+                    "comment": 7,
+                    "filename": "src/websockets/events/logoutEvent.js"
+                },
+                {
+                    "blank": 3,
+                    "code": 11,
+                    "comment": 1,
+                    "filename": "src/websockets/messageHandler.js"
+                },
+                {
+                    "blank": 13,
+                    "code": 119,
+                    "comment": 3,
+                    "filename": "src/websockets/sender.js"
+                },
+                {
+                    "blank": 3,
+                    "code": 21,
+                    "comment": 0,
+                    "filename": "src/websockets/upgradeHandler.js"
+                },
+                {
+                    "blank": 4,
+                    "code": 36,
+                    "comment": 0,
+                    "filename": "tools/createDb.js"
+                },
+                {
+                    "blank": 1,
+                    "code": 11,
+                    "comment": 0,
+                    "filename": "tools/dropDb.js"
+                },
+                {
+                    "blank": 2,
+                    "code": 6,
+                    "comment": 0,
+                    "filename": "tools/flushRedis.js"
+                },
+                {
+                    "blank": 4,
+                    "code": 42,
+                    "comment": 1,
+                    "filename": "tools/migrate.js"
+                },
+                {
+                    "blank": 2,
+                    "code": 3,
+                    "comment": 0,
+                    "filename": "tools/migrationsDirectory.js"
+                },
+                {
+                    "blank": 5,
+                    "code": 20,
+                    "comment": 2,
+                    "filename": "tools/reset.js"
+                }
+            ]
+        }
+    ]
+}

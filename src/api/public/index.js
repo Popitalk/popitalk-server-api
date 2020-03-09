@@ -8,5 +8,7 @@ router.use("/messages", require("./messages"));
 router.use("/posts", require("./posts"));
 router.use("/comments", require("./comments"));
 router.use("/likes", require("./likes"));
+router.use("/videos", require("./videos"));
+router.use("/watchers", require("./watchers"));
 
 module.exports = router;
