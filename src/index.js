@@ -67,8 +67,8 @@ server.listen(config.port || 4000, config.host || "localhost", () => {
   );
 });
 
-module.exports = { server, heartbeat };
-
 if (config.mode === "production") {
   require("./helpers/gracefulExit")(server);
 }
+
+module.exports = { server, heartbeat };
