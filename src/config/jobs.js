@@ -1,7 +1,8 @@
 const Queue = require("bull");
 const config = require("./index");
-const sendRegistrationEmailJob = require("../helpers/jobs/sendRegistrationEmail");
-const sendVerificationEmailJob = require("../helpers/jobs/sendVerificationEmail");
+
+const sendRegistrationEmailJob = require("../jobs/sendRegistrationEmail");
+const sendVerificationEmailJob = require("../jobs/sendVerificationEmail");
 
 const registrationEmailQueue = new Queue("registrationEmail", {
   redis: {

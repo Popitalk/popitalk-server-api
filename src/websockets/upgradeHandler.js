@@ -1,4 +1,4 @@
-const { sessionParser } = require("../app");
+const sessionParser = require("../config/sessionParser");
 
 const upgradeHandler = (wss, server) => {
   server.on("upgrade", (request, socket, head) => {

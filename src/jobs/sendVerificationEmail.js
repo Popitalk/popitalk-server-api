@@ -1,13 +1,8 @@
 const nodemailer = require("nodemailer");
-const getEmailVerificationToken = require("../../database/queries/getEmailVerificationToken");
-const logger = require("../../config/logger");
+const logger = require("../config/logger");
 
 module.exports = async ({ email }) => {
   try {
-    const emailVerificationToken = await getEmailVerificationToken({
-      email
-    });
-
     const testAccount = await nodemailer.createTestAccount();
 
     const transporter = nodemailer.createTransport({
@@ -25,7 +20,7 @@ module.exports = async ({ email }) => {
       to: `${email}`,
       subject: "Hello ✔",
       text: "Hello user",
-      html: `<b>Verification Token: ${emailVerificationToken}</b>`
+      html: `<b>Email verified</b>`
     });
 
     logger.debug(`Message sent: ${info.messageId}`);

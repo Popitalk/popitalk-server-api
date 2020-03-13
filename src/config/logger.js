@@ -36,9 +36,6 @@ if (config.mode === "production") {
     ]
   });
 } else {
-  if (!existsSync(config.logsPathDev)) {
-    mkdirSync(config.logsPathDev);
-  }
   const logFile = resolve(config.logsPathDev, "./logs.log");
   closeSync(openSync(logFile, "a"));
 

@@ -1,24 +1,29 @@
 /* eslint-disable no-param-reassign */
 const http = require("http");
+const express = require("express");
 const WebSocket = require("ws");
 const config = require("./config");
+
+if (config.mode !== "production") {
+  require("./helpers/createProjectDirectories");
+}
+
+require("./config/pubSub");
+require("./config/jobs");
+
+const expressLoader = require("./loaders/express");
 const upgradeHandler = require("./websockets/upgradeHandler");
 const messageHandler = require("./websockets/messageHandler");
 const closeHandler = require("./websockets/closeHandler");
 const loginEvent = require("./websockets/events/loginEvent");
 const { websocketsOfUsers } = require("./config/state");
 const { HELLO, PING } = require("./config/constants");
-const redis = require("./config/redis");
 
-if (config.mode !== "production") {
-  require("./helpers/createProjectDirectories");
-}
-const { app } = require("./app");
+const app = express();
 const logger = require("./config/logger");
 
-// let server;
-// if (config.mode !== "testing") {
-// let heartbeat;
+expressLoader(app);
+
 const server = http.createServer(app);
 const wss = new WebSocket.Server({ clientTracking: false, noServer: true });
 
@@ -61,7 +66,6 @@ server.listen(config.port || 4000, config.host || "localhost", () => {
     } in ${app.get("env")} mode`
   );
 });
-// }
 
 module.exports = { server, heartbeat };
 
