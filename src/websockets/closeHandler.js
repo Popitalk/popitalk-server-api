@@ -1,5 +1,4 @@
 /* eslint-disable no-param-reassign */
-const { PONG } = require("../config/constants");
 const { websocketsOfUsers } = require("../config/state");
 const logoutEvent = require("../websockets/events/logoutEvent");
 

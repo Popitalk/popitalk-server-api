@@ -5,7 +5,6 @@ module.exports = {
   mode: process.env.NODE_ENV,
   host: process.env.HOST,
   port: process.env.PORT,
-  serverId: process.env.SERVER_ID,
   corsOrigin: process.env.CORS_ORIGIN,
   logsPathDev: resolve(process.cwd(), "./logs/"),
   dbHost: process.env.DB_HOST,

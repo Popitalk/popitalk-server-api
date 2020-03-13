@@ -207,3 +207,8 @@ CREATE TABLE notifications (
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+
+CREATE TABLE abc_id (
+  id TEXT NOT NULL DEFAULT hashid() PRIMARY KEY,
+  name text
+);

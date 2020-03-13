@@ -1,4 +1,4 @@
-const { openSync, closeSync } = require("fs");
+const { openSync, closeSync, existsSync, mkdirSync } = require("fs");
 const { resolve } = require("path");
 const { hostname } = require("os");
 const l0gg3r = require("l0gg3r");
@@ -36,6 +36,9 @@ if (config.mode === "production") {
     ]
   });
 } else {
+  if (!existsSync(config.logsPathDev)) {
+    mkdirSync(config.logsPathDev);
+  }
   const logFile = resolve(config.logsPathDev, "./logs.log");
   closeSync(openSync(logFile, "a"));
 

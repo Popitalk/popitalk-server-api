@@ -1,3 +1,4 @@
+const { inspect } = require("util");
 const getUser = require("../database/queries/getUser");
 const getUsersAndRelationships = require("../database/queries/getUsersAndRelationships");
 const getChannels = require("../database/queries/getChannels");
@@ -14,7 +15,7 @@ module.exports = async ({ userId, validatePassword = true }) => {
 
   console.log("=======");
   console.log("=======");
-  console.log(response);
+  console.log(inspect(response, { colors: true, depth: 5 }));
   console.log("=======");
   console.log("=======");
 

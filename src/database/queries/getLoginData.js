@@ -16,52 +16,139 @@ module.exports = async ({ userId }, db = database) => {
           users.email AS "email",
           users.email_verified AS "emailVerified",
           users.created_at AS "createdAt",
-          ur.relationships AS "relationships"
+          ur.relationships AS "relationships",
+          cids.channel_ids AS "channelIds",
+          channels.chans AS "channels",
+          uids.user_ids AS "uids",
+          users2.usrs2 AS "users"
         FROM
           users
-          LEFT JOIN LATERAL (
-            SELECT
-              JSON_BUILD_OBJECT(
-                'friends',
-                COALESCE(JSONB_AGG(
-                  COALESCE(
-                    NULLIF(ur.first_user_id, users.id), NULLIF(ur.second_user_id, users.id))
-                  ) FILTER (WHERE type = 'friend_both'), '[]'),
-                'sentFriendRequests',
-                COALESCE(JSONB_AGG(ur.second_user_id) FILTER
-                (WHERE type = 'friend_first_second' AND ur.first_user_id = users.id), '[]') ||
-                COALESCE(JSONB_AGG(ur.first_user_id) FILTER
-                (WHERE type = 'friend_second_first' AND ur.second_user_id = users.id), '[]'),
-                'receivedFriendRequests',
-                COALESCE(JSONB_AGG(ur.first_user_id) FILTER
-                (WHERE type = 'friend_first_second' AND ur.second_user_id = users.id), '[]') ||
-                COALESCE(JSONB_AGG(ur.second_user_id) FILTER
-                (WHERE type = 'friend_second_first' AND ur.first_user_id = users.id), '[]'),
-                'blocked',
-                COALESCE(JSONB_AGG(ur.second_user_id) FILTER
-                (WHERE type = 'block_first_second' AND ur.first_user_id = users.id), '[]') ||
-                COALESCE(JSONB_AGG(ur.first_user_id) FILTER
-                (WHERE type = 'block_second_first' AND ur.second_user_id = users.id), '[]') ||
-                COALESCE(JSONB_AGG(
-                  COALESCE(
-                    NULLIF(ur.first_user_id, users.id), NULLIF(ur.second_user_id, users.id))
-                  ) FILTER (WHERE type = 'block_both'), '[]'),
-                'blockers',
-                COALESCE(JSONB_AGG(ur.first_user_id) FILTER
-                (WHERE type = 'block_first_second' AND ur.second_user_id = users.id), '[]') ||
-                COALESCE(JSONB_AGG(ur.second_user_id) FILTER
-                (WHERE type = 'block_second_first' AND ur.first_user_id = users.id), '[]') ||
-                COALESCE(JSONB_AGG(
-                  COALESCE(
-                    NULLIF(ur.first_user_id, users.id), NULLIF(ur.second_user_id, users.id))
-                  ) FILTER (WHERE type = 'block_both'), '[]')
-              ) AS relationships
-            FROM
-              user_relationships AS ur
-            WHERE
-              ur.first_user_id = users.id
-              OR ur.second_user_id = users.id
+        LEFT JOIN LATERAL (
+          SELECT
+            JSONB_BUILD_OBJECT(
+              'friends',
+              COALESCE(JSONB_AGG(
+                COALESCE(
+                  NULLIF(ur.first_user_id, users.id), NULLIF(ur.second_user_id, users.id))
+                ) FILTER (WHERE type = 'friend_both'), '[]'),
+              'sentFriendRequests',
+              COALESCE(JSONB_AGG(ur.second_user_id) FILTER
+              (WHERE type = 'friend_first_second' AND ur.first_user_id = users.id), '[]') ||
+              COALESCE(JSONB_AGG(ur.first_user_id) FILTER
+              (WHERE type = 'friend_second_first' AND ur.second_user_id = users.id), '[]'),
+              'receivedFriendRequests',
+              COALESCE(JSONB_AGG(ur.first_user_id) FILTER
+              (WHERE type = 'friend_first_second' AND ur.second_user_id = users.id), '[]') ||
+              COALESCE(JSONB_AGG(ur.second_user_id) FILTER
+              (WHERE type = 'friend_second_first' AND ur.first_user_id = users.id), '[]'),
+              'blocked',
+              COALESCE(JSONB_AGG(ur.second_user_id) FILTER
+              (WHERE type = 'block_first_second' AND ur.first_user_id = users.id), '[]') ||
+              COALESCE(JSONB_AGG(ur.first_user_id) FILTER
+              (WHERE type = 'block_second_first' AND ur.second_user_id = users.id), '[]') ||
+              COALESCE(JSONB_AGG(
+                COALESCE(
+                  NULLIF(ur.first_user_id, users.id), NULLIF(ur.second_user_id, users.id))
+                ) FILTER (WHERE type = 'block_both'), '[]'),
+              'blockers',
+              COALESCE(JSONB_AGG(ur.first_user_id) FILTER
+              (WHERE type = 'block_first_second' AND ur.second_user_id = users.id), '[]') ||
+              COALESCE(JSONB_AGG(ur.second_user_id) FILTER
+              (WHERE type = 'block_second_first' AND ur.first_user_id = users.id), '[]') ||
+              COALESCE(JSONB_AGG(
+                COALESCE(
+                  NULLIF(ur.first_user_id, users.id), NULLIF(ur.second_user_id, users.id))
+                ) FILTER (WHERE type = 'block_both'), '[]')
+            ) AS relationships
+          FROM
+            user_relationships AS ur
+          WHERE
+            ur.first_user_id = users.id
+            OR ur.second_user_id = users.id
           ) ur ON TRUE
+        LEFT JOIN LATERAL (
+          SELECT
+            ARRAY_AGG(members.channel_id) AS channel_ids
+          FROM
+            members
+          WHERE
+            members.user_id = users.id
+        ) cids ON TRUE
+        LEFT JOIN LATERAL (
+          SELECT
+            JSON_OBJECT_AGG(
+              channels.id,
+              JSON_BUILD_OBJECT(
+                'type',
+                channels.type,
+                'name',
+                channels.name,
+                'description',
+                channels.description,
+                'icon',
+                channels.icon,
+                'public',
+                channels.public,
+                'ownerId',
+                channels.owner_id,
+                'members',
+                (
+                  SELECT
+                    JSON_AGG(members.user_id) FILTER (WHERE NOT banned)
+                  FROM
+                    members
+                  WHERE
+                    members.channel_id = channels.id
+                )
+              )
+            ) AS chans
+          FROM
+            channels
+          WHERE
+            channels.id = ANY (cids.channel_ids)
+        ) channels ON TRUE
+        LEFT JOIN LATERAL (
+              SELECT
+                anyarray_uniq(
+                  usrs.channel_users::JSONB[] ||
+                  usrs.relationships_users::JSONB[]
+                ) AS user_ids
+              FROM (
+                SELECT
+                  ARRAY_AGG(u1.ids) as channel_users,
+                  ARRAY_AGG(u2.ids) AS relationships_users
+                FROM
+                (
+                  SELECT
+                    json_array_elements(value::JSON->'members') AS ids
+                  FROM
+                    JSON_EACH(channels.chans)
+                ) u1
+                LEFT JOIN LATERAL (
+                  SELECT
+                    jsonb_array_elements(
+                      COALESCE(ur.relationships::JSONB->'friends', '[]') ||
+                      COALESCE(ur.relationships::JSONB->'sentFriendRequests', '[]') ||
+                      COALESCE(ur.relationships::JSONB->'receivedFriendRequests', '[]') ||
+                      COALESCE(ur.relationships::JSONB->'blocked', '[]') ||
+                      COALESCE(ur.relationships::JSONB->'blockers', '[]')
+                    )
+                      AS ids
+                ) u2 ON TRUE
+              ) usrs
+        ) uids ON TRUE
+        LEFT JOIN LATERAL (
+          SELECT
+            COALESCE(JSON_AGG(u.username), '[]') AS usrs2
+          FROM
+            users AS u
+          WHERE
+            u.id::TEXT IN (
+              SELECT
+                ARRAY['e5f0c031-1c52-45c7-81df-786ea89e2240']
+
+            )
+        ) users2 ON TRUE
         WHERE
           users.id = $1
           AND users.deleted_at IS NULL
