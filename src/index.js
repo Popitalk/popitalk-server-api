@@ -11,7 +11,7 @@ if (config.mode !== "production") {
 require("./config/pubSub");
 require("./config/jobs");
 
-const expressLoader = require("./loaders/express");
+const expressInit = require("./helpers/expressInit");
 const upgradeHandler = require("./websockets/upgradeHandler");
 const messageHandler = require("./websockets/messageHandler");
 const closeHandler = require("./websockets/closeHandler");
@@ -22,7 +22,7 @@ const { HELLO, PING } = require("./config/constants");
 const app = express();
 const logger = require("./config/logger");
 
-expressLoader(app);
+expressInit(app);
 
 const server = http.createServer(app);
 const wss = new WebSocket.Server({ clientTracking: false, noServer: true });
