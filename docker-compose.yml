@@ -1,0 +1,44 @@
+version: "3.7"
+
+services:
+  app:
+    build: .
+    depends_on:
+      - db
+      - redis
+    env_file: .env
+    environment:
+      NODE_ENV: development
+    ports:
+      - "${PORT}:${PORT}"
+    command: npm run devserver
+    volumes:
+      - .:/usr/src/app
+      - /usr/src/app/node_modules
+  db:
+    image: postgres
+    restart: always
+    env_file: .env
+    environment:
+      POSTGRES_DB: "${DB_NAME}"
+      POSTGRES_USER: "${DB_USER}"
+      POSTGRES_PASSWORD: "${DB_PASSWORD}"
+    ports:
+      - "${DB_PORT}:${DB_PORT}"
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - 8080:8080
+  redis:
+    image: redis
+    restart: always
+    command: redis-server
+    env_file: .env
+    ports:
+      - "${REDIS_PORT}:${REDIS_PORT}"
+    volumes:
+      - $PWD/redis-data:/var/lib/redis
+volumes:
+  redis_data:
+    driver: local
