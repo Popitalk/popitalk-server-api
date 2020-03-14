@@ -23,7 +23,50 @@ module.exports = async ({ userId }, db = database) => {
            WHERE
              members.user_id = self.id
              AND NOT members.banned
-         )
+         ), channels AS (
+          SELECT
+            channels.id,
+            channels.type,
+            channels.name,
+            channels.description,
+            channels.icon,
+            channels.public,
+            (
+              SELECT
+                ARRAY_AGG(members.user_id)
+              FROM
+                members
+              WHERE
+                channels.id = members.channel_id
+            ) AS members
+          FROM
+            channels
+          JOIN
+            chans
+          ON
+            channels.id = chans.channel_id
+        ), channels_agg AS (
+          SELECT
+            JSON_OBJECT_AGG(
+              channels.id,
+              JSON_BUILD_OBJECT(
+                'type',
+                channels.type,
+                'name',
+                channels.name,
+                'description',
+                channels.description,
+                'icon',
+                channels.icon,
+                'public',
+                channels.public,
+                'members',
+                channels.members
+              )
+            ) AS channels
+          FROM
+            channels
+        )
         SELECT
           self.id,
           self.first_name AS "firstName",
@@ -34,9 +77,9 @@ module.exports = async ({ userId }, db = database) => {
           self.email AS "email",
           self.email_verified AS "emailVerified",
           self.created_at AS "createdAt",
-          JSON_AGG(chans.channel_id)
+          channels_agg.channels
         FROM
-          self, chans
+          self, channels_agg
       `,
         [userId]
       )

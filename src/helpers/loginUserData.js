@@ -14,9 +14,11 @@ module.exports = async ({ userId, validatePassword = true }) => {
   const response = await getLoginData({ userId });
 
   console.log("=======");
-  console.log("=======");
-  console.log(inspect(response, { colors: true, depth: 5 }));
-  console.log("=======");
+  setTimeout(() => {
+    console.log("=======");
+    console.log(inspect(response, { colors: true, depth: 5 }));
+    console.log("=======");
+  }, 300);
   console.log("=======");
 
   // const user = await getUser({ userId });
