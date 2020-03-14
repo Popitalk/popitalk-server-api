@@ -25,6 +25,8 @@ services:
       POSTGRES_PASSWORD: "${DB_PASSWORD}"
     ports:
       - "${DB_PORT}:${DB_PORT}"
+    volumes:
+      - playnow_dev:/var/lib/postgresql/data
   adminer:
     image: adminer
     restart: always
@@ -42,3 +44,4 @@ services:
 volumes:
   redis_data:
     driver: local
+  playnow_dev:
