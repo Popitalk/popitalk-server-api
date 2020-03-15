@@ -14,16 +14,81 @@ module.exports = async ({ userId }, db = database) => {
           WHERE
             users.id = $1
             AND users.deleted_at IS NULL
+        ), relats AS (
+          SELECT
+            COALESCE(
+              NULLIF(ur.first_user_id, self.id), NULLIF(ur.second_user_id, self.id)
+            ) AS user_id,
+            (
+              CASE
+                WHEN
+                  (ur.type = 'friend_first_second' AND ur.first_user_id = self.id) OR
+                  (ur.type = 'friend_second_first' AND ur.second_user_id = self.id)
+                THEN
+                  'sentFriendRequests'
+                WHEN
+                  (ur.type = 'friend_first_second' AND ur.second_user_id = self.id) OR
+                  (ur.type = 'friend_second_first' AND ur.first_user_id = self.id)
+                THEN
+                  'receivedFriendRequests'
+                WHEN
+                  ur.type = 'friend_both'
+                THEN
+                  'friends'
+                WHEN
+                  (ur.type = 'block_first_second' AND ur.first_user_id = self.id) OR
+                  (ur.type = 'block_second_first' AND ur.second_user_id = self.id) OR
+                  (ur.type = 'block_both')
+                THEN
+                  'blocked'
+                WHEN
+                  (ur.type = 'block_first_second' AND ur.second_user_id = self.id) OR
+                  (ur.type = 'block_second_first' AND ur.first_user_id = self.id) OR
+                  (ur.type = 'block_both')
+                THEN
+                  'blockers'
+              END
+            ) relationship
+          FROM
+            user_relationships AS ur, self
+          WHERE
+            ur.first_user_id = self.id
+            OR ur.second_user_id = self.id
+        ), relationships_cte AS (
+          SELECT
+          COALESCE(ARRAY_AGG(relats.user_id) FILTER (WHERE relats.relationship = 'friends'), ARRAY[]::UUID[]) AS "friends",
+          COALESCE(ARRAY_AGG(relats.user_id) FILTER (WHERE relats.relationship = 'sentFriendRequests'), ARRAY[]::UUID[]) AS "sentFriendRequests",
+          COALESCE(ARRAY_AGG(relats.user_id) FILTER (WHERE relats.relationship = 'receivedFriendRequests'), ARRAY[]::UUID[]) AS "receivedFriendRequests",
+          COALESCE(ARRAY_AGG(relats.user_id) FILTER (WHERE relats.relationship = 'blocked'), ARRAY[]::UUID[]) AS "blocked",
+          COALESCE(ARRAY_AGG(relats.user_id) FILTER (WHERE relats.relationship = 'blockers'), ARRAY[]::UUID[]) AS "blockers"
+          FROM
+            relats
+        ), relationships_obj AS (
+          SELECT
+            JSON_BUILD_OBJECT(
+              'friends',
+              relationships_cte."friends",
+              'sentFriendRequests',
+              relationships_cte."sentFriendRequests",
+              'receivedFriendRequests',
+              relationships_cte."receivedFriendRequests",
+              'blocked',
+              relationships_cte."blocked",
+              'blockers',
+              relationships_cte."blockers"
+            ) AS relationships
+          FROM
+            relationships_cte
         ), chans AS (
-           SELECT
-             members.channel_id,
-             members.admin
-           FROM
-             members, self
-           WHERE
-             members.user_id = self.id
-             AND NOT members.banned
-         ), channels AS (
+          SELECT
+            members.channel_id,
+            members.admin
+          FROM
+            members, self
+          WHERE
+            members.user_id = self.id
+            AND NOT members.banned
+         ), channels_cte AS (
           SELECT
             channels.id,
             channels.type,
@@ -31,13 +96,28 @@ module.exports = async ({ userId }, db = database) => {
             channels.description,
             channels.icon,
             channels.public,
+            channels.owner_id,
+            channels.created_at,
+            fm.id AS first_message_id,
+            lm.id AS last_message_id,
+            lm.created_at AS last_message_at,
+            lm.content AS last_message_content,
+            lm.username AS last_message_username,
             (
-              SELECT
-                ARRAY_AGG(members.user_id)
-              FROM
-                members
-              WHERE
-                channels.id = members.channel_id
+              CASE
+                WHEN
+                  channels.type != 'channel'
+                THEN (
+                    SELECT
+                      ARRAY_AGG(members.user_id)
+                    FROM
+                      members
+                    WHERE
+                      members.channel_id = channels.id
+                )
+                ELSE
+                  NULL
+              END
             ) AS members
           FROM
             channels
@@ -45,27 +125,112 @@ module.exports = async ({ userId }, db = database) => {
             chans
           ON
             channels.id = chans.channel_id
-        ), channels_agg AS (
+          LEFT JOIN LATERAL (
+            SELECT
+              messages.id
+            FROM
+              messages
+            WHERE
+              messages.channel_id = channels.id
+            ORDER BY
+              messages.created_at ASC
+            LIMIT
+              1
+          ) fm ON TRUE
+          LEFT JOIN LATERAL (
+            SELECT
+              messages.id,
+              messages.created_at,
+              messages.content,
+              (
+                SELECT
+                  users.username
+                FROM
+                  users
+                WHERE
+                  users.id = messages.user_id
+              )
+            FROM
+              messages
+            WHERE
+              messages.channel_id = channels.id
+            ORDER BY
+              messages.created_at DESC
+            LIMIT
+              1
+          ) lm ON TRUE
+        ), channels_obj AS (
           SELECT
             JSON_OBJECT_AGG(
-              channels.id,
+              channels_cte.id,
               JSON_BUILD_OBJECT(
                 'type',
-                channels.type,
+                channels_cte.type,
                 'name',
-                channels.name,
+                channels_cte.name,
                 'description',
-                channels.description,
+                channels_cte.description,
                 'icon',
-                channels.icon,
+                channels_cte.icon,
                 'public',
-                channels.public,
+                channels_cte.public,
+                'ownerId',
+                channels_cte.owner_id,
+                'createdAt',
+                channels_cte.created_at,
+                'firstMessageId',
+                channels_cte.first_message_id,
+                'lastMessageId',
+                channels_cte.last_message_id,
+                'lastMessageAt',
+                channels_cte.last_message_at,
+                'lastMessageUsername',
+                channels_cte.last_message_username,
+                'lastMessageContent',
+                channels_cte.last_message_content,
                 'members',
-                channels.members
+                channels_cte.members
               )
             ) AS channels
           FROM
-            channels
+            channels_cte
+        ), user_ids AS (
+          SELECT
+            ARRAY_AGG(u) AS user_ids
+          FROM (
+            SELECT DISTINCT
+              u
+            FROM
+              channels_cte AS c,
+              relationships_cte as r,
+              UNNEST(
+                c.members ||
+                r."friends" ||
+                r."sentFriendRequests" ||
+                r."receivedFriendRequests" ||
+                r."blocked" ||
+                r."blockers"
+              ) AS u
+          ) x
+        ), users_obj AS (
+          SELECT
+            JSON_OBJECT_AGG(
+              users.id,
+              JSON_BUILD_OBJECT(
+                'username',
+                users.username,
+                'firstName',
+                users.first_name,
+                'lastName',
+                users.last_name,
+                'avatar',
+                users.avatar
+              )
+            ) AS users
+          FROM
+            users, user_ids
+          WHERE
+            users.id = ANY (user_ids.user_ids)
         )
         SELECT
           self.id,
@@ -77,9 +242,11 @@ module.exports = async ({ userId }, db = database) => {
           self.email AS "email",
           self.email_verified AS "emailVerified",
           self.created_at AS "createdAt",
-          channels_agg.channels
+          channels_obj.channels,
+          relationships_obj.relationships,
+          users_obj.users
         FROM
-          self, channels_agg
+          self, relationships_obj, channels_obj, users_obj
       `,
         [userId]
       )
@@ -93,211 +260,3 @@ module.exports = async ({ userId }, db = database) => {
     throw createDatabaseError(error);
   }
 };
-
-// LEFT JOIN LATERAL (
-//   SELECT
-//     JSON_AGG(members.channel_id) AS channel_ids,
-//     JSON_AGG(members.user_id) FILTER (WHERE )AS channel_ids,
-//   FROM
-//     members
-//   WHERE
-//     members.user_id = users.id
-//     AND NOT members.banned
-// ) mem ON TRUE
-
-// LEFT JOIN LATERAL (
-//   SELECT
-//     JSON_AGG(users.id) AS user_ids
-//   FROM
-//     members
-//   JOIN
-//     users
-//   ON
-//     members.user_id = users.id
-//   WHERE
-//     members.channel_id
-//     members.user_id = users.id
-//     AND NOT members.banned
-// ) usrs ON TRUE
-// const database = require("../../config/database");
-// const createDatabaseError = require("../../helpers/createDatabaseError");
-
-// module.exports = async ({ userId }, db = database) => {
-//   try {
-//     const response = (
-//       await db.query(
-//         /* SQL */ `
-//         SELECT
-//           users.id,
-//           users.first_name AS "firstName",
-//           users.last_name AS "lastName",
-//           users.username AS "username",
-//           users.date_of_birth AS "dateOfBirth",
-//           users.avatar AS "avatar",
-//           users.email AS "email",
-//           users.email_verified AS "emailVerified",
-//           users.created_at AS "createdAt",
-//           ur.relationships AS "relationships"
-//           --cids.channel_ids AS "channelIds",
-//           --channels.chans AS "channels",
-//           --uids.user_ids AS "uids"
-//           --users2.usrs2 AS "users"
-//         FROM
-//           users
-//         LEFT JOIN LATERAL (
-//           SELECT
-//             JSONB_BUILD_OBJECT(
-//               'friends',
-//               COALESCE(JSONB_AGG(
-//                 COALESCE(
-//                   NULLIF(ur.first_user_id, users.id), NULLIF(ur.second_user_id, users.id))
-//                 ) FILTER (WHERE type = 'friend_both'), '[]'),
-//               'sentFriendRequests',
-//               COALESCE(JSONB_AGG(ur.second_user_id) FILTER
-//               (WHERE type = 'friend_first_second' AND ur.first_user_id = users.id), '[]') ||
-//               COALESCE(JSONB_AGG(ur.first_user_id) FILTER
-//               (WHERE type = 'friend_second_first' AND ur.second_user_id = users.id), '[]'),
-//               'receivedFriendRequests',
-//               COALESCE(JSONB_AGG(ur.first_user_id) FILTER
-//               (WHERE type = 'friend_first_second' AND ur.second_user_id = users.id), '[]') ||
-//               COALESCE(JSONB_AGG(ur.second_user_id) FILTER
-//               (WHERE type = 'friend_second_first' AND ur.first_user_id = users.id), '[]'),
-//               'blocked',
-//               COALESCE(JSONB_AGG(ur.second_user_id) FILTER
-//               (WHERE type = 'block_first_second' AND ur.first_user_id = users.id), '[]') ||
-//               COALESCE(JSONB_AGG(ur.first_user_id) FILTER
-//               (WHERE type = 'block_second_first' AND ur.second_user_id = users.id), '[]') ||
-//               COALESCE(JSONB_AGG(
-//                 COALESCE(
-//                   NULLIF(ur.first_user_id, users.id), NULLIF(ur.second_user_id, users.id))
-//                 ) FILTER (WHERE type = 'block_both'), '[]'),
-//               'blockers',
-//               COALESCE(JSONB_AGG(ur.first_user_id) FILTER
-//               (WHERE type = 'block_first_second' AND ur.second_user_id = users.id), '[]') ||
-//               COALESCE(JSONB_AGG(ur.second_user_id) FILTER
-//               (WHERE type = 'block_second_first' AND ur.first_user_id = users.id), '[]') ||
-//               COALESCE(JSONB_AGG(
-//                 COALESCE(
-//                   NULLIF(ur.first_user_id, users.id), NULLIF(ur.second_user_id, users.id))
-//                 ) FILTER (WHERE type = 'block_both'), '[]')
-//             ) AS relationships
-//           FROM
-//             user_relationships AS ur
-//           WHERE
-//             ur.first_user_id = users.id
-//             OR ur.second_user_id = users.id
-//           ) ur ON TRUE
-//         LEFT JOIN LATERAL (
-//           SELECT
-//             ARRAY_AGG(members.channel_id) AS channel_ids
-//           FROM
-//             members
-//           WHERE
-//             members.user_id = users.id
-//         ) cids ON TRUE
-//         LEFT JOIN LATERAL (
-//           SELECT
-//             JSON_OBJECT_AGG(
-//               channels.id,
-//               JSON_BUILD_OBJECT(
-//                 'type',
-//                 channels.type,
-//                 'name',
-//                 channels.name,
-//                 'description',
-//                 channels.description,
-//                 'icon',
-//                 channels.icon,
-//                 'public',
-//                 channels.public,
-//                 'ownerId',
-//                 channels.owner_id,
-//                 'members',
-//                 (
-//                   SELECT
-//                     JSON_AGG(members.user_id) FILTER (WHERE NOT banned)
-//                   FROM
-//                     members
-//                   WHERE
-//                     members.channel_id = channels.id
-//                 )
-//               )
-//             ) AS chans
-//           FROM
-//             channels
-//           WHERE
-//             channels.id = ANY (cids.channel_ids)
-//         ) channels ON TRUE
-//         LEFT JOIN LATERAL (
-//               SELECT
-//                 anyarray_uniq(
-//                   usrs.channel_users::JSONB[] ||
-//                   usrs.relationships_users::JSONB[]
-//                 ) AS user_ids
-//               FROM (
-//                 SELECT
-//                   ARRAY_AGG(u1.ids) as channel_users,
-//                   ARRAY_AGG(u2.ids) AS relationships_users
-//                 FROM
-//                 (
-//                   SELECT
-//                     json_array_elements(value::JSON->'members') AS ids
-//                   FROM
-//                     JSON_EACH(channels.chans)
-//                 ) u1
-//                 LEFT JOIN LATERAL (
-//                   SELECT
-//                     jsonb_array_elements(
-//                       COALESCE(ur.relationships::JSONB->'friends', '[]') ||
-//                       COALESCE(ur.relationships::JSONB->'sentFriendRequests', '[]') ||
-//                       COALESCE(ur.relationships::JSONB->'receivedFriendRequests', '[]') ||
-//                       COALESCE(ur.relationships::JSONB->'blocked', '[]') ||
-//                       COALESCE(ur.relationships::JSONB->'blockers', '[]')
-//                     )
-//                       AS ids
-//                 ) u2 ON TRUE
-//               ) usrs
-//         ) uids ON TRUE
-
-//         WHERE
-//           users.id = $1
-//           AND users.deleted_at IS NULL
-//       `,
-//         [userId]
-//       )
-//     ).rows[0];
-
-//     if (!response) return null;
-
-//     return response;
-//   } catch (error) {
-//     console.error(error);
-//     throw createDatabaseError(error);
-//   }
-// };
-
-// // LEFT JOIN LATERAL (
-// //   SELECT
-// //     JSON_AGG(members.channel_id) AS channel_ids,
-// //     JSON_AGG(members.user_id) FILTER (WHERE )AS channel_ids,
-// //   FROM
-// //     members
-// //   WHERE
-// //     members.user_id = users.id
-// //     AND NOT members.banned
-// // ) mem ON TRUE
-
-// // LEFT JOIN LATERAL (
-// //   SELECT
-// //     JSON_AGG(users.id) AS user_ids
-// //   FROM
-// //     members
-// //   JOIN
-// //     users
-// //   ON
-// //     members.user_id = users.id
-// //   WHERE
-// //     members.channel_id
-// //     members.user_id = users.id
-// //     AND NOT members.banned
-// // ) usrs ON TRUE
