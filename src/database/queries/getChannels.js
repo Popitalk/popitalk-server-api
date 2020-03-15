@@ -63,6 +63,36 @@ module.exports = async ({ userId }, db = database) => {
                 LIMIT
                   1
               ),
+              'lastMessage',
+              (
+                SELECT
+                  JSON_AGG(
+                    JSON_BUILD_OBJECT(
+                      'content', messages.content,
+                      'username', u.username
+                    )
+                  )
+                FROM
+                  messages
+                LEFT JOIN LATERAL (
+                  SELECT
+                    users.username AS username
+                  FROM
+                    users
+                  WHERE
+                    users.id = messages.user_id
+                  LIMIT
+                    1
+                ) u ON TRUE
+                WHERE
+                  messages.channel_id = channels.id
+                GROUP BY
+                  messages.created_at
+                ORDER BY
+                  messages.created_at DESC
+                LIMIT
+                  1
+              ),
               'members',
               (
                 CASE
