@@ -165,6 +165,23 @@ async function seedDb() {
       );
     }
 
+    await client.query(
+      /* SQL */ `
+      INSERT INTO
+        user_relationships (first_user_id, second_user_id, type)
+      VALUES (
+        least($1, $2)::UUID, greatest($1, $2)::UUID, 'friend_both'
+      )
+      `,
+      [nesUser.id, andrewUser.id]
+    );
+
+    const chan = await addChannel({ type: "friend" }, client);
+    await addMembers(
+      { channelId: chan.id, userIds: [nesUser.id, andrewUser.id] },
+      client
+    );
+
     logger.debug("Seeded friends");
     logger.debug("Seeded database.");
   } catch (error) {
