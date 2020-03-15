@@ -1,6 +1,5 @@
 /* eslint-disable no-param-reassign */
 const { channelsState, usersState } = require("../../config/state");
-// const redis = require("../../config/redis");
 const { subscriber, publisher } = require("../../config/pubSub");
 const { WS_FRIEND_OFFLINE } = require("../../config/constants");
 // const redis = require("../../config/redis");
@@ -26,7 +25,6 @@ const logoutEvent = async userId => {
 
       if (channelsState.get(cid).size === 0) {
         channelsState.delete(cid);
-        // await pipeline.srem(cid, serverId);
         subscriber.unsubscribe(cid);
       }
     }

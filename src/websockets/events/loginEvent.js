@@ -7,6 +7,7 @@ const {
 } = require("../../config/state");
 const { HELLO, WS_FRIEND_ONLINE } = require("../../config/constants");
 const { subscriber, publisher } = require("../../config/pubSub");
+const getChannelsIdsAndTypes = require("../../database/queries/getChannelsIdsAndTypes");
 
 const loginEvent = async (ws, request) => {
   const userId = request.session.passport.user;
@@ -14,14 +15,13 @@ const loginEvent = async (ws, request) => {
   subscriber.subscribe(userId);
   websocketsOfUsers.set(userId, ws);
 
-  const allChannels = request.session.user.channels;
-
+  const allChannels = await getChannelsIdsAndTypes({ userId });
   if (allChannels) {
     usersState.set(userId, new Map());
 
-    Object.entries(allChannels).forEach(([channelId, channel]) => {
-      usersState.get(userId).set(channelId, channel.type);
-      if (channel.type === "friend") {
+    allChannels.forEach(({ id: channelId, type: channelType }) => {
+      usersState.get(userId).set(channelId, channelType);
+      if (channelType === "friend") {
         publisher({
           type: WS_FRIEND_ONLINE,
           channelId,
