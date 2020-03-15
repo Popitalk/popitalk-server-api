@@ -93,10 +93,25 @@ async function seedDb() {
       password
     };
 
+    const bugzInfo = {
+      firstName: "bugz",
+      lastName: "zgub",
+      username: "bugz",
+      dateOfBirth: format(
+        faker.date.between("1950-01-01", "2000-01-01"),
+        "yyyy-MM-dd"
+      ),
+      avatar: faker.image.avatar(),
+      email: "bugz123@gmail.com",
+      password
+    };
+
     const andrewUser = await addUser(andrewInfo, client);
     const nesUser = await addUser(nesInfo, client);
+    const bugzUser = await addUser(bugzInfo, client);
     const andrewSelfChannel = await addChannel({ type: "self" }, client);
     const nesSelfChannel = await addChannel({ type: "self" }, client);
+    const bugzChannel = await addChannel({ type: "self" }, client);
 
     await addMembers(
       { channelId: andrewSelfChannel.id, userIds: [andrewUser.id] },
@@ -104,6 +119,10 @@ async function seedDb() {
     );
     await addMembers(
       { channelId: nesSelfChannel.id, userIds: [nesUser.id] },
+      client
+    );
+    await addMembers(
+      { channelId: bugzChannel.id, userIds: [bugzUser.id] },
       client
     );
 
@@ -115,6 +134,11 @@ async function seedDb() {
       .map(us => us.id);
 
     const friendIds2 = sampleSize(abc, 8)
+      .map(res => res.value.rows)
+      .flat()
+      .map(us => us.id);
+
+    const friendIds3 = sampleSize(abc, 8)
       .map(res => res.value.rows)
       .flat()
       .map(us => us.id);
@@ -165,6 +189,29 @@ async function seedDb() {
       );
     }
 
+    await allSettled(
+      sampleSize(friendIds3, 8).map(id =>
+        client.query(
+          /* SQL */ `
+      INSERT INTO
+        user_relationships (first_user_id, second_user_id, type)
+      VALUES (
+        least($1, $2)::UUID, greatest($1, $2)::UUID, 'friend_both'
+      )
+      `,
+          [id, bugzUser.id]
+        )
+      )
+    );
+
+    for await (const friendId of friendIds3) {
+      const channel = await addChannel({ type: "friend" }, client);
+      await addMembers(
+        { channelId: channel.id, userIds: [bugzUser.id, friendId] },
+        client
+      );
+    }
+
     await client.query(
       /* SQL */ `
       INSERT INTO
@@ -175,10 +222,50 @@ async function seedDb() {
       `,
       [nesUser.id, andrewUser.id]
     );
-
-    const chan = await addChannel({ type: "friend" }, client);
+    const chan1 = await addChannel({ type: "friend" }, client);
     await addMembers(
-      { channelId: chan.id, userIds: [nesUser.id, andrewUser.id] },
+      { channelId: chan1.id, userIds: [nesUser.id, andrewUser.id] },
+      client
+    );
+
+    await client.query(
+      /* SQL */ `
+      INSERT INTO
+        user_relationships (first_user_id, second_user_id, type)
+      VALUES (
+        least($1, $2)::UUID, greatest($1, $2)::UUID, 'friend_both'
+      )
+      `,
+      [nesUser.id, bugzUser.id]
+    );
+    const chan2 = await addChannel({ type: "friend" }, client);
+    await addMembers(
+      { channelId: chan2.id, userIds: [nesUser.id, bugzUser.id] },
+      client
+    );
+
+    await client.query(
+      /* SQL */ `
+      INSERT INTO
+        user_relationships (first_user_id, second_user_id, type)
+      VALUES (
+        least($1, $2)::UUID, greatest($1, $2)::UUID, 'friend_both'
+      )
+      `,
+      [andrewUser.id, bugzUser.id]
+    );
+    const chan3 = await addChannel({ type: "friend" }, client);
+    await addMembers(
+      { channelId: chan3.id, userIds: [andrewUser.id, bugzUser.id] },
+      client
+    );
+
+    const chan4 = await addChannel({ type: "group" }, client);
+    await addMembers(
+      {
+        channelId: chan4.id,
+        userIds: [nesUser.id, andrewUser.id, bugzUser.id]
+      },
       client
     );
 
