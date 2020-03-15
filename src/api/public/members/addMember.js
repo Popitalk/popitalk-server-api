@@ -4,7 +4,7 @@ const { ApiError, DatabaseError } = require("../../../helpers/errors");
 const { cache } = require("../../../helpers/middleware/cache");
 const authenticateUser = require("../../../helpers/middleware/authenticateUser");
 const addChannelMember = require("../../../database/queries/addChannelMember");
-const getChannelPublicAndType = require("../../../database/queries/getChannelPublicAndType");
+const getChannelPublicAndTypeAndOwner = require("../../../database/queries/getChannelPublicAndTypeAndOwner");
 const { publisher } = require("../../../config/pubSub");
 const { WS_JOIN_CHANNEL } = require("../../../config/constants");
 
@@ -26,13 +26,15 @@ router.post(
     const { channelId } = req.body;
 
     try {
-      const channelPublicAndType = await getChannelPublicAndType({
-        channelId
-      });
+      const channelPublicAndTypeAndOwner = await getChannelPublicAndTypeAndOwner(
+        {
+          channelId
+        }
+      );
 
-      if (!channelPublicAndType) throw new ApiError();
+      if (!channelPublicAndTypeAndOwner) throw new ApiError();
 
-      const { type, public } = channelPublicAndType;
+      const { type, public } = channelPublicAndTypeAndOwner;
 
       if (public) {
         const newMember = await addChannelMember({

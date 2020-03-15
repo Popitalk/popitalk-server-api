@@ -46,7 +46,8 @@ module.exports = async (
       ) AS author,
       0 AS "commentCount",
       0 AS "likeCount",
-      FALSE AS "liked"
+      FALSE AS "liked",
+      0 AS "selfCommentCount"
       `,
         [channelId, userId, content, upload]
       )

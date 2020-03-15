@@ -93,33 +93,23 @@ module.exports = async ({ postId, userId, content }, db = database) => {
               ON
                 members.channel_id = posts.channel_id
               WHERE
-                members.user_id = $2
-                AND members.admin = TRUE
-          )
+                posts.id = $1
+                AND members.user_id = $2
+                AND members.admin
+            )
           THEN
-            TRUE
-          ELSE
-            (
-              SELECT
-                COUNT(*)
-              FROM
-                (
-                  SELECT
-                    comments.user_id
-                  FROM
-                    comments
-                  WHERE
-                    comments.post_id = $1
-                  ORDER BY
-                    comments.created_at DESC
-                  LIMIT
-                    5
-                ) AS cuid
-              WHERE
-                cuid.user_id = $2
-            ) < 5
+            NULL
+          ELSE (
+            SELECT
+              COUNT(*)::SMALLINT + 1
+            FROM
+              comments
+            WHERE
+              comments.post_id = $1
+              AND comments.user_id = $2
+          )
         END
-      ) AS "canComment"
+      ) AS "selfCommentCount"
       `,
         [postId, userId, content]
       )

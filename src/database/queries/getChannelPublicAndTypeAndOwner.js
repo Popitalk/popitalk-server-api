@@ -8,7 +8,8 @@ module.exports = async ({ channelId }, db = database) => {
         /* SQL */ `
     SELECT
       public,
-      type
+      type,
+      owner_id AS "ownerId"
     FROM
       channels
     WHERE

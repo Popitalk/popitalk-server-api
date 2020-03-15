@@ -97,7 +97,7 @@ module.exports = async (
             knex.raw(/* SQL */ `
             (
               SELECT
-                COUNT(*)
+                COUNT(*)::SMALLINT
               FROM
                 post_likes
               WHERE
@@ -109,13 +109,29 @@ module.exports = async (
             knex.raw(/* SQL */ `
             (
               SELECT
-                COUNT(*)
+                COUNT(*)::SMALLINT
               FROM
                 comments
               WHERE
                 comments.post_id = posts.id
             ) AS "commentCount"
           `)
+          )
+          .select(
+            knex.raw(
+              /* SQL */ `
+            (
+              SELECT
+                COUNT(*)::SMALLINT
+              FROM
+                comments
+              WHERE
+                comments.post_id = posts.id
+                AND comments.user_id = ?
+            ) AS "selfCommentCount"
+          `,
+              [userId]
+            )
           )
           .select(
             knex.raw(
@@ -166,7 +182,7 @@ module.exports = async (
                   ) AS "liked",
                   (
                     SELECT
-                      COUNT(*)
+                      COUNT(*)::SMALLINT
                     FROM
                       comment_likes
                     WHERE

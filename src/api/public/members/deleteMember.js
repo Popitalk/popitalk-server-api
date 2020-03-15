@@ -4,7 +4,7 @@ const { ApiError, DatabaseError } = require("../../../helpers/errors");
 const { cache } = require("../../../helpers/middleware/cache");
 const authenticateUser = require("../../../helpers/middleware/authenticateUser");
 const deleteMember = require("../../../database/queries/deleteMember");
-const getChannelPublicAndType = require("../../../database/queries/getChannelPublicAndType");
+const getChannelPublicAndTypeAndOwner = require("../../../database/queries/getChannelPublicAndTypeAndOwner");
 const { publisher } = require("../../../config/pubSub");
 const { WS_LEAVE_CHANNEL } = require("../../../config/constants");
 
@@ -26,11 +26,17 @@ router.delete(
     const { channelId } = req.params;
 
     try {
-      const channelPublicAndType = await getChannelPublicAndType({
-        channelId
-      });
+      const channelPublicAndTypeAndOwner = await getChannelPublicAndTypeAndOwner(
+        {
+          channelId
+        }
+      );
 
-      if (!channelPublicAndType) throw new ApiError();
+      if (!channelPublicAndTypeAndOwner) throw new ApiError();
+
+      const { ownerId } = channelPublicAndTypeAndOwner;
+
+      if (userId === ownerId) throw new ApiError();
 
       const deletedMember = await deleteMember({
         channelId,
@@ -48,7 +54,7 @@ router.delete(
         initiator: userId,
         payload: {
           ...deletedMember,
-          ...channelPublicAndType
+          ...channelPublicAndTypeAndOwner
         }
       });
     } catch (error) {

@@ -38,6 +38,8 @@ router.post(
 
       res.status(201).json(newComment);
 
+      delete newComment.selfCommentCount;
+
       publisher({
         type: WS_ADD_COMMENT,
         channelId: newComment.channelId,
