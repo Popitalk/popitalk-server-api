@@ -118,7 +118,24 @@ module.exports = async ({ userId }, db = database) => {
                 ELSE
                   NULL
               END
-            ) AS members
+            ) AS members,
+            (
+              CASE
+                WHEN
+                  channels.type = 'friend' OR
+                  channels.type = 'group'
+                THEN (
+                    SELECT
+                      COALESCE(ARRAY_AGG(seen_messages.user_id), ARRAY[]::UUID[])
+                    FROM
+                      seen_messages
+                    WHERE
+                      seen_messages.channel_id = channels.id
+                )
+                ELSE
+                  NULL
+              END
+            ) AS seen_messages
           FROM
             channels
           JOIN
@@ -189,7 +206,9 @@ module.exports = async ({ userId }, db = database) => {
                 'lastMessageContent',
                 channels_cte.last_message_content,
                 'members',
-                channels_cte.members
+                channels_cte.members,
+                'seenMessages',
+                channels_cte.seen_messages
               )
             ) AS channels
           FROM

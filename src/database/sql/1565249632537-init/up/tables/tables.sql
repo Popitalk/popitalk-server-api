@@ -2,7 +2,7 @@ CREATE TABLE users (
   id UUID NOT NULL DEFAULT uuid_generate_v4() PRIMARY KEY,
   first_name TEXT NOT NULL,
   last_name TEXT NOT NULL,
-  username TEXT NOT NULL,
+  username CITEXT NOT NULL,
   date_of_birth DATE NOT NULL,
   password TEXT NOT NULL,
   avatar TEXT,
@@ -156,11 +156,11 @@ CREATE TABLE messages (
 );
 
 CREATE TABLE seen_messages (
-  message_id UUID NOT NULL REFERENCES messages(id) ON UPDATE CASCADE ON DELETE CASCADE,
+  channel_id UUID NOT NULL REFERENCES channels(id) ON UPDATE CASCADE ON DELETE CASCADE,
   user_id UUID NOT NULL REFERENCES users(id) ON UPDATE CASCADE ON DELETE CASCADE,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  PRIMARY KEY (message_id, user_id)
+  PRIMARY KEY (channel_id, user_id)
 );
 
 CREATE TABLE posts (
