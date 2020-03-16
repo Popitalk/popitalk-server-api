@@ -15,7 +15,8 @@ module.exports = async ({ channelId }, db = database) => {
         fm.id AS "firstMessageId",
         lm.id AS "lastMessageId",
         lm.created_at AS "lastMessageAt",
-        users.members
+        users.members,
+        seen.ids AS "seenMessages"
       FROM
         channels
       LEFT JOIN LATERAL (
@@ -51,6 +52,14 @@ module.exports = async ({ channelId }, db = database) => {
           WHERE
             members.channel_id = channels.id
         ) users ON TRUE
+      LEFT JOIN LATERAL (
+          SELECT
+            COALESCE(ARRAY_AGG(seen_messages.user_id), ARRAY[]::UUID[]) AS ids
+          FROM
+            seen_messages
+          WHERE
+            seen_messages.channel_id = channels.id
+        ) seen ON TRUE
       WHERE
         channels.id = $1
       `,
