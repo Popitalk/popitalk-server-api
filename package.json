@@ -102,6 +102,8 @@
     "dotenv": "^8.1.0",
     "escape-html": "^1.0.3",
     "express": "^4.17.1",
+    "express-async-handler": "^1.1.4",
+    "express-async-router": "^0.1.15",
     "express-session": "^1.16.2",
     "faker": "^4.1.0",
     "file-type": "^12.4.0",

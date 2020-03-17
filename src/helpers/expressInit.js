@@ -9,6 +9,7 @@ const requestId = require("../helpers/middleware/requestId");
 const passport = require("../config/passport");
 const errorHandler = require("../helpers/middleware/errorHandler");
 const requestLogger = require("../helpers/middleware/requestLogger");
+const routes = require("../routes");
 
 const expressLoader = app => {
   if (config.mode === "development") {
@@ -55,7 +56,11 @@ const expressLoader = app => {
     app.use(requestLogger);
   }
 
-  app.use("/api", require("../api"));
+  app.use("/api", routes);
+  // asyncHandler(async (req, res, next) => {
+  //   UserController.getUser();
+  // })
+  // app.use("/api", routes);
 
   app.use(errorHandler);
 };
