@@ -106,12 +106,27 @@ async function seedDb() {
       password
     };
 
+    const leandevInfo = {
+      firstName: "lean",
+      lastName: "dev",
+      username: "leandev",
+      dateOfBirth: format(
+        faker.date.between("1950-01-01", "2000-01-01"),
+        "yyyy-MM-dd"
+      ),
+      avatar: faker.image.avatar(),
+      email: "leandev123@gmail.com",
+      password
+    };
+
     const andrewUser = await addUser(andrewInfo, client);
     const nesUser = await addUser(nesInfo, client);
     const bugzUser = await addUser(bugzInfo, client);
+    const leandevUser = await addUser(leandevInfo, client);
     const andrewSelfChannel = await addChannel({ type: "self" }, client);
     const nesSelfChannel = await addChannel({ type: "self" }, client);
-    const bugzChannel = await addChannel({ type: "self" }, client);
+    const bugzSelfChannel = await addChannel({ type: "self" }, client);
+    const leandevSelfChannel = await addChannel({ type: "self" }, client);
 
     await addMembers(
       { channelId: andrewSelfChannel.id, userIds: [andrewUser.id] },
@@ -122,7 +137,11 @@ async function seedDb() {
       client
     );
     await addMembers(
-      { channelId: bugzChannel.id, userIds: [bugzUser.id] },
+      { channelId: bugzSelfChannel.id, userIds: [bugzUser.id] },
+      client
+    );
+    await addMembers(
+      { channelId: leandevSelfChannel.id, userIds: [leandevUser.id] },
       client
     );
 
@@ -139,6 +158,11 @@ async function seedDb() {
       .map(us => us.id);
 
     const friendIds3 = sampleSize(abc, 8)
+      .map(res => res.value.rows)
+      .flat()
+      .map(us => us.id);
+
+    const friendIds4 = sampleSize(abc, 8)
       .map(res => res.value.rows)
       .flat()
       .map(us => us.id);
@@ -212,6 +236,30 @@ async function seedDb() {
       );
     }
 
+    await allSettled(
+      sampleSize(friendIds4, 8).map(id =>
+        client.query(
+          /* SQL */ `
+      INSERT INTO
+        user_relationships (first_user_id, second_user_id, type)
+      VALUES (
+        least($1, $2)::UUID, greatest($1, $2)::UUID, 'friend_both'
+      )
+      `,
+          [id, leandevUser.id]
+        )
+      )
+    );
+
+    for await (const friendId of friendIds4) {
+      const channel = await addChannel({ type: "friend" }, client);
+      await addMembers(
+        { channelId: channel.id, userIds: [leandevUser.id, friendId] },
+        client
+      );
+    }
+
+    // =====
     await client.query(
       /* SQL */ `
       INSERT INTO
@@ -252,6 +300,22 @@ async function seedDb() {
         least($1, $2)::UUID, greatest($1, $2)::UUID, 'friend_both'
       )
       `,
+      [nesUser.id, leandevUser.id]
+    );
+    const chan6 = await addChannel({ type: "friend" }, client);
+    await addMembers(
+      { channelId: chan6.id, userIds: [nesUser.id, leandevUser.id] },
+      client
+    );
+
+    await client.query(
+      /* SQL */ `
+      INSERT INTO
+        user_relationships (first_user_id, second_user_id, type)
+      VALUES (
+        least($1, $2)::UUID, greatest($1, $2)::UUID, 'friend_both'
+      )
+      `,
       [andrewUser.id, bugzUser.id]
     );
     const chan3 = await addChannel({ type: "friend" }, client);
@@ -260,11 +324,43 @@ async function seedDb() {
       client
     );
 
+    await client.query(
+      /* SQL */ `
+      INSERT INTO
+        user_relationships (first_user_id, second_user_id, type)
+      VALUES (
+        least($1, $2)::UUID, greatest($1, $2)::UUID, 'friend_both'
+      )
+      `,
+      [andrewUser.id, leandevUser.id]
+    );
+    const chan7 = await addChannel({ type: "friend" }, client);
+    await addMembers(
+      { channelId: chan7.id, userIds: [andrewUser.id, leandevUser.id] },
+      client
+    );
+
+    await client.query(
+      /* SQL */ `
+      INSERT INTO
+        user_relationships (first_user_id, second_user_id, type)
+      VALUES (
+        least($1, $2)::UUID, greatest($1, $2)::UUID, 'friend_both'
+      )
+      `,
+      [bugzUser.id, leandevUser.id]
+    );
+    const chan8 = await addChannel({ type: "friend" }, client);
+    await addMembers(
+      { channelId: chan8.id, userIds: [bugzUser.id, leandevUser.id] },
+      client
+    );
+
     const chan4 = await addChannel({ type: "group" }, client);
     await addMembers(
       {
         channelId: chan4.id,
-        userIds: [nesUser.id, andrewUser.id, bugzUser.id]
+        userIds: [nesUser.id, andrewUser.id, bugzUser.id, leandevUser.id]
       },
       client
     );

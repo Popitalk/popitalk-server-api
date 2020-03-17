@@ -30,7 +30,9 @@
     "db-seed": "node ./src/database/seed.js",
     "redis-flush": "redis-cli --scan --pattern 'playnows*' | xargs redis-cli unlink",
     "db-reset": "run-s migrate-down migrate-up redis-flush",
+    "db-reset-w": "run-s migrate-down migrate-up",
     "db-reset2": "run-s db-reset db-seed",
+    "db-reset2-w": "run-s db-reset-w db-seed",
     "reset": "node ./tools/reset.js"
   },
   "ntl": {
