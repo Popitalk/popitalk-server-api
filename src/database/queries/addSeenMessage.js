@@ -17,7 +17,6 @@ module.exports = async ({ channelId, userId }, db = database) => {
       members.channel_id = $1
       AND members.user_id = $2
     RETURNING
-      id AS "id",
       channel_id AS "channelId",
       user_id AS "userId"
       `,
