@@ -1,5 +1,8 @@
+const errorCodes = require("pg-error-codes");
+
 class DatabaseError extends Error {
-  constructor(
+  constructor({
+    name,
     message,
     code,
     codeName,
@@ -11,22 +14,34 @@ class DatabaseError extends Error {
     table,
     column,
     dataType,
-    constraint
-  ) {
+    constraint,
+    result,
+    query,
+    values,
+    received
+  }) {
     super(message);
-    this.name = this.constructor.name;
     this.message = message;
-    this.code = code;
-    this.codeName = codeName;
-    this.detail = detail;
-    this.hint = hint;
-    this.position = position;
-    this.where = where;
-    this.schema = schema;
-    this.table = table;
-    this.column = column;
-    this.dataType = dataType;
-    this.constraint = constraint;
+    this.name = name || this.constructor.name;
+    if (position) this.position = position;
+    if (code) {
+      this.code = code;
+      this.codeName = errorCodes[code];
+    }
+    if (codeName) this.code = codeName;
+    if (detail) this.detail = detail;
+    if (hint) this.hint = hint;
+    if (position) this.position = position;
+    if (where) this.where = where;
+    if (schema) this.schema = schema;
+    if (table) this.table = table;
+    if (column) this.column = column;
+    if (dataType) this.dataType = dataType;
+    if (constraint) this.constraint = constraint;
+    if (result) this.result = result;
+    if (query) this.query = query;
+    if (values) this.values = values;
+    if (received) this.received = received;
     Error.captureStackTrace(this, this.constructor);
   }
 }

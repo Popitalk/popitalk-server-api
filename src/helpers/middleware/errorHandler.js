@@ -1,8 +1,9 @@
 /* eslint-disable no-param-reassign */
 const httpStatus = require("http-status");
+const Boom = require("@hapi/boom");
 const { isCelebrate } = require("celebrate");
 const { MulterError } = require("multer");
-const { ApiError } = require("../errors");
+const { ApiError, DatabaseError } = require("../errors");
 const {
   ApiErrorHandler,
   RequestValidationErrorHandler,
@@ -11,7 +12,21 @@ const {
 
 // eslint-disable-next-line no-unused-vars
 module.exports = async (err, req, res, next) => {
+  console.log("XXX", err, req.body);
   req.err = err;
+
+  if (Boom.isBoom(err)) {
+    return res.status(err.output.statusCode).json(err.output.payload);
+  }
+
+  if (err instanceof DatabaseError) {
+    return res.status(500).json({
+      code: 500,
+      error: httpStatus[500],
+      // message: err.message,
+      db: "database"
+    });
+  }
 
   if (err instanceof MulterError) {
     return MulterErrorHandler(res, err);

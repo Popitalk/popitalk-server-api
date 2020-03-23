@@ -8,16 +8,16 @@ if (config.mode !== "production") {
   require("./helpers/createProjectDirectories");
 }
 
-require("./config/pubSub");
-require("./config/jobs");
+// require("./config/pubSub");
+// require("./config/jobs");
 
 const expressInit = require("./helpers/expressInit");
-const upgradeHandler = require("./websockets/upgradeHandler");
-const messageHandler = require("./websockets/messageHandler");
-const closeHandler = require("./websockets/closeHandler");
-const loginEvent = require("./websockets/events/loginEvent");
-const { websocketsOfUsers } = require("./config/state");
-const { HELLO, PING } = require("./config/constants");
+// const upgradeHandler = require("./websockets/upgradeHandler");
+// const messageHandler = require("./websockets/messageHandler");
+// const closeHandler = require("./websockets/closeHandler");
+// const loginEvent = require("./websockets/events/loginEvent");
+// const { websocketsOfUsers } = require("./config/state");
+// const { HELLO, PING } = require("./config/constants");
 
 const app = express();
 const logger = require("./config/logger");
@@ -25,39 +25,39 @@ const logger = require("./config/logger");
 expressInit(app);
 
 const server = http.createServer(app);
-const wss = new WebSocket.Server({ clientTracking: false, noServer: true });
+// const wss = new WebSocket.Server({ clientTracking: false, noServer: true });
 
-upgradeHandler(wss, server);
+// upgradeHandler(wss, server);
 
-wss.on("connection", async (ws, request) => {
-  const userId = request.session.passport.user;
+// wss.on("connection", async (ws, request) => {
+//   const userId = request.session.passport.user;
 
-  messageHandler(ws, userId);
-  closeHandler(ws, userId);
+//   messageHandler(ws, userId);
+//   closeHandler(ws, userId);
 
-  await loginEvent(ws, request);
-});
+//   await loginEvent(ws, request);
+// });
 
-const heartbeat = setInterval(() => {
-  websocketsOfUsers.forEach(client => {
-    try {
-      // Check if this triggers logoutHandler
-      if (client.isAlive === false) return client.terminate();
+// const heartbeat = setInterval(() => {
+//   websocketsOfUsers.forEach(client => {
+//     try {
+//       // Check if this triggers logoutHandler
+//       if (client.isAlive === false) return client.terminate();
 
-      client.isAlive = false;
+//       client.isAlive = false;
 
-      if (client.readyState === 1) {
-        client.send(
-          JSON.stringify({
-            type: PING
-          })
-        );
-      }
-    } catch (error) {
-      logger.error(error);
-    }
-  });
-}, config.heartbeatInterval);
+//       if (client.readyState === 1) {
+//         client.send(
+//           JSON.stringify({
+//             type: PING
+//           })
+//         );
+//       }
+//     } catch (error) {
+//       logger.error(error);
+//     }
+//   });
+// }, config.heartbeatInterval);
 
 server.listen(config.port || 4000, config.host || "localhost", () => {
   logger.info(
@@ -67,8 +67,9 @@ server.listen(config.port || 4000, config.host || "localhost", () => {
   );
 });
 
-if (config.mode === "production") {
-  require("./helpers/gracefulExit")(server);
-}
+// if (config.mode === "production") {
+//   require("./helpers/gracefulExit")(server);
+// }
 
-module.exports = { server, heartbeat };
+module.exports = { server };
+// module.exports = { server, heartbeat };

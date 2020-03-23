@@ -1,81 +1,37 @@
 const path = require("path");
-const { promisify } = require("bluebird");
-const fs = require("fs");
-const database = require("../../config/database");
+const { QueryFile } = require("pg-promise");
 const logger = require("../../config/logger");
+const db = require("../../config/database");
 
-const readdir = promisify(fs.readdir);
-const readFile = promisify(fs.readFile);
-
-const getSqlFilesStr = async () => {
-  let sqlFiles = "";
-  const concatFolderFiles = async folder => {
-    const folderFiles = await readdir(
-      path.join(__dirname, `../sql/1565249632537-init/up/${folder}`)
-    );
-
-    for await (const file of folderFiles) {
-      const sql = await readFile(
-        path.join(__dirname, `../sql/1565249632537-init/up/${folder}/${file}`),
-        "utf-8"
-      );
-      sqlFiles = `${sqlFiles}${sql}\n`;
-    }
-  };
-
-  // EXTENSIONS
-  await concatFolderFiles("extensions");
-  // SEQUENCES
-  await concatFolderFiles("sequences");
-  // FUNCTIONS
-  await concatFolderFiles("functions");
-  // TABLES
-  await concatFolderFiles("tables");
-  // VIEWS
-  // await concatFolderFiles("views");
-  // PROCS
-  // await concatFolderFiles("procs");
-  // TRIGGERS
-  await concatFolderFiles("triggers");
-  // INDICES
-  await concatFolderFiles("indices");
-
-  return sqlFiles;
-};
+function sql(file) {
+  const fullPath = path.join(__dirname, file);
+  const options = { minify: true };
+  const qf = new QueryFile(fullPath, options);
+  if (qf.error) logger.error(qf.error);
+  return qf;
+}
 
 module.exports.up = async () => {
-  const client = await database.connect();
   try {
-    const sql = await getSqlFilesStr();
-
-    await client.query("BEGIN");
-    await client.query("CREATE SCHEMA IF NOT EXISTS public");
-    await client.query(sql);
-    await client.query("COMMIT");
+    await db.tx(async tx => {
+      await tx.any("CREATE SCHEMA IF NOT EXISTS public");
+      await tx.any(sql("../schemas/1565249632537-init/up/extensions.sql"));
+      await tx.any(sql("../schemas/1565249632537-init/up/sequences.sql"));
+      await tx.any(sql("../schemas/1565249632537-init/up/functions.sql"));
+      await tx.any(sql("../schemas/1565249632537-init/up/tables.sql"));
+      await tx.any(sql("../schemas/1565249632537-init/up/triggers.sql"));
+      await tx.any(sql("../schemas/1565249632537-init/up/indices.sql"));
+    });
   } catch (error) {
-    await client.query("ROLLBACK");
     logger.error(error);
-  } finally {
-    await client.release();
   }
 };
 
 module.exports.down = async () => {
-  const client = await database.connect();
   try {
-    const sql = await readFile(
-      path.join(__dirname, "../sql/1565249632537-init/down/init-down.sql"),
-      "utf-8"
-    );
-
-    await client.query("BEGIN");
-    await client.query(sql);
-    await client.query("COMMIT");
+    await db.any(sql("../schemas/1565249632537-init/down/init-down.sql"));
   } catch (error) {
-    await client.query("ROLLBACK");
     logger.error(error);
-  } finally {
-    await client.release();
   }
 };
 

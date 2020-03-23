@@ -1,16 +1,29 @@
 const router = require("express").Router();
 
+const SessionController = require("./controllers/SessionController");
 const UserController = require("./controllers/UserController");
+const ChannelController = require("./controllers/ChannelController");
+const MemberController = require("./controllers/MemberController");
+const MessageController = require("./controllers/MessageController");
+const PostController = require("./controllers/PostController");
+const CommentController = require("./controllers/CommentController");
 
 /* -------------------------------------------------------------------------- */
 /*                                    USERS                                   */
 /* -------------------------------------------------------------------------- */
 // router.post("/users/", UserController.register); // rename to addUser
-router.use("/users", UserController.addUser); // rename to addUser
-router.use("/users", UserController.getUser);
+router.use("/sessions", SessionController);
+router.use("/users", UserController);
+router.use("/channels", ChannelController);
+router.use("/members", MemberController);
+router.use("/messages", MessageController);
+router.use("/posts", PostController);
+router.use("/comments", CommentController);
+// router.use("/users", UserController.addUser); // rename to addUser
+// router.use("/users", UserController.getUser);
 // router.put("/users/", UserController.getUser);
 // router.delete("/users/", UserController.deleteUser);
-router.use("/users/search", UserController.searchUsers); // /users/search?
+// router.use("/users/search", UserController.searchUsers); // /users/search?
 /* -------------------------------------------------------------------------- */
 /*                                  SESSIONS                                  */
 /* -------------------------------------------------------------------------- */

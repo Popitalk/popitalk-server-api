@@ -1,24 +1,18 @@
 const { isEmpty } = require("lodash");
 const knex = require("../../config/knex");
-const database = require("../../config/database");
-const createDatabaseError = require("../../helpers/createDatabaseError");
 
-module.exports = async (
-  { channelId, userId, beforePostId, validateMember = true },
-  db = database
-) => {
-  try {
-    const query = knex
-      .select("*")
-      .from(q => {
-        q.select("id")
-          .select("channel_id AS channelId")
-          .select("user_id AS userId")
-          .select("content")
-          .select("upload")
-          .select("created_at AS createdAt")
-          .select(
-            knex.raw(/* SQL */ `
+module.exports = async ({ channelId, userId, beforePostId }) => {
+  const query = knex
+    .select("*")
+    .from(q => {
+      q.select("id")
+        .select("channel_id AS channelId")
+        .select("user_id AS userId")
+        .select("content")
+        .select("upload")
+        .select("created_at AS createdAt")
+        .select(
+          knex.raw(/* SQL */ `
           (
             SELECT
               JSON_BUILD_OBJECT(
@@ -35,9 +29,9 @@ module.exports = async (
               users.id = posts.user_id
           ) AS "author"
           `)
-          )
-          .select(
-            knex.raw(/* SQL */ `
+        )
+        .select(
+          knex.raw(/* SQL */ `
             (
               SELECT
                 comments.id
@@ -51,9 +45,9 @@ module.exports = async (
                 1
             ) AS "firstCommentId"
           `)
-          )
-          .select(
-            knex.raw(/* SQL */ `
+        )
+        .select(
+          knex.raw(/* SQL */ `
             (
               SELECT
                 comments.id
@@ -67,10 +61,10 @@ module.exports = async (
                 1
             ) AS "lastCommentId"
           `)
-          )
-          .select(
-            knex.raw(
-              /* SQL */ `
+        )
+        .select(
+          knex.raw(
+            /* SQL */ `
             (
               CASE
                 WHEN
@@ -90,11 +84,11 @@ module.exports = async (
               END
             ) AS "liked"
           `,
-              [userId]
-            )
+            [userId]
           )
-          .select(
-            knex.raw(/* SQL */ `
+        )
+        .select(
+          knex.raw(/* SQL */ `
             (
               SELECT
                 COUNT(*)::SMALLINT
@@ -104,9 +98,9 @@ module.exports = async (
                 post_likes.post_id = posts.id
             ) AS "likeCount"
           `)
-          )
-          .select(
-            knex.raw(/* SQL */ `
+        )
+        .select(
+          knex.raw(/* SQL */ `
             (
               SELECT
                 COUNT(*)::SMALLINT
@@ -116,10 +110,10 @@ module.exports = async (
                 comments.post_id = posts.id
             ) AS "commentCount"
           `)
-          )
-          .select(
-            knex.raw(
-              /* SQL */ `
+        )
+        .select(
+          knex.raw(
+            /* SQL */ `
             (
               SELECT
                 COUNT(*)::SMALLINT
@@ -130,12 +124,12 @@ module.exports = async (
                 AND comments.user_id = ?
             ) AS "selfCommentCount"
           `,
-              [userId]
-            )
+            [userId]
           )
-          .select(
-            knex.raw(
-              /* SQL */ `
+        )
+        .select(
+          knex.raw(
+            /* SQL */ `
             COALESCE((
               SELECT
                 JSON_AGG(c ORDER BY "createdAt" DESC)
@@ -199,37 +193,19 @@ module.exports = async (
               ) AS c
             ), '[]') AS comments
           `,
-              [userId]
-            )
+            [userId]
           )
-          .from("posts")
-          .where("channel_id", channelId)
-          .orderBy("created_at", "desc")
-          .limit(7)
-          .as("p");
+        )
+        .from("posts")
+        .where("channel_id", channelId)
+        .orderBy("created_at", "desc")
+        .limit(7)
+        .as("p");
 
-        if (validateMember) {
-          q.andWhere(
-            knex.raw(
-              /* SQL */ `
-              EXISTS (
-                SELECT
-                  1
-                FROM
-                  members
-                WHERE
-                  members.channel_id = ?
-                  AND members.user_id = ?
-              )`,
-              [channelId, userId]
-            )
-          );
-        }
-
-        if (beforePostId) {
-          q.andWhere(
-            knex.raw(
-              /* SQL */ `
+      if (beforePostId) {
+        q.andWhere(
+          knex.raw(
+            /* SQL */ `
             created_at < (
               SELECT
                 p.created_at
@@ -238,42 +214,39 @@ module.exports = async (
               WHERE
                 p.id = ?
             )`,
-              [beforePostId]
-            )
-          );
-        }
-      })
-      .orderBy("createdAt", "DESC");
-
-    const response = (await db.query(query.toString())).rows;
-
-    if (response.length === 0) return null;
-
-    let posts = response;
-    let comments = {};
-
-    if (posts) {
-      posts.forEach(post => {
-        if (post.comments.length !== 0) {
-          comments = {
-            ...comments,
-            [post.id]: post.comments
-          };
-        }
-        // eslint-disable-next-line no-param-reassign
-        delete post.comments;
-      });
-
-      if (isEmpty(comments)) {
-        comments = {};
+            [beforePostId]
+          )
+        );
       }
-    }
-    if (isEmpty(posts)) {
-      posts = {};
-    }
+    })
+    .orderBy("createdAt", "DESC");
 
-    return { posts, comments };
-  } catch (error) {
-    throw createDatabaseError(error);
+  const response = query.toString();
+
+  if (response.length === 0) return null;
+
+  let posts = response;
+  let comments = {};
+
+  if (posts) {
+    posts.forEach(post => {
+      if (post.comments.length !== 0) {
+        comments = {
+          ...comments,
+          [post.id]: post.comments
+        };
+      }
+      // eslint-disable-next-line no-param-reassign
+      delete post.comments;
+    });
+
+    if (isEmpty(comments)) {
+      comments = {};
+    }
   }
+  if (isEmpty(posts)) {
+    posts = {};
+  }
+
+  return { posts, comments };
 };

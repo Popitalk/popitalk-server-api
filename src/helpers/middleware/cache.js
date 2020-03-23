@@ -1,7 +1,10 @@
 const redis = require("../../config/redis");
 const isJson = require("../../utils/isJson");
+const { mode } = require("../../config");
 
 const cache = async (req, res, next) => {
+  if (mode !== "production") next();
+
   const key = `playnows_api:${req.originalUrl}`;
   const val = await redis.get(key);
 
@@ -32,6 +35,8 @@ const cache = async (req, res, next) => {
 };
 
 const invalidateCache = async (req, res, next) => {
+  if (mode !== "production") next();
+
   const key = `playnows_api:${req.originalUrl}`;
 
   res.sendResponse = res.send;

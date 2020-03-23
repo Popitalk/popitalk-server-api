@@ -1,0 +1,47 @@
+openapi: 3.0.2
+info:
+  title: Playnows API
+  version: 0.6.0
+servers:
+  - url: /api
+tags:
+  - name: sessions
+  - name: users
+  - name: channels
+  - name: members
+  - name: messages
+  - name: posts
+  - name: comments
+paths:
+  /users:
+    post:
+      tags:
+        - users
+      summary: Registers a new account
+      operationId: addUser
+      requestBody:
+        $ref: "#/components/requestBodies/addUser"
+      responses:
+        "200":
+          description: successful operation
+    put:
+      tags:
+        - users
+      summary: Registers a new account
+      operationId: addUser
+      requestBody:
+        $ref: "#/components/requestBodies/addUser"
+      responses:
+        "200":
+          description: successful operation
+components:
+  requestBodies:
+    addUser:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              firstNamec:
+                type: string

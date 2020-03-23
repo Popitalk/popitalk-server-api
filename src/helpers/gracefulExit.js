@@ -1,5 +1,5 @@
 const logger = require("../config/logger");
-const closeAllConnections = require("../helpers/closeAllConnections");
+const closeAllConnections = require("./closeAllConnections");
 
 module.exports = server => {
   process.on("SIGINT", () => {
