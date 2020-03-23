@@ -1,75 +1,97 @@
-/* eslint-disable no-param-reassign */
-const http = require("http");
-const express = require("express");
-const WebSocket = require("ws");
+const Hapi = require("@hapi/hapi");
+const Boom = require("@hapi/boom");
+const localStrategy = require("@hapi/basic");
 const config = require("./config");
+const logger = require("./config/logger");
 
 if (config.mode !== "production") {
   require("./helpers/createProjectDirectories");
 }
 
-// require("./config/pubSub");
-// require("./config/jobs");
+const users = {
+  john: {
+    username: "john",
+    password: "password", // 'secret'
+    name: "John Doe",
+    id: "2133d32a"
+  }
+};
 
-const expressInit = require("./helpers/expressInit");
-// const upgradeHandler = require("./websockets/upgradeHandler");
-// const messageHandler = require("./websockets/messageHandler");
-// const closeHandler = require("./websockets/closeHandler");
-// const loginEvent = require("./websockets/events/loginEvent");
-// const { websocketsOfUsers } = require("./config/state");
-// const { HELLO, PING } = require("./config/constants");
+const validate = async (request, username, password, h) => {
+  console.log("VALIDATING");
 
-const app = express();
-const logger = require("./config/logger");
+  const user = users[username];
+  if (!user) {
+    return { credentials: null, isValid: false };
+  }
 
-expressInit(app);
+  const isValid = password === users[username].password;
+  const credentials = { id: user.id, name: user.name };
 
-const server = http.createServer(app);
-// const wss = new WebSocket.Server({ clientTracking: false, noServer: true });
+  return { isValid, credentials };
+};
 
-// upgradeHandler(wss, server);
+const init = async () => {
+  const server = Hapi.server({
+    host: config.host || "localhost",
+    port: config.port || 4000
+  });
 
-// wss.on("connection", async (ws, request) => {
-//   const userId = request.session.passport.user;
+  await server.register(localStrategy);
+  server.auth.strategy("simple", "basic", { validate });
+  server.auth.default("simple");
 
-//   messageHandler(ws, userId);
-//   closeHandler(ws, userId);
+  server.route({
+    method: "GET",
+    path: "/{channelId}",
+    handler: async (req, res) => {
+      const { channelId } = req.params;
 
-//   await loginEvent(ws, request);
-// });
+      // req.log("lol");
+      // console.log("YES!!!");
+      throw Boom.notAcceptable("NO");
+      return res.response({ channelId, userId: channelId }).code(201);
+    }
+  });
 
-// const heartbeat = setInterval(() => {
-//   websocketsOfUsers.forEach(client => {
-//     try {
-//       // Check if this triggers logoutHandler
-//       if (client.isAlive === false) return client.terminate();
+  server.ext("onPreResponse", (req, res) => {
+    // console.log("XXX", req.dsdsfd);
+    // logger.info(`RESPONSE TIME: ${req.info.responded}`);
+    // logger.info(req.info.id);
+    // const { response } = req;
+    // if (!response.isBoom) {
+    //   return res.continue;
+    // }
+    // logger.error(response);
+    return res.continue;
+  });
 
-//       client.isAlive = false;
+  server.events.on("response", (req, res) => {
+    logger.info(`RESPONSE TIME: ${req.info.responded}`);
+    logger.info(req.info.id);
+    // const { response } = req;
+    console.log(req.preResponses);
+    // if (!response.isBoom) {
+    // return res.continue;
+    // }
+    // logger.error(response);
+  });
 
-//       if (client.readyState === 1) {
-//         client.send(
-//           JSON.stringify({
-//             type: PING
-//           })
-//         );
-//       }
-//     } catch (error) {
-//       logger.error(error);
-//     }
-//   });
-// }, config.heartbeatInterval);
+  // server.events.on("log", (event, tags) => {
+  //   logger.info("SERVERLOG");
+  // });
 
-server.listen(config.port || 4000, config.host || "localhost", () => {
-  logger.info(
-    `Server is running at ${server.address().address}:${
-      server.address().port
-    } in ${app.get("env")} mode`
-  );
+  // server.events.on("request", (event, tags) => {
+  //   logger.info("RRR");
+  // });
+
+  await server.start();
+  logger.info(`Server is running on ${server.info.uri} in ${config.mode} mode`);
+};
+
+process.on("unhandledRejection", err => {
+  logger.info(err);
+  process.exit(1);
 });
 
-// if (config.mode === "production") {
-//   require("./helpers/gracefulExit")(server);
-// }
-
-module.exports = { server };
-// module.exports = { server, heartbeat };
+init();
