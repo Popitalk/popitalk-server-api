@@ -1,7 +1,7 @@
 const { isEmpty } = require("lodash");
 const knex = require("../../config/knex");
 
-module.exports = async ({ channelId, userId, beforePostId }) => {
+module.exports = ({ channelId, userId, beforePostId }) => {
   const query = knex
     .select("*")
     .from(q => {

@@ -4,12 +4,12 @@ WITH chan AS (
     channels.type,
     channels.name,
     channels.public,
-    channels.created_at,
-    fm.id AS "first_message_id",
-    lm.id AS "last_message_id",
-    lm.created_at AS "last_message_at",
+    channels.created_at AS "createdAt",
+    fm.id AS "firstMessageId",
+    lm.id AS "lastMessageId",
+    lm.created_at AS "lastMessageAt",
     members.ids AS "members",
-    seen.ids AS "seen_messages"
+    seen.ids AS "seenMessages"
   FROM
     channels
   LEFT JOIN LATERAL (
@@ -58,30 +58,28 @@ WITH chan AS (
     channels.id = $1
 ), chan_obj AS (
   SELECT
-    JSON_BUILD_OBJECT(
-      'id',
-      chan.id,
-      'type',
-      chan.type,
-      'name',
-      chan.name,
-      'public',
-      chan.public,
-      'createdAt',
-      chan.created_at,
-      'firstMessageId',
-      chan.first_message_id,
-      'lastMessageId',
-      chan.last_message_id,
-      'lastMessageAt',
-      chan.last_message_at,
-      'members',
-      chan.members,
-      'seenMessages',
-      chan.seen_messages
-    ) AS channel
+    ROW_TO_JSON(chan) AS channel
   FROM
     chan
+), usrs AS (
+  SELECT
+    JSON_OBJECT_AGG(
+      users.id,
+      JSON_BUILD_OBJECT(
+        'firstName',
+        users.first_name,
+        'lastName',
+        users.last_name,
+        'username',
+        users.username,
+        'avatar',
+        users.avatar
+      )
+    ) AS users
+  FROM
+    users, chan
+  WHERE
+    users.id = ANY (chan.members)
 ), msgs AS (
   SELECT
     COALESCE(
@@ -105,66 +103,46 @@ WITH chan AS (
       ), ARRAY[]::JSON[]) AS "messages"
   FROM (
     SELECT
-      messages.id,
-      messages.user_id,
-      messages.channel_id,
-      messages.content,
-      messages.upload,
-      messages.created_at,
-      (
-        SELECT
-          JSON_BUILD_OBJECT(
-            'id',
-            users.id,
-            'username',
-            users.username,
-            'avatar',
-            users.avatar
-          )
-        FROM
-          users
-        WHERE
-          users.id = messages.user_id
-      ) AS author
-    FROM
-      messages, chan
-    WHERE
-      messages.channel_id = chan.id
-    LIMIT
-      50
+      *
+    FROM (
+      SELECT
+        messages.id,
+        messages.user_id,
+        messages.channel_id,
+        messages.content,
+        messages.upload,
+        messages.created_at,
+        (
+          SELECT
+            JSON_BUILD_OBJECT(
+              'id',
+              users.id,
+              'username',
+              users.username,
+              'avatar',
+              users.avatar
+            )
+          FROM
+            users
+          WHERE
+            users.id = messages.user_id
+        ) AS author
+      FROM
+        messages, chan
+      WHERE
+        messages.channel_id = chan.id
+      ORDER BY
+        messages.created_at DESC
+      LIMIT
+        50
+    ) AS o
     ORDER BY
-      messages.created_at DESC
+      o.created_at ASC
   ) AS m
-  ORDER BY
-    m.created_at ASC
-), usrs AS (
-  SELECT
-    JSON_OBJECT_AGG(
-      users.id,
-      JSON_BUILD_OBJECT(
-        'firstName',
-        users.first_name,
-        'lastName',
-        users.last_name,
-        'username',
-        users.username,
-        'avatar',
-        users.avatar
-      )
-    ) AS users
-  FROM
-    users
-  WHERE
-    users.id = ANY (chan.members)
 )
 SELECT
-  JSON_BUILD_OBJECT(
-    'channel',
-    chan_obj.channel,
-    'users',
-    usrs.users,
-    'messages',
-    msgs.messages
-  )
+  chan_obj.channel AS channel,
+  usrs.users AS users,
+  msgs.messages AS messages
 FROM
   chan_obj, usrs, msgs

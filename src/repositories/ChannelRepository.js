@@ -55,7 +55,7 @@ class ChannelRepository {
   }
 
   async getChannelLastMessageInfo({ channelId }) {
-    return this.db.one(queries.getChannelLastMessageInfo, [channelId]);
+    return this.db.oneOrNone(queries.getChannelLastMessageInfo, [channelId]);
   }
 
   async getChannelLastPostInfo({ channelId }) {
@@ -67,7 +67,7 @@ class ChannelRepository {
     userId,
     name,
     description,
-    publicChannel,
+    public: publicChannel,
     icon,
     removeIcon
   }) {

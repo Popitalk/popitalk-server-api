@@ -1,257 +1,624 @@
-const router = require("express").Router();
-const Boom = require("@hapi/boom");
-const asyncHandler = require("express-async-handler");
-const reqPayload = require("../helpers/middleware/reqPayload");
-const authenticateUser = require("../helpers/middleware/authenticateUser");
-const UserService = require("../services/UserService");
-const validators = require("../helpers/validators");
-const multer = require("../helpers/middleware/multer");
-const { publisher } = require("../config/pubSub");
+const Joi = require("@hapi/joi");
 const { USER_CHANNEL_EVENTS, USER_EVENTS } = require("../config/constants");
+const UserService = require("../services/UserService");
+const { publisher } = require("../config/pubSub");
 
-router.post(
-  "/",
-  validators.addUser,
-  reqPayload,
-  asyncHandler(async (req, res) => {
-    const newUser = await UserService.addUser(req.body);
-    res.status(201).json(newUser);
+const basicUserSchema = Joi.object()
+  .keys({
+    id: Joi.string()
+      .uuid()
+      .required(),
+    firstName: Joi.string().required(),
+    lastName: Joi.string().required(),
+    username: Joi.string().required(),
+    avatar: Joi.string()
+      .uri()
+      .allow(null)
+      .required()
   })
-);
+  .required();
 
-router.get(
-  "/:userId",
-  authenticateUser,
-  validators.getUser,
-  reqPayload,
-  asyncHandler(async (req, res) => {
-    const { userId } = req.payload;
-    const user = await UserService.getUser(req.payload);
-    res.json({
-      id: userId,
-      firstName: user.firstName,
-      lastName: user.lastName,
-      username: user.username,
-      avatar: user.avatar
-    });
-  })
-);
-
-router.put(
-  "/",
-  authenticateUser,
-  multer.single("avatar"),
-  validators.updateUser,
-  reqPayload,
-  asyncHandler(async (req, res) => {
-    const { password, removeAvatar } = req.payload;
-    const avatar = req.file;
-
-    if (avatar && !password) throw Boom.badRequest("Didn't provide password");
-    if (avatar && removeAvatar)
-      throw Boom.badRequest("Either avatar must be provided or removeAvatar");
-
-    const updatedUser = await UserService.updateUser({
-      ...req.payload,
-      avatar
-    });
-    res.status(200).json(updatedUser);
-  })
-);
-
-router.delete(
-  "/",
-  authenticateUser,
-  reqPayload,
-  asyncHandler(async (req, res) => {
-    await UserService.deleteUser(req.payload);
-    req.logout();
-    res.status(204).json({});
-  })
-);
-
-router.get(
-  "/",
-  authenticateUser,
-  validators.searchUsers,
-  reqPayload,
-  asyncHandler(async (req, res) => {
-    const { username } = req.query;
-    const users = await UserService.searchUsers({ username });
-    res.json(users);
-  })
-);
-
-// resource doesn't exist yet, so remove requestee in url
-router.post(
-  "/friendRequests",
-  authenticateUser,
-  validators.sendFriendRequest,
-  reqPayload,
-  asyncHandler(async (req, res) => {
-    const { userId: fromUser, requesteeId: toUser } = req.payload;
-    const user = await UserService.addFriendRequest({ fromUser, toUser });
-    publisher({
-      type: USER_EVENTS.WS_ADD_RECEIVED_FRIEND_REQUEST,
-      userId: toUser,
-      payload: { userId: fromUser, user }
-    });
-    res.status(201).json({ userId: fromUser, user });
-  })
-);
-
-router.delete(
-  "/friendRequests/:requesteeId/cancel",
-  authenticateUser,
-  validators.cancelFriendRequest,
-  reqPayload,
-  asyncHandler(async (req, res) => {
-    const { userId: fromUser, requesteeId: toUser } = req.payload;
-    await UserService.deleteFriendRequest({
-      userId1: fromUser,
-      userId2: toUser
-    });
-    publisher({
-      type: USER_EVENTS.WS_DELETE_RECEIVED_FRIEND_REQUEST,
-      userId: toUser,
-      payload: { userId: fromUser }
-    });
-    res.json({ userId: toUser });
-  })
-);
-
-router.delete(
-  "/friendRequests/:requesterId/reject",
-  authenticateUser,
-  validators.rejectFriendRequest,
-  reqPayload,
-  asyncHandler(async (req, res) => {
-    const { userId: toUser, requesterId: fromUser } = req.payload;
-    await UserService.deleteFriendRequest({
-      userId1: fromUser,
-      userId2: toUser
-    });
-    publisher({
-      type: USER_EVENTS.WS_DELETE_SENT_FRIEND_REQUEST,
-      userId: fromUser,
-      payload: { userId: toUser }
-    });
-    res.json({ userId: fromUser });
-  })
-);
-
-router.post(
-  "/friends",
-  authenticateUser,
-  validators.acceptFriendRequest,
-  reqPayload,
-  asyncHandler(async (req, res) => {
-    const { userId: toUser, requesterId: fromUser } = req.payload;
-    const { channel, messages, users } = await UserService.addFriend({
-      userId1: fromUser,
-      userId2: toUser
-    });
-    publisher({
-      type: USER_EVENTS.WS_SUBSCRIBE_CHANNEL,
-      userId: toUser,
-      channelId: channel.id,
-      payload: {
-        userId: fromUser,
-        channelId: channel.id,
-        type: "friend"
+const controllers = [
+  {
+    method: "POST",
+    path: "/",
+    options: {
+      auth: false,
+      description: "Register user",
+      tags: ["api"],
+      validate: {
+        payload: Joi.object()
+          .keys({
+            firstName: Joi.string()
+              .min(1)
+              .max(50)
+              .required()
+              .example("first"),
+            lastName: Joi.string()
+              .min(1)
+              .max(50)
+              .required()
+              .example("last"),
+            username: Joi.string()
+              .min(3)
+              .max(30)
+              .required()
+              .example("username"),
+            dateOfBirth: Joi.date()
+              .iso()
+              .max(new Date(new Date() - 1000 * 60 * 60 * 24 * 365 * 13))
+              .required()
+              .example("1980-01-01"),
+            email: Joi.string()
+              .email()
+              .required()
+              .example("email@gmail.com"),
+            password: Joi.string()
+              .min(6)
+              .regex(/[a-z]/)
+              .regex(/[A-Z]/)
+              .regex(/\d+/)
+              .required()
+              .example("PassW0rd")
+          })
+          .required()
+          .label("addUserRequest")
+      },
+      response: {
+        status: {
+          201: Joi.object()
+            .keys({
+              id: Joi.string()
+                .uuid()
+                .required(),
+              firstName: Joi.string().required(),
+              lastName: Joi.string().required(),
+              username: Joi.string().required(),
+              dateOfBirth: Joi.date()
+                .iso()
+                .required(),
+              avatar: Joi.string()
+                .valid(null)
+                .required(),
+              email: Joi.string()
+                .email()
+                .required(),
+              emailVerified: Joi.boolean()
+                .valid(false)
+                .required(),
+              createdAt: Joi.date()
+                .iso()
+                .required(),
+              newUser: Joi.boolean()
+                .valid(true)
+                .required()
+            })
+            .required()
+            .label("addUserResponse")
+        }
       }
-    });
-    publisher({
-      type: USER_EVENTS.WS_ADD_FRIEND,
-      userId: fromUser,
-      channelId: channel.id,
-      payload: {
-        userId: toUser,
-        channelId: channel.id,
-        type: "friend",
-        channel,
-        users,
-        messages
+    },
+    async handler(req, res) {
+      const newUser = await UserService.addUser(req.payload);
+      return res.response(newUser).code(201);
+    }
+  },
+  {
+    method: "GET",
+    path: "/{userId}",
+    options: {
+      description: "Gets user",
+      tags: ["api"],
+      validate: {
+        params: Joi.object()
+          .keys({
+            userId: Joi.string()
+              .uuid()
+              .required()
+          })
+          .required()
+      },
+      response: {
+        status: {
+          201: basicUserSchema.label("getUserResponse")
+        }
       }
-    });
-    res.json({
-      userId: fromUser,
-      channelId: channel.id,
-      channel,
-      messages,
-      users
-    });
-  })
-);
-
-router.delete(
-  "/friends/:friendId",
-  authenticateUser,
-  validators.deleteFriend,
-  reqPayload,
-  asyncHandler(async (req, res) => {
-    const { userId, friendId } = req.payload;
-    const deletedChannel = await UserService.deleteFriend({
-      userId1: userId,
-      userId2: friendId
-    });
-    publisher({
-      type: USER_CHANNEL_EVENTS.WS_UNFRIEND,
-      userId: friendId,
-      channelId: deletedChannel.id,
-      payload: { userId, channelId: deletedChannel.id }
-    });
-    res.json({ userId: friendId, channelId: deletedChannel.id });
-  })
-);
-
-router.post(
-  "/blocks/",
-  authenticateUser,
-  validators.addBlock,
-  reqPayload,
-  asyncHandler(async (req, res) => {
-    const { userId: fromUser, blockedId: toUser } = req.payload;
-    const blockedInfo = await UserService.addBlock({ fromUser, toUser });
-
-    if (blockedInfo.isFriend) {
-      publisher({
-        type: USER_CHANNEL_EVENTS.WS_BLOCK_FRIEND,
-        channelId: blockedInfo.channelId,
-        userId: toUser,
-        payload: { userId: fromUser, channelId: blockedInfo.channelId }
+    },
+    async handler(req, res) {
+      const { userId } = req.params;
+      const user = await UserService.getUser({ userId });
+      return {
+        id: userId,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        username: user.username,
+        avatar: user.avatar
+      };
+    }
+  },
+  {
+    method: "PUT",
+    path: "/",
+    options: {
+      description: "Updates user",
+      tags: ["api"],
+      payload: { multipart: { output: "annotated" } },
+      plugins: {
+        "hapi-swagger": {
+          payloadType: "form"
+        }
+      },
+      validate: {
+        payload: Joi.object()
+          .keys({
+            firstName: Joi.string()
+              .min(1)
+              .max(50)
+              .optional()
+              .example("first"),
+            lastName: Joi.string()
+              .min(1)
+              .max(50)
+              .optional()
+              .example("last"),
+            dateOfBirth: Joi.date()
+              .iso()
+              .max(new Date(new Date() - 1000 * 60 * 60 * 24 * 365 * 13))
+              .optional()
+              .example("1990-01-01"),
+            email: Joi.string()
+              .email()
+              .optional()
+              .example("email123@gmail.com"),
+            password: Joi.string()
+              .optional()
+              .example("oldPassword123"),
+            newPassword: Joi.string()
+              .regex(/[a-z]/)
+              .regex(/[A-Z]/)
+              .regex(/\d+/)
+              .disallow(Joi.ref("password"))
+              .optional()
+              .example("newPassword"),
+            avatar: Joi.optional().meta({ swaggerType: "file" }),
+            removeAvatar: Joi.boolean().optional()
+          })
+          .with("firstName", "password")
+          .with("lastName", "password")
+          .with("email", "password")
+          .with("avatar", "password")
+          .with("dateOfBirth", "password")
+          .with("removeAvatar", "password")
+          .with("newPassword", "password")
+          .oxor("avatar", "removeAvatar")
+          .required()
+        // Don't allow only password to be passed
+      }
+    },
+    async handler(req, res) {
+      const { id: userId } = req.auth.credentials;
+      const updatedUser = await UserService.updateUser({
+        userId,
+        ...req.payload
       });
-    } else {
+      return updatedUser;
+    }
+  },
+  {
+    method: "DELETE",
+    path: "/",
+    options: {
+      description: "Deletes user",
+      tags: ["api"]
+    },
+    async handler(req, res) {
+      const { id: userId } = req.auth.credentials;
+      await UserService.deleteUser({ userId });
+      req.yar.clear("auth");
+      return res.response({}).code(204);
+    }
+  },
+  {
+    method: "GET",
+    path: "/",
+    options: {
+      description: "Searches users",
+      tags: ["api"],
+      validate: {
+        query: Joi.object()
+          .keys({
+            username: Joi.string()
+              .min(1)
+              .required()
+          })
+          .required()
+      },
+      response: {
+        status: {
+          200: Joi.array()
+            .items(basicUserSchema)
+            .required()
+            .label("searchUsersResponse")
+        }
+      }
+    },
+    async handler(req, res) {
+      const { username } = req.query;
+      const users = await UserService.searchUsers({ username });
+      return users;
+    }
+  },
+  {
+    method: "POST",
+    path: "/friendRequests",
+    options: {
+      description: "Add friend request",
+      tags: ["api"],
+      validate: {
+        payload: Joi.object()
+          .keys({
+            requesteeId: Joi.string()
+              .uuid()
+              .required()
+          })
+          .required()
+      },
+      response: {
+        status: {
+          201: Joi.object()
+            .keys({
+              userId: Joi.string()
+                .uuid()
+                .required(),
+              user: basicUserSchema
+            })
+            .required()
+            .label("addFriendRequestResponse")
+        }
+      }
+    },
+    async handler(req, res) {
+      const { id: fromUser } = req.auth.credentials;
+      const { requesteeId: toUser } = req.payload;
+      const user = await UserService.addFriendRequest({ fromUser, toUser });
+      // publisher({
+      //   type: USER_EVENTS.WS_ADD_RECEIVED_FRIEND_REQUEST,
+      //   userId: toUser,
+      //   payload: { userId: fromUser, user }
+      // });
+      return res.response({ userId: fromUser, user }).code(201);
+    }
+  },
+  {
+    method: "DELETE",
+    path: "/friendRequests/{requesteeId}/cancel",
+    options: {
+      description: "Cancel sent friend request",
+      tags: ["api"],
+      validate: {
+        params: Joi.object()
+          .keys({
+            requesteeId: Joi.string()
+              .uuid()
+              .required()
+          })
+          .required()
+      },
+      response: {
+        status: {
+          200: Joi.object()
+            .keys({
+              userId: Joi.string()
+                .uuid()
+                .required()
+            })
+            .label("deleteFriendRequestResponse")
+        }
+      }
+    },
+    async handler(req, res) {
+      const { id: fromUser } = req.auth.credentials;
+      const { requesteeId: toUser } = req.params;
+      await UserService.deleteFriendRequest({
+        userId1: fromUser,
+        userId2: toUser
+      });
+      // publisher({
+      //   type: USER_EVENTS.WS_DELETE_RECEIVED_FRIEND_REQUEST,
+      //   userId: toUser,
+      //   payload: { userId: fromUser }
+      // });
+      return { userId: toUser };
+    }
+  },
+  {
+    method: "DELETE",
+    path: "/friendRequests/{requesterId}/reject",
+    options: {
+      description: "Rejects friend request",
+      tags: ["api"],
+      validate: {
+        params: Joi.object()
+          .keys({
+            requesterId: Joi.string()
+              .uuid()
+              .required()
+          })
+          .required()
+      },
+      response: {
+        status: {
+          200: Joi.object()
+            .keys({
+              userId: Joi.string()
+                .uuid()
+                .required()
+            })
+            .label("deleteFriendRequestResponse")
+        }
+      }
+    },
+    async handler(req, res) {
+      const { id: toUser } = req.auth.credentials;
+      const { requesterId: fromUser } = req.params;
+      await UserService.deleteFriendRequest({
+        userId1: fromUser,
+        userId2: toUser
+      });
+      // publisher({
+      //   type: USER_EVENTS.WS_DELETE_SENT_FRIEND_REQUEST,
+      //   userId: fromUser,
+      //   payload: { userId: toUser }
+      // });
+      return { userId: fromUser };
+    }
+  },
+  {
+    method: "POST",
+    path: "/friends",
+    options: {
+      description: "Adds friend",
+      tags: ["api"],
+      validate: {
+        payload: Joi.object()
+          .keys({
+            requesterId: Joi.string()
+              .uuid()
+              .required()
+          })
+          .required()
+      },
+      response: {
+        status: {
+          201: Joi.object()
+            .keys({
+              userId: Joi.string()
+                .uuid()
+                .required(),
+              channelId: Joi.string()
+                .uuid()
+                .required(),
+              channel: Joi.object()
+                .keys({
+                  id: Joi.string()
+                    .uuid()
+                    .required(),
+                  type: Joi.string().required(),
+                  name: Joi.string()
+                    .valid(null)
+                    .required(),
+                  public: Joi.boolean()
+                    .valid(false)
+                    .required(),
+                  createdAt: Joi.date()
+                    .iso()
+                    .required(),
+                  firstMessageId: Joi.string()
+                    .valid(null)
+                    .required(),
+                  lastMessageId: Joi.string()
+                    .valid(null)
+                    .required(),
+                  lastMessageAt: Joi.string()
+                    .valid(null)
+                    .required(),
+                  members: Joi.array()
+                    .items(
+                      Joi.string()
+                        .uuid()
+                        .required()
+                    )
+                    .length(2)
+                    .required(),
+                  seenMessages: Joi.array()
+                    .length(0)
+                    .required()
+                })
+                .required(),
+              users: Joi.object()
+                .length(2)
+                .required(),
+              messages: Joi.array()
+                .length(0)
+                .required()
+            })
+            .required()
+            .label("addFriendResponse")
+        }
+      }
+    },
+    async handler(req, res) {
+      // make sure not already friends
+      const { id: toUser } = req.auth.credentials;
+      const { requesterId: fromUser } = req.payload;
+      const { channel, users, messages } = await UserService.addFriend({
+        userId1: fromUser,
+        userId2: toUser
+      });
+      // publisher({
+      //   type: USER_EVENTS.WS_SUBSCRIBE_CHANNEL,
+      //   userId: toUser,
+      //   channelId: channel.id,
+      //   payload: {
+      //     userId: fromUser,
+      //     channelId: channel.id,
+      //     type: "friend"
+      //   }
+      // });
+      // publisher({
+      //   type: USER_EVENTS.WS_ADD_FRIEND,
+      //   userId: fromUser,
+      //   channelId: channel.id,
+      //   payload: {
+      //     userId: toUser,
+      //     channelId: channel.id,
+      //     type: "friend",
+      //     channel,
+      //     users,
+      //     messages
+      //   }
+      // });
+      return res
+        .response({
+          userId: fromUser,
+          channelId: channel.id,
+          channel,
+          users,
+          messages
+        })
+        .code(201);
+    }
+  },
+  {
+    method: "DELETE",
+    path: "/friends/{friendId}",
+    options: {
+      description: "Deletes friend",
+      tags: ["api"],
+      validate: {
+        params: Joi.object()
+          .keys({
+            friendId: Joi.string()
+              .uuid()
+              .required()
+          })
+          .required()
+      },
+      response: {
+        status: {
+          200: Joi.object()
+            .keys({
+              userId: Joi.string()
+                .uuid()
+                .required(),
+              channelId: Joi.string()
+                .uuid()
+                .required()
+            })
+            .label("deleteFriendResponse")
+        }
+      }
+    },
+    async handler(req, res) {
+      const { id: userId } = req.auth.credentials;
+      const { friendId } = req.params;
+      const deletedChannel = await UserService.deleteFriend({
+        userId1: userId,
+        userId2: friendId
+      });
+      // publisher({
+      //   type: USER_CHANNEL_EVENTS.WS_UNFRIEND,
+      //   userId: friendId,
+      //   channelId: deletedChannel.id,
+      //   payload: { userId, channelId: deletedChannel.id }
+      // });
+      return { userId: friendId, channelId: deletedChannel.id };
+    }
+  },
+  {
+    method: "POST",
+    path: "/blocks",
+    options: {
+      description: "Adds block",
+      tags: ["api"],
+      validate: {
+        payload: Joi.object()
+          .keys({
+            blockedId: Joi.string()
+              .uuid()
+              .required()
+          })
+          .required()
+      }
+    },
+    async handler(req, res) {
+      const { id: fromUser } = req.auth.credentials;
+      const { blockedId: toUser } = req.payload;
+
+      const blockedInfo = await UserService.addBlock({ fromUser, toUser });
+
+      // if (blockedInfo.isFriend) {
+      //   publisher({
+      //     type: USER_CHANNEL_EVENTS.WS_BLOCK_FRIEND,
+      //     channelId: blockedInfo.channelId,
+      //     userId: toUser,
+      //     payload: { userId: fromUser, channelId: blockedInfo.channelId }
+      //   });
+      // } else {
+      //   publisher({
+      //     type: USER_EVENTS.WS_ADD_BLOCKER,
+      //     userId: toUser,
+      //     payload: { userId: fromUser }
+      //   });
+      // }
+
+      return res
+        .response({
+          userId: toUser,
+          channelId: blockedInfo.channelId,
+          user: blockedInfo.user
+        })
+        .code(201);
+    }
+  },
+  {
+    method: "DELETE",
+    path: "/blocks/{blockedId}",
+    options: {
+      description: "Deletes block",
+      tags: ["api"],
+      validate: {
+        params: Joi.object()
+          .keys({
+            blockedId: Joi.string()
+              .uuid()
+              .required()
+          })
+          .required()
+      }
+    },
+    async handler(req, res) {
+      const { id: fromUser } = req.auth.credentials;
+      const { blockedId: toUser } = req.payload;
+
+      await UserService.deleteBlock({ fromUser, toUser });
       publisher({
-        type: USER_EVENTS.WS_ADD_BLOCKER,
+        type: USER_EVENTS.WS_DELETE_BLOCKER,
         userId: toUser,
         payload: { userId: fromUser }
       });
+
+      return { userId: toUser };
     }
+  }
+];
 
-    res.status(201).json({
-      userId: toUser,
-      channelId: blockedInfo.channelId,
-      user: blockedInfo.user
-    });
-  })
-);
+const UserController = {
+  name: "UserController",
+  version: "1.0.0",
+  async register(server, options) {
+    server.route(controllers);
+  }
+};
 
-router.delete(
-  "/blocks/:blockedId",
-  authenticateUser,
-  validators.deleteFriend,
-  reqPayload,
-  asyncHandler(async (req, res) => {
-    const { userId: fromUser, blockedId: toUser } = req.payload;
-    await UserService.deleteBlock({ fromUser, toUser });
-    publisher({
-      type: USER_EVENTS.WS_DELETE_BLOCKER,
-      userId: toUser,
-      payload: { userId: fromUser }
-    });
-    res.json({ userId: toUser });
-  })
-);
-
-module.exports = router;
+module.exports = UserController;

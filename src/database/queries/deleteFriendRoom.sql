@@ -20,7 +20,7 @@ WITH common_channels AS (
 DELETE FROM
   channels
 WHERE
-  channel_id IN (
+  id IN (
   SELECT
     channels.id
   FROM

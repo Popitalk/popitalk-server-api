@@ -10,9 +10,17 @@ WHERE
       channels
     WHERE
       channels.id = channel_id
-      AND channels.type = 'channel'
       AND channels.owner_id != user_id
   )
 RETURNING
   channel_id AS "channelId",
-  user_id AS "userId"
+  user_id AS "userId",
+  (
+    SELECT
+      COUNT(*)
+    FROM
+      members
+    WHERE
+      channel_id = $1
+      AND user_id = $2
+  ) AS "memberCount"

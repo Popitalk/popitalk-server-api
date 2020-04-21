@@ -19,14 +19,16 @@ module.exports.getMessages = async ({
 };
 
 module.exports.deleteMessage = async ({ userId, messageId }) => {
-  return db.t(async t => {
+  return db.task(async t => {
     const deletedMessage = await t.MessageRepository.deleteMessage({
       userId,
       messageId
     });
-    const channelLastMessageInfo = await t.ChannelRepository.getChannelLastMessageInfo(
+
+    const channelLastMessageInfo = (await t.ChannelRepository.getChannelLastMessageInfo(
       { channelId: deletedMessage.channelId }
-    );
+    )) || { firstMessageId: null, lastMessageId: null, lastMessageAt: null };
+
     return { ...deletedMessage, ...channelLastMessageInfo };
   });
 };

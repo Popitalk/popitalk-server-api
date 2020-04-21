@@ -1,3 +1,26 @@
+----------------
+-- EXTENSIONS --
+----------------
+CREATE EXTENSION IF NOT EXISTS btree_gist;
+CREATE EXTENSION IF NOT EXISTS citext;
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+CREATE EXTENSION IF NOT EXISTS pg_trgm;
+-- CREATE EXTENSION IF NOT EXISTS pg_hashids;
+-----------------
+--  SEQUENCES  --
+-----------------
+CREATE SEQUENCE IF NOT EXISTS id_seq;
+-----------------
+--  FUNCTIONS  --
+-----------------
+CREATE OR REPLACE FUNCTION hashid(OUT result TEXT) AS $BODY$
+BEGIN
+  result := id_encode(nextval('id_seq'), 'playnows', 10);
+END;
+$BODY$ LANGUAGE plpgsql;
+-----------------
+--   TABLES    --
+-----------------
 CREATE TABLE users (
   id UUID NOT NULL DEFAULT uuid_generate_v4() PRIMARY KEY,
   first_name TEXT NOT NULL,
@@ -93,14 +116,6 @@ CREATE TABLE channels (
     CASE
       WHEN (type != 'channel') THEN
         description IS NULL
-      ELSE
-        TRUE
-    END
-  ),
-  CONSTRAINT no_room_icon CHECK(
-    CASE
-      WHEN (type != 'channel') THEN
-        icon IS NULL
       ELSE
         TRUE
     END
@@ -216,7 +231,27 @@ CREATE TABLE notifications (
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
--- CREATE TABLE abc_id (
---   id TEXT NOT NULL DEFAULT hashid() PRIMARY KEY,
---   name text
--- );
+-----------------
+--  TRIGGERS   --
+-----------------
+CREATE OR REPLACE FUNCTION add_email_verification_token_trigger()
+RETURNS TRIGGER AS $BODY$
+BEGIN
+  INSERT INTO
+    email_verification_tokens
+    (
+      user_id
+    )
+  VALUES
+    (NEW.id);
+RETURN NEW;
+END;
+$BODY$ LANGUAGE plpgsql;
+
+CREATE TRIGGER add_email_verification_token
+AFTER INSERT ON users
+FOR EACH ROW EXECUTE PROCEDURE add_email_verification_token_trigger();
+-----------------
+--   INDICES   --
+-----------------
+CREATE INDEX users_trgm_idx ON users USING GIST (username gist_trgm_ops);

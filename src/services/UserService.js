@@ -31,6 +31,7 @@ module.exports.addUser = async ({
     }
 
     const newChannel = await tx.ChannelRepository.addSelfRoom();
+
     await tx.MemberRepository.addMember({
       channelId: newChannel.id,
       userId: newUser.id
@@ -55,7 +56,7 @@ module.exports.updateUser = async ({
   removeAvatar,
   avatar
 }) => {
-  return db.t(async t => {
+  return db.task(async t => {
     let uploadedAvatar;
     let hashedPassword;
 
@@ -70,7 +71,7 @@ module.exports.updateUser = async ({
     if (newPassword) hashedPassword = await bcrypt.hash(newPassword, 10);
 
     if (avatar) {
-      const { buffer } = avatar;
+      const { payload: buffer } = avatar;
       const type = fileType(buffer);
       const fileName = `avatar-${userId}_${new Date().getTime()}`;
       const uploadedImage = await uploadFile(buffer, fileName, type);
@@ -78,16 +79,25 @@ module.exports.updateUser = async ({
       uploadedAvatar = uploadedImage.Location;
     }
 
-    const newUser = await t.UserRepository.updateUser({
-      userId,
-      firstName,
-      lastName,
-      dateOfBirth,
-      email,
-      password: hashedPassword,
-      avatar: uploadedAvatar,
-      removeAvatar
-    });
+    let newUser;
+    try {
+      newUser = await t.UserRepository.updateUser({
+        userId,
+        firstName,
+        lastName,
+        dateOfBirth,
+        email,
+        password: hashedPassword,
+        avatar: uploadedAvatar,
+        removeAvatar
+      });
+    } catch (error) {
+      if (error.constraint === "unique_email") {
+        throw Boom.conflict("Email already in use");
+      } else {
+        throw Boom.internal();
+      }
+    }
 
     return newUser;
   });
@@ -104,7 +114,7 @@ module.exports.searchUsers = async ({ username }) => {
 };
 
 module.exports.addFriendRequest = async ({ fromUser, toUser }) => {
-  return db.t(async t => {
+  return db.task(async t => {
     await t.UserRepository.addFriendRequest({ fromUser, toUser });
     const user = await t.UserRepository.getUser({ userId: fromUser });
     return {
@@ -129,9 +139,8 @@ module.exports.addFriend = async ({ userId1, userId2 }) => {
       channelId: newChannel.id,
       userIds: [userId1, userId2]
     });
-    const channelInfo = await tx.ChannelRepository.getRoom({
-      channelId: newChannel.id,
-      userId: userId1
+    const channelInfo = await tx.ChannelRepository.getRoomChannel({
+      channelId: newChannel.id
     });
     return channelInfo;
   });
@@ -148,8 +157,45 @@ module.exports.deleteFriend = async ({ userId1, userId2 }) => {
   });
 };
 
+module.exports.addBlock = async ({ fromUser, toUser }) => {
+  return db.task(async t => {
+    const userRelationship = await t.UserRepository.getUserRelationship({
+      userId1: fromUser,
+      userId2: toUser
+    });
+
+    let blockInfo;
+
+    // stranger (add)
+    // friend request (update)
+    // friendboth (delete channel, and delete images)
+    // blocked (update) [maybe same as friend request?]
+    if (!userRelationship) {
+      console.log("XXX");
+      blockInfo = await t.UserRepository.addStrangerBlock({ fromUser, toUser });
+    } else if (
+      (userRelationship.type === "block_first_second" &&
+        fromUser === userRelationship.firstUserId) ||
+      (userRelationship.type === "block_second_first" &&
+        fromUser === userRelationship.secondUserId)
+    ) {
+      await t.UserRepository.unblockStranger({
+        userId1: fromUser,
+        userId2: toUser
+      });
+    } else if (userRelationship.type === "block_both") {
+      await t.ChannelRepository.unblockBlocker({
+        fromUser,
+        toUser
+      });
+    }
+
+    return blockInfo;
+  });
+};
+
 module.exports.deleteBlock = async ({ fromUser, toUser }) => {
-  return db.t(async t => {
+  return db.task(async t => {
     const userRelationship = await t.UserRepository.getUserRelationship({
       userId1: fromUser,
       userId2: toUser

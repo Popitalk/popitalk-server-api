@@ -1,12 +1,12 @@
 const { QueryFile } = require("pg-promise");
 const path = require("path");
-const logger = require("../../config/logger");
 
 function sql(file) {
   const fullPath = path.join(__dirname, file);
   const options = { minify: true };
   const qf = new QueryFile(fullPath, options);
-  if (qf.error) logger.error(qf.error);
+  // eslint-disable-next-line no-console
+  if (qf.error) console.error(qf.error);
   return qf;
 }
 
@@ -16,7 +16,7 @@ module.exports = {
   /* -------------------------------------------------------------------------- */
 
   addUser: sql("./addUser.sql"),
-  getUser: require("./getUser.js"),
+  getUser: require("./getUser"),
   updateUser: require("./updateUser.js"),
   deleteUser: sql("./deleteUser.sql"),
   searchUsers: sql("./searchUsers.sql"),
@@ -56,8 +56,9 @@ module.exports = {
   addPublicMember: sql("./addPublicMember.sql"),
   addPrivateMember: sql("./addPrivateMember.sql"),
   addRoomMember: sql("./addRoomMember.sql"),
+  addRoomMembers: sql("./addRoomMembers.sql"),
   deleteGroupRoomMember: sql("./deleteGroupRoomMember.sql"),
-  deleteChannelMember: sql("./deleteChannelMember.sql"),
+  deleteMember: sql("./deleteMember.sql"),
   addAdmin: sql("./addAdmin.sql"),
   deleteAdmin: sql("./deleteAdmin.sql"),
   addBan: sql("./addBan.sql"),
@@ -77,9 +78,12 @@ module.exports = {
 
   addPost: sql("./addPost.sql"),
   deletePost: sql("./deletePost.sql"),
-  getPosts: require("./getPosts.js"),
+  getPosts: sql("./getPosts.sql"),
+  getPostsBefore: sql("./getPostsBefore.sql"),
+  // getPosts: require("./getPosts.js"),
   addPostLike: sql("./addPostLike.sql"),
   deletePostLike: sql("./deletePostLike.sql"),
+  getPostLastCommentInfo: sql("./getPostLastCommentInfo.sql"),
 
   /* -------------------------------------------------------------------------- */
   /*                                  COMMENTS                                  */

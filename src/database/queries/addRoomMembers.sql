@@ -7,18 +7,7 @@ FROM
   channels
 WHERE
   channels.id = $1
-  AND channels.type = 'channel'
-  AND channels.public
-  AND NOT EXISTS (
-    SELECT
-      1
-    FROM
-      members
-    WHERE
-      members.channel_id = $1
-      AND members.user_id = $2
-      AND members.banned
-  )
+  AND channels.type != 'channel'
 RETURNING
   channel_id AS "channelId",
   user_id AS "userId",
@@ -29,8 +18,8 @@ RETURNING
     FROM
       channels
     WHERE
-      id = $1
-  ) AS type,
+      channels.id = $1
+  ) AS type
   (
     SELECT
       JSON_BUILD_OBJECT(

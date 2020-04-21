@@ -1,7 +1,7 @@
 /* eslint-disable no-nested-ternary */
 const knex = require("../../config/knex");
 
-module.exports = async ({
+module.exports = ({
   channelId,
   userId,
   name,

@@ -15,7 +15,6 @@ WHERE
 RETURNING
   post_id AS "postId",
   user_id AS "userId",
-  created_at AS "createdAt",
   (
     SELECT
       posts.channel_id

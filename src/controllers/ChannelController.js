@@ -1,97 +1,375 @@
-const router = require("express").Router();
-const Boom = require("@hapi/boom");
-const asyncHandler = require("express-async-handler");
-const authenticateUser = require("../helpers/middleware/authenticateUser");
-const reqPayload = require("../helpers/middleware/reqPayload");
-const ChannelService = require("../services/ChannelService");
-const validators = require("../helpers/validators");
-const multer = require("../helpers/middleware/multer");
-const { publisher } = require("../config/pubSub");
+const Joi = require("@hapi/joi");
 const {
   USER_CHANNEL_EVENTS,
   USER_EVENTS,
   CHANNEL_EVENTS
 } = require("../config/constants");
+const { publisher } = require("../config/pubSub");
+const ChannelService = require("../services/ChannelService");
 
-router.post(
-  "/",
-  authenticateUser,
-  multer.single("icon"),
-  validators.addChannel,
-  reqPayload,
-  asyncHandler(async (req, res) => {
-    const { userId } = req.payload;
-    const icon = req.file;
-    const newChannel = await ChannelService.addChannel({
-      ...req.payload,
-      icon
-    });
-    publisher({
-      type: USER_EVENTS.WS_SUBSCRIBE_CHANNEL,
-      channelId: newChannel.id,
-      userId,
-      payload: { userId, channelId: newChannel.id, type: "channel" }
-    });
-    res.status(201).json({ channelId: newChannel.id, channel: newChannel });
-  })
-);
+const controllers = [
+  {
+    method: "POST",
+    path: "/",
+    options: {
+      description: "Adds channel",
+      tags: ["api"],
+      payload: { multipart: { output: "annotated" } },
+      plugins: {
+        "hapi-swagger": {
+          payloadType: "form"
+        }
+      },
+      validate: {
+        payload: Joi.object()
+          .keys({
+            name: Joi.string()
+              .min(3)
+              .max(20)
+              .required(),
+            description: Joi.string()
+              .min(1)
+              .max(150)
+              .required(),
+            icon: Joi.optional().meta({ swaggerType: "file" }),
+            public: Joi.boolean().required()
+          })
+          .required()
+      },
+      response: {
+        status: {
+          201: Joi.object()
+            .keys({
+              channelId: Joi.string()
+                .uuid()
+                .required(),
+              channel: Joi.object().keys({
+                id: Joi.string()
+                  .uuid()
+                  .required(),
+                type: Joi.string()
+                  .valid("channel")
+                  .required(),
+                name: Joi.string().required(),
+                description: Joi.string().required(),
+                icon: Joi.string()
+                  .uri()
+                  .allow(null)
+                  .required(),
+                public: Joi.boolean()
+                  .valid()
+                  .required(),
+                owner_id: Joi.string()
+                  .uuid()
+                  .required(),
+                created_at: Joi.date()
+                  .iso()
+                  .required(),
+                firstMessageId: Joi.string()
+                  .uuid()
+                  .valid(null)
+                  .required(),
+                lastMessageId: Joi.string()
+                  .uuid()
+                  .valid(null)
+                  .required(),
+                lastMessageAt: Joi.string()
+                  .uuid()
+                  .valid(null)
+                  .required(),
+                firstPostId: Joi.string()
+                  .uuid()
+                  .valid(null)
+                  .required(),
+                lastPostId: Joi.string()
+                  .uuid()
+                  .valid(null)
+                  .required(),
+                lastPostAt: Joi.date()
+                  .iso()
+                  .valid(null)
+                  .required(),
+                members: Joi.array()
+                  .items(Joi.string().uuid())
+                  .length(1)
+                  .required(),
+                admins: Joi.array()
+                  .length(1)
+                  .required(),
+                banned: Joi.array()
+                  .length(0)
+                  .required()
+              }),
+              users: Joi.object()
+                .length(1)
+                .required(),
+              messages: Joi.array()
+                .length(0)
+                .required(),
+              posts: Joi.array()
+                .length(0)
+                .required(),
+              comments: Joi.array()
+                .length(0)
+                .required()
+            })
+            .required()
+            .label("addChannelResponse")
+        }
+      }
+    },
+    async handler(req, res) {
+      const { id: userId } = req.auth.credentials;
+      const {
+        channel,
+        users,
+        messages,
+        posts,
+        comments
+      } = await ChannelService.addChannel({
+        ...req.payload,
+        userId
+      });
+      // publisher({
+      //   type: USER_EVENTS.WS_SUBSCRIBE_CHANNEL,
+      //   channelId: newChannel.id,
+      //   userId,
+      //   payload: { userId, channelId: newChannel.id, type: "channel" }
+      // });
+      return res
+        .response({
+          channelId: channel.id,
+          channel,
+          users,
+          messages,
+          posts,
+          comments
+        })
+        .code(201);
+    }
+  },
+  {
+    method: "POST",
+    path: "/rooms",
+    options: {
+      description: "Adds room",
+      tags: ["api"],
+      validate: {
+        payload: Joi.object()
+          .keys({
+            userIds: Joi.array()
+              .items(
+                Joi.string()
+                  .uuid()
+                  .required()
+              )
+              .min(2)
+              .max(19)
+              .unique()
+              .required()
+          })
+          .required()
+      }
+    },
+    async handler(req, res) {
+      const { id: userId } = req.auth.credentials;
+      const { userIds } = req.payload;
+      const { channel, users } = await ChannelService.addRoom({
+        userId,
+        userIds
+      });
+      publisher({
+        type: USER_EVENTS.WS_SUBSCRIBE_CHANNEL,
+        channelId: channel.id,
+        userId,
+        payload: { userId, channelId: channel.id, type: "group" }
+      });
+      userIds.forEach(uid => {
+        publisher({
+          type: USER_EVENTS.WS_ADD_CHANNEL,
+          channelId: channel.id,
+          userId: uid,
+          payload: { channel, users, channelId: channel.id, type: "group" }
+        });
+      });
 
-router.get(
-  "/:channelId",
-  authenticateUser,
-  validators.getChannel,
-  reqPayload,
-  asyncHandler(async (req, res) => {
-    const { userId, channelId } = req.payload;
-    const channelInfo = await ChannelService.getChannel(req.payload);
-    publisher({
-      type: USER_EVENTS.WS_SUBSCRIBE_CHANNEL,
-      channelId,
-      userId,
-      payload: { userId, channelId, type: "channel" }
-    });
-    res.json({ channelId, ...channelInfo });
-  })
-);
+      return res.response({ channelId: channel.id, channel }).code(201);
+    }
+  },
+  {
+    method: "GET",
+    path: "/{channelId}",
+    options: {
+      description: "Gets channel",
+      tags: ["api"],
+      validate: {
+        params: Joi.object()
+          .keys({
+            channelId: Joi.string()
+              .uuid()
+              .required()
+          })
+          .required()
+      }
+    },
+    // Joi.object().keys({ users: Joi.array().items(mySchema) })
+    // multiple response schemas
+    async handler(req, res) {
+      const { id: userId } = req.auth.credentials;
+      const { channelId } = req.params;
+      const channelInfo = await ChannelService.getChannel({
+        userId,
+        channelId
+      });
+      // publisher({
+      //   type: USER_EVENTS.WS_SUBSCRIBE_CHANNEL,
+      //   channelId,
+      //   userId,
+      //   payload: { userId, channelId, type: "channel" }
+      // });
+      return { channelId, ...channelInfo };
+    }
+  },
+  {
+    method: "PUT",
+    path: "/{channelId}",
+    options: {
+      description: "Updates channel",
+      tags: ["api"],
+      payload: { multipart: { output: "annotated" } },
+      plugins: {
+        "hapi-swagger": {
+          payloadType: "form"
+        }
+      },
+      validate: {
+        params: Joi.object()
+          .keys({
+            channelId: Joi.string()
+              .uuid()
+              .required()
+          })
+          .required(),
+        payload: Joi.object()
+          .keys({
+            name: Joi.string()
+              .min(3)
+              .max(20)
+              .optional(),
+            description: Joi.string()
+              .min(0)
+              .max(150)
+              .optional(),
+            public: Joi.boolean().optional(),
+            icon: Joi.optional().meta({ swaggerType: "file" }),
+            removeIcon: Joi.boolean().optional()
+          })
+          .oxor("icon", "removeIcon")
+          .required()
+      },
+      response: {
+        status: {
+          201: Joi.object()
+            .keys({
+              channelId: Joi.string()
+                .uuid()
+                .required(),
+              channel: Joi.object().keys({
+                id: Joi.string()
+                  .uuid()
+                  .required(),
+                type: Joi.string()
+                  .valid("channel")
+                  .required(),
+                name: Joi.string().required(),
+                description: Joi.string().required(),
+                icon: Joi.string()
+                  .uri()
+                  .allow(null)
+                  .required(),
+                public: Joi.boolean()
+                  .valid()
+                  .required(),
+                owner_id: Joi.string()
+                  .uuid()
+                  .required(),
+                created_at: Joi.date()
+                  .iso()
+                  .required()
+              })
+            })
+            .required()
+            .label("updateChannelResponse")
+        }
+      }
+    },
+    async handler(req, res) {
+      const { id: userId } = req.auth.credentials;
+      const { channelId } = req.params;
+      const channel = await ChannelService.updateChannel({
+        userId,
+        channelId,
+        ...req.payload
+      });
+      // publisher({
+      //   type: CHANNEL_EVENTS.WS_UPDATE_CHANNEL,
+      //   channelId,
+      //   initiator: userId,
+      //   payload: { userId, channelId, channel }
+      // });
 
-router.put(
-  "/:channelId",
-  authenticateUser,
-  multer.single("icon"),
-  validators.updateChannel,
-  asyncHandler(async (req, res) => {
-    const { userId, channelId } = req.payload;
-    const icon = req.file;
-    const updatedChannel = await ChannelService.updateChannel({
-      ...req.payload,
-      icon
-    });
-    publisher({
-      type: CHANNEL_EVENTS.WS_UPDATE_CHANNEL,
-      channelId,
-      initiator: userId,
-      payload: { userId, channelId, updatedChannel }
-    });
-    res.status(200).json({ channelId, updatedChannel });
-  })
-);
+      return { channelId, channel };
+    }
+  },
+  {
+    method: "DELETE",
+    path: "/{channelId}",
+    options: {
+      description: "Deletes channel",
+      tags: ["api"],
+      validate: {
+        params: Joi.object()
+          .keys({
+            channelId: Joi.string()
+              .uuid()
+              .required()
+          })
+          .required()
+      },
+      response: {
+        status: {
+          200: Joi.object()
+            .keys({
+              channelId: Joi.string()
+                .uuid()
+                .required()
+            })
+            .required()
+            .label("deleteChannelResponse")
+        }
+      }
+    },
+    async handler(req, res) {
+      const { id: userId } = req.auth.credentials;
+      const { channelId } = req.params;
+      await ChannelService.deleteChannel({ userId, channelId });
+      // publisher({
+      //   type: CHANNEL_EVENTS.WS_DELETE_CHANNEL,
+      //   channelId,
+      //   initiator: userId,
+      //   payload: { channelId }
+      // });
+      return { channelId };
+    }
+  }
+];
 
-router.delete(
-  "/:channelId",
-  authenticateUser,
-  validators.updateUser,
-  reqPayload,
-  asyncHandler(async (req, res) => {
-    const { userId, channelId } = req.payload;
-    await ChannelService.deleteChannel(req.payload);
-    publisher({
-      type: CHANNEL_EVENTS.WS_DELETE_CHANNEL,
-      channelId,
-      initiator: userId,
-      payload: { channelId }
-    });
-    res.status(200).json({ channelId });
-  })
-);
+const ChannelController = {
+  name: "ChannelController",
+  version: "1.0.0",
+  async register(server, options) {
+    server.route(controllers);
+  }
+};
 
-module.exports = router;
+module.exports = ChannelController;

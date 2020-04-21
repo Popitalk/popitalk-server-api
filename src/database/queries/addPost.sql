@@ -36,4 +36,7 @@ RETURNING
   0 AS "commentCount",
   0 AS "likeCount",
   FALSE AS "liked",
-  0 AS "selfCommentCount"
+  0 AS "selfCommentCount",
+  NULL AS "firstCommentId",
+  NULL AS "lastCommentId",
+  NULL AS "lastCommentAt"

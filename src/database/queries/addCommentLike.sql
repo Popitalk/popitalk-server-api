@@ -1,7 +1,7 @@
 INSERT INTO
   comment_likes (comment_id, user_id)
 SELECT
-  comments.id AS "post_id",
+  comments.id AS "comment_id",
   members.user_id AS "user_id"
 FROM
   comments
@@ -19,7 +19,6 @@ WHERE
 RETURNING
   comment_id AS "commentId",
   user_id AS "userId",
-  created_at AS "createdAt",
   (
     SELECT
       comments.post_id

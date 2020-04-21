@@ -5,12 +5,16 @@ class MemberRepository {
     this.db = db;
   }
 
-  async addMember({ channelId, userId }) {
-    return this.db.one(queries.addMembers, [channelId, [userId]]);
+  async addMember({ channelId, userId, admin = false }) {
+    return this.db.one(queries.addMembers, [channelId, [userId], admin]);
   }
 
-  async addMembers({ channelId, userIds }) {
-    return this.db.many(queries.addMembers, [channelId, userIds]);
+  async addMembers({ channelId, userIds, admin = false }) {
+    return this.db.many(queries.addMembers, [channelId, userIds, admin]);
+  }
+
+  async addRoomMembers({ channelId, userId, userIds }) {
+    return this.db.many(queries.addRoomMembers, [channelId, userId, userIds]);
   }
 
   async addRoomMember({ channelId, userId }) {

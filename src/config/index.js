@@ -17,7 +17,7 @@ module.exports = {
   redisIndex: process.env.REDIS_DATABASE,
   redisPassword: process.env.REDIS_PASSWORD,
   sessionName: process.env.SESSION_NAME,
-  sessionSecret: process.env.SESSION_SECRET,
+  sessionPassword: process.env.SESSION_PASSWORD,
   sessionPrefix: process.env.SESSION_PREFIX,
   jobsPrefix: process.env.JOBS_PREFIX,
   s3Bucket: process.env.S3_BUCKET,

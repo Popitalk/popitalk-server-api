@@ -24,7 +24,7 @@ class UserRepository {
   }
 
   async getUser({ userId, username, email, usernameOrEmail, withPassword }) {
-    return this.db.one(queries.getUser, {
+    return this.db.oneOrNone(queries.getUser, {
       userId,
       username,
       email,
@@ -43,7 +43,7 @@ class UserRepository {
     avatar,
     removeAvatar
   }) {
-    return this.db.one(queries.getUser, {
+    return this.db.one(queries.updateUser, {
       userId,
       firstName,
       lastName,
@@ -83,12 +83,20 @@ class UserRepository {
     ]);
   }
 
+  async addStrangerBlock({ fromUser, toUser }) {
+    return this.db.one(queries.addUserRelationship, [
+      fromUser,
+      toUser,
+      "block"
+    ]);
+  }
+
   async deleteFriend({ userId1, userId2 }) {
     return this.db.one(queries.deleteUserRelationship, [userId1, userId2]);
   }
 
   async getUserRelationship({ userId1, userId2 }) {
-    return this.db.one(queries.getUserRelationship, [userId1, userId2]);
+    return this.db.oneOrNone(queries.getUserRelationship, [userId1, userId2]);
   }
 }
 

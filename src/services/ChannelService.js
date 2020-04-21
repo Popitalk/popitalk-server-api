@@ -1,5 +1,4 @@
 const Boom = require("@hapi/boom");
-const bcrypt = require("bcryptjs");
 const fileType = require("file-type");
 const { uploadFile } = require("../config/aws");
 const db = require("../config/database");
@@ -13,38 +12,59 @@ module.exports.addChannel = async ({
 }) => {
   return db.tx(async tx => {
     let uploadedIcon;
-    let updatedChannel;
 
     if (icon) {
-      const { buffer } = icon;
+      const { payload: buffer } = icon;
       const type = fileType(buffer);
       const fileName = `channelIcon-${userId}_${new Date().getTime()}`;
       const uploadedImage = await uploadFile(buffer, fileName, type);
-      if (!uploadedImage) throw Boom.internal("Couldn't upload avatar");
+      if (!uploadedImage) throw Boom.internal("Couldn't upload icon");
       uploadedIcon = uploadedImage.Location;
     }
 
     const newChannel = await tx.ChannelRepository.addChannel({
-      userId,
+      ownerId: userId,
       name,
       description,
-      publicChannel,
+      public: publicChannel,
       icon: uploadedIcon
     });
-    await tx.MemberRepository.addMember({ channelId: newChannel.id, userId });
+
+    await tx.MemberRepository.addMember({
+      channelId: newChannel.id,
+      userId,
+      admin: true
+    });
 
     const channelInfo = await tx.ChannelRepository.getAdminChannel({
       channelId: newChannel.id,
       userId
     });
+
+    return channelInfo;
+  });
+};
+
+module.exports.addRoom = async ({ userId, userIds }) => {
+  return db.tx(async tx => {
+    const newChannel = await tx.ChannelRepository.addGroupRoom();
+    await tx.MemberRepository.addMembers({
+      channelId: newChannel.id,
+      userIds: [userId, ...userIds]
+    });
+
+    const channelInfo = await tx.ChannelRepository.getRoomChannel({
+      channelId: newChannel.id
+    });
+
     return channelInfo;
   });
 };
 
 module.exports.getChannel = async ({ channelId, userId }) => {
-  return db.t(async t => {
+  return db.task(async t => {
     let channelInfo;
-    const chMemInfo = t.ChannelRepository.getChannelAndMemberInfo({
+    const chMemInfo = await t.ChannelRepository.getChannelAndMemberInfo({
       channelId,
       userId
     });
@@ -75,7 +95,7 @@ module.exports.getChannel = async ({ channelId, userId }) => {
   });
 };
 
-module.exports.updateUser = async ({
+module.exports.updateChannel = async ({
   channelId,
   userId,
   name,
@@ -84,15 +104,10 @@ module.exports.updateUser = async ({
   icon,
   removeIcon
 }) => {
-  if (icon && removeIcon)
-    throw Boom.badRequest("Either icon must be provided or removeIcon");
-  if (!name && !description && !publicChannel && !removeIcon && !icon)
-    throw Boom.badRequest("Haven't passed anything to update");
-
   let uploadedIcon;
 
   if (icon) {
-    const { buffer } = icon;
+    const { payload: buffer } = icon;
     const type = fileType(buffer);
     const fileName = `icon-${userId}_${new Date().getTime()}`;
     const uploadedImage = await uploadFile(buffer, fileName, type);
@@ -105,7 +120,7 @@ module.exports.updateUser = async ({
     userId,
     name,
     description,
-    publicChannel,
+    public: publicChannel,
     icon: uploadedIcon,
     removeIcon
   });

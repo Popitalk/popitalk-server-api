@@ -11,7 +11,13 @@ class PostRepository {
   }
 
   async getPosts({ channelId, userId, beforePostId }) {
-    return this.db.any(queries.getPosts, [channelId, userId, beforePostId]);
+    if (beforePostId)
+      return this.db.oneOrNone(queries.getPostsBefore, [
+        channelId,
+        userId,
+        beforePostId
+      ]);
+    return this.db.oneOrNone(queries.getPosts, [channelId, userId]);
   }
 
   async deletePost({ postId, userId }) {
@@ -24,6 +30,10 @@ class PostRepository {
 
   async deletePostLike({ postId, userId }) {
     return this.db.one(queries.deletePostLike, [postId, userId]);
+  }
+
+  async getPostLastCommentInfo({ postId }) {
+    return this.db.one(queries.getPostLastCommentInfo, [postId]);
   }
 }
 

@@ -1,7 +1,3 @@
-const Boom = require("@hapi/boom");
-const bcrypt = require("bcryptjs");
-const fileType = require("file-type");
-const { uploadFile } = require("../config/aws");
 const db = require("../config/database");
 
 // addPublicMember for public channel members
@@ -12,8 +8,27 @@ module.exports.addMember = async ({ channelId, userId }) => {
   return db.MemberRepository.addPublicMember({ channelId, userId });
 };
 
+module.exports.addRoomMembers = async ({ userId, channelId, userIds }) => {
+  return db.MemberRepository.addRoomMembers({ channelId, userId, userIds });
+};
+
 module.exports.deleteMember = async ({ channelId, userId }) => {
-  return db.MemberRepository.deleteChannelMember({ channelId, userId });
+  return db.tx(async tx => {
+    let deletedChannel;
+    const deletedMember = await tx.MemberRepository.deleteMember({
+      channelId,
+      userId
+    });
+
+    if (deletedMember.memberCount === 1) {
+      deletedChannel = await tx.ChannelRepository.deleteChannel({
+        channelId,
+        userId
+      });
+    }
+
+    return deletedChannel;
+  });
 };
 
 module.exports.addAdmin = async ({ channelId, fromUser, toUser }) => {

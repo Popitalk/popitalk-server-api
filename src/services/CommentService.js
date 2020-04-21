@@ -12,28 +12,28 @@ module.exports.getComments = async ({ postId, userId, limit }) => {
   });
 };
 
-module.exports.deleteComment = async ({ postId, userId }) => {
-  return db.t(async t => {
-    const deletedPost = await t.CommentRepository.deleteComment({
-      postId,
+module.exports.deleteComment = async ({ commentId, userId }) => {
+  return db.task(async t => {
+    const deletedComment = await t.CommentRepository.deleteComment({
+      commentId,
       userId
     });
-    const channelLastPostInfo = await t.ChannelRepository.getChannelLastPostInfo(
-      { channelId: deletedPost.channelId }
-    );
-    return { ...deletedPost, ...channelLastPostInfo };
+    const postLastCommentInfo = await t.PostRepository.getPostLastCommentInfo({
+      postId: deletedComment.postId
+    });
+    return { ...deletedComment, ...postLastCommentInfo };
   });
 };
 
 module.exports.addCommentLike = async ({ commentId, userId }) => {
-  return db.PostRepository.addCommentLike({
+  return db.CommentRepository.addCommentLike({
     commentId,
     userId
   });
 };
 
 module.exports.deleteCommentLike = async ({ commentId, userId }) => {
-  return db.PostRepository.deleteCommentLike({
+  return db.CommentRepository.deleteCommentLike({
     commentId,
     userId
   });

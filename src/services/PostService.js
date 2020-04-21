@@ -13,7 +13,7 @@ module.exports.getPosts = async ({ channelId, userId, beforePostId }) => {
 };
 
 module.exports.deletePost = async ({ postId, userId }) => {
-  return db.t(async t => {
+  return db.task(async t => {
     const deletedPost = await t.PostRepository.deletePost({
       postId,
       userId

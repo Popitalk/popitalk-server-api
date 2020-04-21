@@ -1,7 +1,7 @@
+/* eslint-disable no-console */
 const { execSync } = require("child_process");
-const { Joi } = require("celebrate");
+const Joi = require("@hapi/joi");
 const config = require("../src/config");
-const logger = require("../src/config/logger");
 
 const schema = Joi.object({
   dbHost: Joi.string().required(),
@@ -20,12 +20,12 @@ const { error: validationError } = schema.validate({
 });
 
 if (validationError) {
-  logger.error(validationError);
+  console.error(validationError);
   throw new Error("Bad database info");
 }
 
 try {
-  logger.debug("Creating database...");
+  console.log("Creating database...");
   execSync(`sudo -u postgres psql -c "CREATE DATABASE ${config.dbName};"`);
   execSync(
     `sudo -u postgres psql -c "CREATE USER ${config.dbUser} WITH ENCRYPTED PASSWORD '${config.dbPassword}';"`
@@ -34,7 +34,7 @@ try {
     `sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE ${config.dbName} TO ${config.dbUser};"`
   );
   execSync(`sudo -u postgres psql -c "ALTER ROLE ${config.dbUser} superuser;"`);
-  logger.debug("Created database.");
+  console.log("Created database.");
 } catch (error) {
-  logger.error(error);
+  console.error(error);
 }

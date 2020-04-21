@@ -1,6 +1,15 @@
-
----CTE to get channelId
-WITH deleted_comment (
+WITH chan AS (
+  SELECT
+    posts.channel_id AS id
+  FROM
+    comments
+  JOIN
+    posts
+  ON
+    comments.post_id = posts.id
+  WHERE
+    comments.id = $1
+), deleted_comment AS (
   DELETE FROM
     comments
   WHERE
@@ -11,16 +20,21 @@ WITH deleted_comment (
         SELECT
           1
         FROM
-          members
+          members, chan
         WHERE
-          members.channel_id = messages.channel_id
-          AND members.user_id = $2
+          members.channel_id = chan.id
           AND members.admin = TRUE
       )
     )
   RETURNING
     id,
-    channel_id AS "channelId"
+    post_id AS "postId",
+    (
+      SELECT
+        id
+      FROM
+        chan
+    ) AS "channelId"
 )
 SELECT
   deleted_comment.*

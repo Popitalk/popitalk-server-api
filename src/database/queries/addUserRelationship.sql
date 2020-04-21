@@ -4,7 +4,7 @@ INSERT INTO
     second_user_id,
     type
   )
-VALUES(
+VALUES (
   least($1, $2)::UUID,
   greatest($1, $2)::UUID,
   CASE
@@ -23,8 +23,12 @@ VALUES(
       AND $3 = 'block'
     THEN
       'block_first_second'
-    ELSE
-      'friend_second_first'
+    WHEN
+      $1 > $2
+      AND $3 = 'block'
+    THEN
+      'block_second_first'
   END
+)
 RETURNING
   *

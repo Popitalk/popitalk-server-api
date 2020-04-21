@@ -90,7 +90,7 @@ RETURNING
             AND members.admin
         )
       THEN
-        NULL
+        0
       ELSE (
         SELECT
           COUNT(*)::SMALLINT + 1

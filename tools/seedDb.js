@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 /* eslint-disable no-param-reassign */
 /* eslint-disable no-return-assign */
 const bcrypt = require("bcryptjs");
@@ -5,14 +6,17 @@ const faker = require("faker");
 const allSettled = require("promise.allsettled");
 const { format } = require("date-fns");
 const { sampleSize } = require("lodash");
-const database = require("../config/database");
-const logger = require("../config/logger");
-const addUser = require("./queries/addUser");
+const database = require("../src/config/database");
+const UserService = require("../src/services/UserService");
+const ChannelService = require("../src/services/ChannelService");
+const MemberService = require("../src/services/MemberService");
+
+
 const addChannel = require("./queries/addChannel");
 const addMembers = require("./queries/addMembers");
 
 async function seedDb() {
-  logger.debug("Seeding database...");
+  console.log("Seeding database...");
 
   const client = await database.connect();
 
@@ -65,7 +69,7 @@ async function seedDb() {
       )
     );
 
-    logger.debug("Seeded users");
+    console.log("Seeded users");
 
     const andrewInfo = {
       firstName: "Andrew",
@@ -93,40 +97,10 @@ async function seedDb() {
       password
     };
 
-    const bugzInfo = {
-      firstName: "bugz",
-      lastName: "zgub",
-      username: "bugz",
-      dateOfBirth: format(
-        faker.date.between("1950-01-01", "2000-01-01"),
-        "yyyy-MM-dd"
-      ),
-      avatar: faker.image.avatar(),
-      email: "bugz123@gmail.com",
-      password
-    };
+    const andrewUser = await UserService.addUser(andrewInfo, client);
+    const nesUser = await UserService.addUser(nesInfo, client);
 
-    const andrewUser = await addUser(andrewInfo, client);
-    const nesUser = await addUser(nesInfo, client);
-    const bugzUser = await addUser(bugzInfo, client);
-    const andrewSelfChannel = await addChannel({ type: "self" }, client);
-    const nesSelfChannel = await addChannel({ type: "self" }, client);
-    const bugzChannel = await addChannel({ type: "self" }, client);
-
-    await addMembers(
-      { channelId: andrewSelfChannel.id, userIds: [andrewUser.id] },
-      client
-    );
-    await addMembers(
-      { channelId: nesSelfChannel.id, userIds: [nesUser.id] },
-      client
-    );
-    await addMembers(
-      { channelId: bugzChannel.id, userIds: [bugzUser.id] },
-      client
-    );
-
-    logger.debug("Seeded self channels");
+    console.log("Seeded self channels");
 
     const friendIds1 = sampleSize(abc, 8)
       .map(res => res.value.rows)
@@ -159,11 +133,7 @@ async function seedDb() {
     );
 
     for await (const friendId of friendIds1) {
-      const channel = await addChannel({ type: "friend" }, client);
-      await addMembers(
-        { channelId: channel.id, userIds: [andrewUser.id, friendId] },
-        client
-      );
+      const channel = await ChannelService.addFriend({ userId1:, userId2 });
     }
 
     await allSettled(
@@ -269,10 +239,10 @@ async function seedDb() {
       client
     );
 
-    logger.debug("Seeded friends");
-    logger.debug("Seeded database.");
+    console.log("Seeded friends");
+    console.log("Seeded database.");
   } catch (error) {
-    logger.error(error);
+    console.error(error);
   } finally {
     await client.release();
     await database.end();

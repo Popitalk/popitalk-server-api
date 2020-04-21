@@ -1,6 +1,6 @@
 const knex = require("../../config/knex");
 
-module.exports = async ({
+module.exports = ({
   userId,
   firstName,
   lastName,

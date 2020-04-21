@@ -7,7 +7,7 @@ INSERT INTO
 SELECT
   $1 AS "channel_id",
   mem.id AS "user_id",
-  $3 AS "admin"
+  $3 AS admin
 FROM
   unnest($2::UUID[]) AS mem(id)
 RETURNING

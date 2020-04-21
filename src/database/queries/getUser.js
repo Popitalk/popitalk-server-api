@@ -1,12 +1,11 @@
 const knex = require("../../config/knex");
 
-module.exports = async ({
+module.exports = ({
   userId,
   username,
   email,
   usernameOrEmail,
-  withPassword,
-  withFriends
+  withPassword
 }) => {
   const query = knex
     .select("id")
