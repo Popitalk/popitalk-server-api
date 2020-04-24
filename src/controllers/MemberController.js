@@ -10,7 +10,7 @@ const ChannelService = require("../services/ChannelService");
 
 // TODO: Different endpoint for leaving channels and leaving rooms
 
-// TODO: Finished adding, didn't finish the rest
+// TODO: room invite joins endpoint not done
 
 const controllers = [
   {
@@ -165,19 +165,34 @@ const controllers = [
               .required()
           })
           .required()
+      },
+      response: {
+        status: {
+          200: Joi.object()
+            .keys({
+              channelId: Joi.string()
+                .uuid()
+                .required(),
+              userId: Joi.string()
+                .uuid()
+                .required()
+            })
+            .required()
+            .label("deleteMemberResponse")
+        }
       }
     },
     async handler(req, res) {
       const { id: userId } = req.auth.credentials;
       const { channelId } = req.params;
       await MemberService.deleteMember({ userId, channelId });
-      publisher({
-        type: USER_CHANNEL_EVENTS.WS_LEAVE_CHANNEL,
-        userId,
-        channelId,
-        initiator: userId,
-        payload: { channelId, userId }
-      });
+      // publisher({
+      //   type: USER_CHANNEL_EVENTS.WS_LEAVE_CHANNEL,
+      //   userId,
+      //   channelId,
+      //   initiator: userId,
+      //   payload: { channelId, userId }
+      // });
       return { channelId, userId };
     }
   },
@@ -202,6 +217,27 @@ const controllers = [
               .required()
           })
           .required()
+      },
+      response: {
+        status: {
+          201: Joi.object()
+            .keys({
+              channelId: Joi.string()
+                .uuid()
+                .required(),
+              userId: Joi.string()
+                .uuid()
+                .required(),
+              admin: Joi.boolean()
+                .valid(true)
+                .required(),
+              banned: Joi.boolean()
+                .valid(false)
+                .required()
+            })
+            .required()
+            .label("addAdminResponse")
+        }
       }
     },
     async handler(req, res) {
@@ -213,13 +249,13 @@ const controllers = [
         fromUser,
         toUser
       });
-      publisher({
-        type: CHANNEL_EVENTS.WS_ADD_ADMIN,
-        channelId,
-        initiator: fromUser,
-        payload: { channelId, userId: toUser }
-      });
-      return { channelId, ...memberInfo };
+      // publisher({
+      //   type: CHANNEL_EVENTS.WS_ADD_ADMIN,
+      //   channelId,
+      //   initiator: fromUser,
+      //   payload: { channelId, userId: toUser }
+      // });
+      return res.response({ channelId, ...memberInfo }).code(201);
     }
   },
   {
@@ -239,6 +275,27 @@ const controllers = [
               .required()
           })
           .required()
+      },
+      response: {
+        status: {
+          200: Joi.object()
+            .keys({
+              channelId: Joi.string()
+                .uuid()
+                .required(),
+              userId: Joi.string()
+                .uuid()
+                .required(),
+              admin: Joi.boolean()
+                .valid(false)
+                .required(),
+              banned: Joi.boolean()
+                .valid(false)
+                .required()
+            })
+            .required()
+            .label("deleteAdminResponse")
+        }
       }
     },
     async handler(req, res) {
@@ -249,12 +306,12 @@ const controllers = [
         fromUser,
         toUser
       });
-      publisher({
-        type: CHANNEL_EVENTS.WS_DELETE_ADMIN,
-        channelId,
-        initiator: fromUser,
-        payload: { channelId, userId: toUser }
-      });
+      // publisher({
+      //   type: CHANNEL_EVENTS.WS_DELETE_ADMIN,
+      //   channelId,
+      //   initiator: fromUser,
+      //   payload: { channelId, userId: toUser }
+      // });
       return { channelId, ...memberInfo };
     }
   },
@@ -279,6 +336,27 @@ const controllers = [
               .required()
           })
           .required()
+      },
+      response: {
+        status: {
+          201: Joi.object()
+            .keys({
+              channelId: Joi.string()
+                .uuid()
+                .required(),
+              userId: Joi.string()
+                .uuid()
+                .required(),
+              admin: Joi.boolean()
+                .valid(false)
+                .required(),
+              banned: Joi.boolean()
+                .valid(true)
+                .required()
+            })
+            .required()
+            .label("addBanResponse")
+        }
       }
     },
     async handler(req, res) {
@@ -290,13 +368,13 @@ const controllers = [
         fromUser,
         toUser
       });
-      publisher({
-        type: CHANNEL_EVENTS.WS_ADD_BAN,
-        channelId,
-        initiator: fromUser,
-        payload: { channelId, userId: toUser }
-      });
-      return { channelId, ...memberInfo };
+      // publisher({
+      //   type: CHANNEL_EVENTS.WS_ADD_BAN,
+      //   channelId,
+      //   initiator: fromUser,
+      //   payload: { channelId, userId: toUser }
+      // });
+      return res.response({ channelId, ...memberInfo }).code(201);
     }
   },
   {
@@ -316,6 +394,27 @@ const controllers = [
               .required()
           })
           .required()
+      },
+      response: {
+        status: {
+          200: Joi.object()
+            .keys({
+              channelId: Joi.string()
+                .uuid()
+                .required(),
+              userId: Joi.string()
+                .uuid()
+                .required(),
+              admin: Joi.boolean()
+                .valid(false)
+                .required(),
+              banned: Joi.boolean()
+                .valid(false)
+                .required()
+            })
+            .required()
+            .label("deleteBanResponse")
+        }
       }
     },
     async handler(req, res) {
@@ -326,12 +425,12 @@ const controllers = [
         fromUser,
         toUser
       });
-      publisher({
-        type: CHANNEL_EVENTS.WS_DELETE_BAN,
-        channelId,
-        initiator: fromUser,
-        payload: { channelId, userId: toUser }
-      });
+      // publisher({
+      //   type: CHANNEL_EVENTS.WS_DELETE_BAN,
+      //   channelId,
+      //   initiator: fromUser,
+      //   payload: { channelId, userId: toUser }
+      // });
       return { channelId, ...memberInfo };
     }
   }

@@ -15,7 +15,7 @@ module.exports.addRoomMembers = async ({ userId, channelId, userIds }) => {
 module.exports.deleteMember = async ({ channelId, userId }) => {
   return db.tx(async tx => {
     let deletedChannel;
-    const deletedMember = await tx.MemberRepository.deleteMember({
+    const deletedMember = await tx.MemberRepository.deleteChannelMember({
       channelId,
       userId
     });

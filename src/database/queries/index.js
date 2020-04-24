@@ -58,6 +58,7 @@ module.exports = {
   addRoomMember: sql("./addRoomMember.sql"),
   addRoomMembers: sql("./addRoomMembers.sql"),
   deleteGroupRoomMember: sql("./deleteGroupRoomMember.sql"),
+  deleteChannelMember: sql("./deleteChannelMember.sql"),
   deleteMember: sql("./deleteMember.sql"),
   addAdmin: sql("./addAdmin.sql"),
   deleteAdmin: sql("./deleteAdmin.sql"),

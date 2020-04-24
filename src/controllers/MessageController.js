@@ -3,7 +3,7 @@ const { CHANNEL_EVENTS } = require("../config/constants");
 const { publisher } = require("../config/pubSub");
 const MessageService = require("../services/MessageService");
 
-const messsageSchema = Joi.object().keys({
+const messageSchema = Joi.object().keys({
   id: Joi.string()
     .uuid()
     .required(),
@@ -59,7 +59,7 @@ const controllers = [
       },
       response: {
         status: {
-          201: messsageSchema.label("addMessageResponse")
+          201: messageSchema.label("addMessageResponse")
         }
       }
     },
@@ -111,7 +111,7 @@ const controllers = [
       response: {
         status: {
           200: Joi.array()
-            .items(messsageSchema)
+            .items(messageSchema)
             .required()
             .label("getMessagesResponse")
         }

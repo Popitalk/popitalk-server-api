@@ -255,6 +255,6 @@ SELECT
   self.created_at AS "createdAt",
   channels_obj.channels,
   relationships_obj.relationships,
-  users_obj.users
+  COALESCE(users_obj.users, '{}'::JSON) AS users
 FROM
   self, relationships_obj, channels_obj, users_obj

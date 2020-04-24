@@ -19,5 +19,4 @@ RETURNING
   channel_id AS "channelId",
   user_id AS "userId",
   admin,
-  banned,
-  created_at AS "createdAt"
+  banned
