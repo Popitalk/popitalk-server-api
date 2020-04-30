@@ -9,9 +9,6 @@ const { sampleSize } = require("lodash");
 const UserService = require("../src/services/UserService");
 const ChannelService = require("../src/services/ChannelService");
 
-// const addChannel = require("./queries/addChannel");
-// const addMembers = require("./queries/addMembers");
-
 async function seedDb() {
   console.log("Seeding database...");
 

@@ -98,7 +98,7 @@ const controllers = [
                   .required()
               )
               .min(1)
-              .max(17)
+              .max(7)
               .unique()
               .required()
           })
@@ -116,39 +116,36 @@ const controllers = [
         userIds
       });
 
-      const { channel, users } = await ChannelService.getChannel({
-        userId,
-        channelId
-      });
+      // { channel, users, messages }
+      // const { user, type } = newMembers;
 
-      const { user, type } = newMembers;
+      // publisher({
+      //   type: CHANNEL_EVENTS.WS_ADD_MEMBERS,
+      //   channelId,
+      //   initiator: userId,
+      //   payload: {
+      //     channelId,
+      //     userIds,
+      //     users
+      //   }
+      // });
 
-      publisher({
-        type: CHANNEL_EVENTS.WS_ADD_MEMBERS,
-        channelId,
-        initiator: userId,
-        payload: {
-          channelId,
-          userIds,
-          users
-        }
-      });
+      // userIds.forEach(uid => {
+      //   publisher({
+      //     type: USER_CHANNEL_EVENTS.WS_ADD_CHANNEL,
+      //     channelId,
+      //     userId: uid,
+      //     payload: {
+      //       channel,
+      //       users,
+      //       channelId,
+      //       type: "group"
+      //     }
+      //   });
+      // });
 
-      userIds.forEach(uid => {
-        publisher({
-          type: USER_CHANNEL_EVENTS.WS_ADD_CHANNEL,
-          channelId,
-          userId: uid,
-          payload: {
-            channel,
-            users,
-            channelId,
-            type: "group"
-          }
-        });
-      });
-
-      return res.response({ userId, channelId, user, type }).code(201);
+      return res.response(newMembers).code(201);
+      // return res.response({ userId, channelId, user, type }).code(201);
     }
   },
   {

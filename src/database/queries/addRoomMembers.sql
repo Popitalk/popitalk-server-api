@@ -2,38 +2,19 @@ INSERT INTO
   members (channel_id, user_id)
 SELECT
   $1 AS channel_id,
-  $2 AS user_id
+  mem.id AS "user_id"
 FROM
-  channels
+  unnest($3::UUID[]) AS mem(id)
 WHERE
-  channels.id = $1
-  AND channels.type != 'channel'
+  EXISTS (
+    SELECT
+      1
+    FROM
+      members
+    WHERE
+      channel_id = $1
+      AND user_id = $2
+  )
 RETURNING
   channel_id AS "channelId",
-  user_id AS "userId",
-  created_at AS "createdAt",
-  (
-    SELECT
-      type
-    FROM
-      channels
-    WHERE
-      channels.id = $1
-  ) AS type
-  (
-    SELECT
-      JSON_BUILD_OBJECT(
-        'username',
-        users.username,
-        'firstName',
-        users.first_name,
-        'lastName',
-        users.last_name,
-        'avatar',
-        users.avatar
-      )
-    FROM
-      users
-    WHERE
-      users.id = user_id
-  ) AS user
+  user_id AS "userId"

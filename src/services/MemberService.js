@@ -9,7 +9,19 @@ module.exports.addMember = async ({ channelId, userId }) => {
 };
 
 module.exports.addRoomMembers = async ({ userId, channelId, userIds }) => {
-  return db.MemberRepository.addRoomMembers({ channelId, userId, userIds });
+  return db.task(async t => {
+    await t.MemberRepository.addRoomMembers({
+      channelId,
+      userId,
+      userIds
+    });
+
+    const room = await t.ChannelRepository.getRoomChannel({
+      channelId
+    });
+
+    return room;
+  });
 };
 
 module.exports.deleteMember = async ({ channelId, userId }) => {
