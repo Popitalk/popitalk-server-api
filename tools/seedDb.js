@@ -176,18 +176,15 @@ async function seedDb() {
       } catch (error) {}
     }
 
-    // CREATE GROUP ROOM
+    console.log("Seeded friends");
 
-    // const chan4 = await addChannel({ type: "group" }, client);
-    // await addMembers(
-    //   {
-    //     channelId: chan4.id,
-    //     userIds: [nesUser.id, andrewUser.id, bugzUser.id]
-    //   },
-    //   client
-    // );
+    await ChannelService.addRoom({
+      userId: andrewId,
+      userIds: [nesterId, sunWalkerId, silentFuzzleId]
+    });
 
-    // console.log("Seeded friends");
+    console.log("Seeded groups");
+
     console.log("Seeded database.");
   } catch (error) {
     console.error(error);
