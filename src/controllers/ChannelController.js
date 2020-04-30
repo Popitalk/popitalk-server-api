@@ -164,7 +164,7 @@ const controllers = [
                   .required()
               )
               .min(2)
-              .max(19)
+              .max(7)
               .unique()
               .required()
           })
@@ -174,26 +174,28 @@ const controllers = [
     async handler(req, res) {
       const { id: userId } = req.auth.credentials;
       const { userIds } = req.payload;
-      const { channel, users } = await ChannelService.addRoom({
+      const { channel, users, messages } = await ChannelService.addRoom({
         userId,
         userIds
       });
-      publisher({
-        type: USER_EVENTS.WS_SUBSCRIBE_CHANNEL,
-        channelId: channel.id,
-        userId,
-        payload: { userId, channelId: channel.id, type: "group" }
-      });
-      userIds.forEach(uid => {
-        publisher({
-          type: USER_EVENTS.WS_ADD_CHANNEL,
-          channelId: channel.id,
-          userId: uid,
-          payload: { channel, users, channelId: channel.id, type: "group" }
-        });
-      });
+      // publisher({
+      //   type: USER_EVENTS.WS_SUBSCRIBE_CHANNEL,
+      //   channelId: channel.id,
+      //   userId,
+      //   payload: { userId, channelId: channel.id, type: "group" }
+      // });
+      // userIds.forEach(uid => {
+      //   publisher({
+      //     type: USER_EVENTS.WS_ADD_CHANNEL,
+      //     channelId: channel.id,
+      //     userId: uid,
+      //     payload: { channel, users, channelId: channel.id, type: "group" }
+      //   });
+      // });
 
-      return res.response({ channelId: channel.id, channel }).code(201);
+      return res
+        .response({ channelId: channel.id, channel, users, messages })
+        .code(201);
     }
   },
   {
