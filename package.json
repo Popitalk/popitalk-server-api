@@ -31,8 +31,7 @@
     "db-drop": "node ./tools/dropDb.js",
     "db-seed": "node ./tools/seedDb.js",
     "redis-flush": "redis-cli --scan --pattern 'playnows*' | xargs redis-cli unlink",
-    "db-reset2": "run-s db-reset redis-flush db-seed",
-    "reset": "node ./tools/reset.js"
+    "db-reset": "run-s migrate-reset redis-flush db-seed"
   },
   "jest": {
     "testEnvironment": "node",

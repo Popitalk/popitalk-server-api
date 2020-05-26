@@ -51,7 +51,7 @@ async function seedDb() {
       password
     };
 
-    const neserInfo = {
+    const nesterInfo = {
       firstName: "nes",
       lastName: "ter",
       username: "nest3r",
@@ -61,19 +61,6 @@ async function seedDb() {
       ),
       avatar: faker.image.avatar(),
       email: "nest9876@gmail.com",
-      password
-    };
-
-    const sunWalkerInfo = {
-      firstName: "Sun",
-      lastName: "Walker",
-      username: "Sun Walker",
-      dateOfBirth: format(
-        faker.date.between("1950-01-01", "2000-01-01"),
-        "yyyy-MM-dd"
-      ),
-      avatar: faker.image.avatar(),
-      email: "sunwalker123@gmail.com",
       password
     };
 
@@ -90,10 +77,40 @@ async function seedDb() {
       password
     };
 
+    const sandPillInfo = {
+      firstName: "sand",
+      lastName: "pill",
+      username: "sandPill",
+      dateOfBirth: format(
+        faker.date.between("1950-01-01", "2000-01-01"),
+        "yyyy-MM-dd"
+      ),
+      avatar: faker.image.avatar(),
+      email: "sandPill123@gmail.com",
+      password
+    };
+
+    const andregammaInfo = {
+      firstName: "andre",
+      lastName: "gamma",
+      username: "andregamma",
+      dateOfBirth: format(
+        faker.date.between("1950-01-01", "2000-01-01"),
+        "yyyy-MM-dd"
+      ),
+      avatar: faker.image.avatar(),
+      email: "andregamma123@gmail.com",
+      password
+    };
+
     let seededDevs = await allSettled(
-      [andrewInfo, neserInfo, sunWalkerInfo, silentFuzzleInfo].map(user =>
-        UserService.addUser(user)
-      )
+      [
+        andrewInfo,
+        nesterInfo,
+        sandPillInfo,
+        silentFuzzleInfo,
+        andregammaInfo
+      ].map(user => UserService.addUser(user))
     );
 
     seededDevs = seededDevs
@@ -104,10 +121,13 @@ async function seedDb() {
     const andrewId = seededDevs.filter(su => su.username === "andrewdhjang")[0]
       .id;
     const nesterId = seededDevs.filter(su => su.username === "nest3r")[0].id;
-    const sunWalkerId = seededDevs.filter(su => su.username === "Sun Walker")[0]
+    const sandPillId = seededDevs.filter(su => su.username === "sandPill")[0]
       .id;
     const silentFuzzleId = seededDevs.filter(
       su => su.username === "silentfuzzle"
+    )[0].id;
+    const andregammaId = seededDevs.filter(
+      su => su.username === "andregamma"
     )[0].id;
 
     const andrewFriendsIds = [
@@ -118,13 +138,17 @@ async function seedDb() {
       ...sampleSize(seededUsers, 8).map(u => u.id),
       ...devIds.filter(id => id !== nesterId)
     ];
-    const sunWalkerFriendsIds = [
+    const sandPillFriendsIds = [
       ...sampleSize(seededUsers, 8).map(u => u.id),
-      ...devIds.filter(id => id !== sunWalkerId)
+      ...devIds.filter(id => id !== sandPillId)
     ];
     const silentFuzzleFriendsIds = [
       ...sampleSize(seededUsers, 8).map(u => u.id),
       ...devIds.filter(id => id !== silentFuzzleId)
+    ];
+    const andregammaFriendsIds = [
+      ...sampleSize(seededUsers, 8).map(u => u.id),
+      ...devIds.filter(id => id !== andregammaId)
     ];
 
     for await (const fid of andrewFriendsIds) {
@@ -147,15 +171,15 @@ async function seedDb() {
       } catch (error) {}
     }
 
-    for await (const fid of sunWalkerFriendsIds) {
+    for await (const fid of sandPillFriendsIds) {
       try {
         await UserService.addFriendRequest({
-          fromUser: sunWalkerId,
+          fromUser: sandPillId,
           toUser: fid
         });
         await UserService.addFriend({
           userId1: fid,
-          userId2: sunWalkerId
+          userId2: sandPillId
         });
       } catch (error) {}
     }
@@ -173,11 +197,24 @@ async function seedDb() {
       } catch (error) {}
     }
 
+    for await (const fid of andregammaFriendsIds) {
+      try {
+        await UserService.addFriendRequest({
+          fromUser: andregammaId,
+          toUser: fid
+        });
+        await UserService.addFriend({
+          userId1: fid,
+          userId2: andregammaId
+        });
+      } catch (error) {}
+    }
+
     console.log("Seeded friends");
 
     await ChannelService.addRoom({
       userId: andrewId,
-      userIds: [nesterId, sunWalkerId, silentFuzzleId]
+      userIds: [nesterId, sandPillId, silentFuzzleId, andregammaId]
     });
 
     console.log("Seeded groups");
