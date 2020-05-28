@@ -125,6 +125,7 @@ const controllers = [
     async handler(req, res) {
       const { id: userId } = req.auth.credentials;
       const loginData = await SessionService.getLoginData({ userId });
+      console.log("XXX", req.socket);
       return loginData;
     }
   }
