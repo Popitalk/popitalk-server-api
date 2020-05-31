@@ -1,6 +1,8 @@
 const Joi = require("@hapi/joi");
 const Boom = require("@hapi/boom");
+const { v4: uuidv4 } = require("uuid");
 const SessionService = require("../services/SessionService");
+const redis = require("../config/redis");
 
 const loginResponseSchema = Joi.object()
   .keys({
@@ -41,7 +43,10 @@ const loginResponseSchema = Joi.object()
           .required()
       })
       .required(),
-    users: Joi.object().required()
+    users: Joi.object().required(),
+    wsTicket: Joi.string()
+      .uuid()
+      .required()
   })
   .required()
   .label("loginResponse");
@@ -87,7 +92,10 @@ const controllers = [
         credentials
       });
 
-      return loginData;
+      const wsTicket = uuidv4();
+      await redis.setex(wsTicket, 120, JSON.stringify(loginData));
+
+      return { ...loginData, wsTicket };
     }
   },
   {
@@ -125,8 +133,11 @@ const controllers = [
     async handler(req, res) {
       const { id: userId } = req.auth.credentials;
       const loginData = await SessionService.getLoginData({ userId });
-      console.log("XXX", req.socket);
-      return loginData;
+
+      const wsTicket = uuidv4();
+      await redis.setex(wsTicket, 120, JSON.stringify(loginData));
+
+      return { ...loginData, wsTicket };
     }
   }
 ];

@@ -63,27 +63,6 @@ const manifest = {
       { plugin: require("@hapi/inert") },
       { plugin: require("@hapi/vision") },
       { plugin: require("./plugins/auth") },
-      {
-        plugin: require("@hapi/nes"),
-        options: {
-          // auth: {
-          //   type: "direct"
-          // },
-          auth: false,
-          // id: "hello",
-          // route: "/ws",
-          onConnection(socket) {
-            console.log("CONNECTED");
-            // console.log("123", socket.server.settings.routes);
-          },
-          onDisconnection(socket) {
-            console.log("DISCONNECTED");
-          }
-        }
-      },
-      {
-        plugin: require("./plugins/websockets")
-      },
       { plugin: require("./plugins/centralLogger") },
       {
         plugin: require("hapi-swagger"),
