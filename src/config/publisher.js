@@ -1,8 +1,7 @@
 /* eslint-disable prefer-const */
 const Redis = require("ioredis");
 const config = require(".");
-// const redis = require("./redis");
-// const { websocketsOfUsers, channelsState } = require("./state");
+
 const {
   userEvents,
   userChannelEvents,
@@ -21,7 +20,6 @@ const {
   WS_ADD_BLOCKER,
   WS_DELETE_FRIEND_ROOM
 } = require("./constants");
-const sender = require("../websockets/sender");
 
 const pub = new Redis({
   host: config.redisHost || "localhost",
@@ -30,35 +28,7 @@ const pub = new Redis({
   password: config.redisPassword || null
 });
 
-const subscriber = new Redis({
-  host: config.redisHost || "localhost",
-  port: config.redisPort || 6379,
-  db: config.redisIndex || 0,
-  password: config.redisPassword || null
-});
-
-let publisher;
-
-subscriber.on("message", async (channel, message) => {
-  const parsedMessage = JSON.parse(message);
-  const messageType = parsedMessage.type;
-  const messagePayload = parsedMessage.payload;
-  let { userId } = parsedMessage;
-  let { channelId } = parsedMessage;
-  const messageInitiator = parsedMessage.initiator;
-
-  sender({
-    messageType,
-    messagePayload,
-    messageInitiator,
-    channelId,
-    userId,
-    publisher,
-    subscriber
-  });
-});
-
-publisher = async ({ type, initiator, channelId, userId, payload }) => {
+module.exports = async ({ type, initiator, channelId, userId, payload }) => {
   if (userEvents.includes(type)) {
     pub.publish(
       userId,
@@ -158,5 +128,3 @@ publisher = async ({ type, initiator, channelId, userId, payload }) => {
     console.log("XX");
   }
 };
-
-module.exports = { pub, publisher, subscriber };

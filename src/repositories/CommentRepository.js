@@ -1,5 +1,5 @@
 /* eslint-disable class-methods-use-this */
-const queries = require("../database/queries");
+const queries = require("../queries");
 
 class CommentRepository {
   constructor(db) {

@@ -1,7 +1,7 @@
 const Joi = require("@hapi/joi");
 const { USER_CHANNEL_EVENTS, USER_EVENTS } = require("../config/constants");
 const UserService = require("../services/UserService");
-const { publisher } = require("../config/pubSub");
+const publisher = require("../config/publisher");
 
 const basicUserSchema = Joi.object()
   .keys({

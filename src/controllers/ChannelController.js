@@ -4,7 +4,7 @@ const {
   USER_EVENTS,
   CHANNEL_EVENTS
 } = require("../config/constants");
-const { publisher } = require("../config/pubSub");
+const publisher = require("../config/publisher");
 const ChannelService = require("../services/ChannelService");
 
 const controllers = [

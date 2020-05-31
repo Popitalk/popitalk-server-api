@@ -1,6 +1,6 @@
 const Joi = require("@hapi/joi");
 const { CHANNEL_EVENTS } = require("../config/constants");
-const { publisher } = require("../config/pubSub");
+const publisher = require("../config/publisher");
 const MessageService = require("../services/MessageService");
 
 const messageSchema = Joi.object().keys({
