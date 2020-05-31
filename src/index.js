@@ -9,7 +9,7 @@ const startServer = async () => {
 
     server.log(
       ["serv"],
-      `Server is running on ${server.info.uri} in ${config.mode} mode`
+      `API Server is running on ${server.info.uri} in ${config.mode} mode`
     );
 
     // [
