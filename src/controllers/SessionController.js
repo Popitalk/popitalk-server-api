@@ -4,6 +4,19 @@ const { v4: uuidv4 } = require("uuid");
 const SessionService = require("../services/SessionService");
 const redis = require("../config/redis");
 
+const wsBooth = async loginData => {
+  const wsTicket = uuidv4();
+  const wsLoginData = {
+    userId: loginData.id,
+    channels: Object.entries(loginData.channels).map(ch => ({
+      id: ch[0],
+      type: ch[1].type
+    }))
+  };
+  await redis.setex(wsTicket, 120, JSON.stringify(wsLoginData));
+  return wsTicket;
+};
+
 const loginResponseSchema = Joi.object()
   .keys({
     id: Joi.string()
@@ -92,8 +105,7 @@ const controllers = [
         credentials
       });
 
-      const wsTicket = uuidv4();
-      await redis.setex(wsTicket, 120, JSON.stringify(loginData));
+      const wsTicket = await wsBooth(loginData);
 
       return { ...loginData, wsTicket };
     }
@@ -134,8 +146,7 @@ const controllers = [
       const { id: userId } = req.auth.credentials;
       const loginData = await SessionService.getLoginData({ userId });
 
-      const wsTicket = uuidv4();
-      await redis.setex(wsTicket, 120, JSON.stringify(loginData));
+      const wsTicket = await wsBooth(loginData);
 
       return { ...loginData, wsTicket };
     }
