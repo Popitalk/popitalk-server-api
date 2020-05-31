@@ -1,5 +1,5 @@
 const { isEmpty } = require("lodash");
-const knex = require("../../config/knex");
+const knex = require("../config/knex");
 
 module.exports = ({ channelId, userId, beforePostId }) => {
   const query = knex
