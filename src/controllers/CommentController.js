@@ -28,8 +28,9 @@ const commentSchema = Joi.object().keys({
       .uuid()
       .required(),
     username: Joi.string().required(),
-    avatar:
-      "https://playnows.s3.amazonaws.com/avatar-9bcde2c0-faf9-4773-9a4c-e431837bb08f_1587026280984.jpg"
+    avatar: Joi.string()
+      .allow(null)
+      .required()
   },
   likeCount: Joi.number().required(),
   liked: Joi.boolean().required(),
@@ -58,8 +59,9 @@ const commentSchemaGet = Joi.object().keys({
       .uuid()
       .required(),
     username: Joi.string().required(),
-    avatar:
-      "https://playnows.s3.amazonaws.com/avatar-9bcde2c0-faf9-4773-9a4c-e431837bb08f_1587026280984.jpg"
+    avatar: Joi.string()
+      .allow(null)
+      .required()
   },
   likeCount: Joi.number().required(),
   liked: Joi.boolean().required()
