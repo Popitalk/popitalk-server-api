@@ -158,67 +158,78 @@ WITH before_pst AS (
     psts
 ), cmnts AS (
   SELECT
-    JSON_AGG(c ORDER BY "createdAt" DESC) AS comments
+    JSON_OBJECT_AGG(
+      c2.pid,
+      c2.comments
+    ) AS comments
   FROM (
     SELECT
-      comments.id,
-      comments.post_id AS "postId",
-      comments.user_id AS "userId",
-      comments.content,
-      comments.created_at AS "createdAt",
-      (
-        SELECT
-          JSON_BUILD_OBJECT(
-            'id',
-            users.id,
-            'username',
-            users.username,
-            'avatar',
-            users.avatar
-          )
-        FROM
-          users
-        WHERE
-          users.id = comments.user_id
-      ) AS author,
-      (
-        CASE
-          WHEN
-            EXISTS (
-              SELECT
-                1
-              FROM
-                comment_likes
-              WHERE
-                comment_likes.comment_id = comments.id
-                AND comment_likes.user_id = $2
-            )
-          THEN
-            TRUE
-          ELSE
-            FALSE
-        END
-      ) AS liked,
-      (
-        SELECT
-          COUNT(*)::SMALLINT
-        FROM
-          comment_likes
-        WHERE
-          comment_likes.comment_id = comments.id
-      ) AS "likeCount"
+      psts.pid,
+      JSON_AGG(c ORDER BY "createdAt" DESC) AS comments
     FROM
-      comments, psts_arr
-    WHERE
-      comments.post_id = ANY (psts_arr.ids)
-    ORDER BY
-      comments.created_at DESC
-    LIMIT
-      3
-  ) AS c
+      psts
+    JOIN LATERAL (
+      SELECT
+        comments.id,
+        comments.post_id AS "postId",
+        comments.user_id AS "userId",
+        comments.content,
+        comments.created_at AS "createdAt",
+        (
+          SELECT
+            JSON_BUILD_OBJECT(
+              'id',
+              users.id,
+              'username',
+              users.username,
+              'avatar',
+              users.avatar
+            )
+          FROM
+            users
+          WHERE
+            users.id = comments.user_id
+        ) AS author,
+        (
+          CASE
+            WHEN
+              EXISTS (
+                SELECT
+                  1
+                FROM
+                  comment_likes
+                WHERE
+                  comment_likes.comment_id = comments.id
+                  AND comment_likes.user_id = $2
+              )
+            THEN
+              TRUE
+            ELSE
+              FALSE
+          END
+        ) AS liked,
+        (
+          SELECT
+            COUNT(*)::SMALLINT
+          FROM
+            comment_likes
+          WHERE
+            comment_likes.comment_id = comments.id
+        ) AS "likeCount"
+      FROM
+        comments
+      WHERE
+        comments.post_id = psts.pid
+      ORDER BY
+        comments.created_at DESC
+      LIMIT
+        3
+    ) AS c ON TRUE
+    GROUP BY psts.pid
+  ) c2
 )
 SELECT
   psts_obj.posts AS posts,
-  COALESCE(cmnts.comments, '[]'::JSON) AS comments
+  COALESCE(cmnts.comments, '{}'::JSON) AS comments
 FROM
   psts_obj, cmnts

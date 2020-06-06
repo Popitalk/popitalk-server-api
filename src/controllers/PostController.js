@@ -138,9 +138,7 @@ const controllers = [
               posts: Joi.array()
                 .items(postSchema)
                 .required(),
-              comments: Joi.array()
-                .items()
-                .required()
+              comments: Joi.object().required()
             })
             .required()
             .label("getPostsResponse")
