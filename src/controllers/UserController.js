@@ -1,5 +1,5 @@
 const Joi = require("@hapi/joi");
-const { USER_CHANNEL_EVENTS, USER_EVENTS } = require("../config/constants");
+// const { WS_EVENTS } = require("../config/constants");
 const UserService = require("../services/UserService");
 const publisher = require("../config/publisher");
 
@@ -602,11 +602,11 @@ const controllers = [
       const { blockedId: toUser } = req.payload;
 
       await UserService.deleteBlock({ fromUser, toUser });
-      publisher({
-        type: USER_EVENTS.WS_DELETE_BLOCKER,
-        userId: toUser,
-        payload: { userId: fromUser }
-      });
+      // publisher({
+      //   type: USER_EVENTS.WS_DELETE_BLOCKER,
+      //   userId: toUser,
+      //   payload: { userId: fromUser }
+      // });
 
       return { userId: toUser };
     }

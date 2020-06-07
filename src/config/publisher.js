@@ -2,12 +2,7 @@
 const Redis = require("ioredis");
 const config = require(".");
 
-const {
-  USER_EVENTS,
-  CHANNEL_EVENTS,
-  USER_CHANNEL_EVENTS,
-  CHANNELS_EVENTS
-} = require("./constants");
+const { WS_EVENTS } = require("./constants");
 
 const pub = new Redis({
   host: config.redisHost || "localhost",
@@ -17,7 +12,7 @@ const pub = new Redis({
 });
 
 module.exports = async ({ type, initiator, channelId, userId, payload }) => {
-  if (USER_EVENTS[type]) {
+  if (WS_EVENTS.USER[type]) {
     pub.publish(
       userId,
       JSON.stringify({
@@ -27,7 +22,7 @@ module.exports = async ({ type, initiator, channelId, userId, payload }) => {
         payload
       })
     );
-  } else if (CHANNEL_EVENTS[type]) {
+  } else if (WS_EVENTS.CHANNEL[type]) {
     pub.publish(
       channelId,
       JSON.stringify({
@@ -38,12 +33,12 @@ module.exports = async ({ type, initiator, channelId, userId, payload }) => {
       })
     );
   }
-  if (USER_CHANNEL_EVENTS[type]) {
-    if (type === USER_CHANNEL_EVENTS.WS_JOIN_CHANNEL) {
+  if (WS_EVENTS.USER_CHANNEL[type]) {
+    if (type === WS_EVENTS.USER_CHANNEL.JOIN_CHANNEL) {
       pub.publish(
         userId,
         JSON.stringify({
-          type: USER_EVENTS.WS_SUBSCRIBE_CHANNEL,
+          type: WS_EVENTS.USER.SUBSCRIBE_CHANNEL,
           userId,
           payload
         })
@@ -51,18 +46,18 @@ module.exports = async ({ type, initiator, channelId, userId, payload }) => {
       pub.publish(
         channelId,
         JSON.stringify({
-          type: CHANNEL_EVENTS.WS_ADD_MEMBER,
+          type: WS_EVENTS.CHANNEL.ADD_MEMBER,
           channelId,
           payload,
           initiator
         })
       );
-    } else if (type === USER_CHANNEL_EVENTS.WS_LEAVE_CHANNEL) {
+    } else if (type === WS_EVENTS.USER_CHANNEL.LEAVE_CHANNEL) {
       if (!payload.public) {
         pub.publish(
           userId,
           JSON.stringify({
-            type: USER_EVENTS.WS_UNSUBSCRIBE_CHANNEL,
+            type: WS_EVENTS.USER.UNSUBSCRIBE_CHANNEL,
             userId,
             payload
           })
@@ -71,17 +66,36 @@ module.exports = async ({ type, initiator, channelId, userId, payload }) => {
       pub.publish(
         channelId,
         JSON.stringify({
-          type: CHANNEL_EVENTS.WS_DELETE_MEMBER,
+          type: WS_EVENTS.CHANNEL.DELETE_MEMBER,
           channelId,
           payload,
           initiator
         })
       );
-    } else if (type === USER_CHANNEL_EVENTS.WS_UNFRIEND) {
+    }
+    // else if (type === WS_EVENTS.USER_CHANNEL.BEFRIEND) {
+    //   pub.publish(
+    //     userId,
+    //     JSON.stringify({
+    //       type: WS_EVENTS.USER.SUBSCRIBE_CHANNEL,
+    //       userId,
+    //       payload
+    //     })
+    //   );
+    //   pub.publish(
+    //     channelId,
+    //     JSON.stringify({
+    //       type: WS_EVENTS.CHANNEL,
+    //       channelId,
+    //       payload
+    //     })
+    //   );
+    // }
+    else if (type === WS_EVENTS.USER_CHANNEL.UNFRIEND) {
       pub.publish(
         channelId,
         JSON.stringify({
-          type: CHANNEL_EVENTS.WS_DELETE_FRIEND_ROOM,
+          type: WS_EVENTS.CHANNEL.DELETE_CHANNEL,
           channelId,
           payload
         })
@@ -89,16 +103,16 @@ module.exports = async ({ type, initiator, channelId, userId, payload }) => {
       pub.publish(
         userId,
         JSON.stringify({
-          type: USER_EVENTS.WS_DELETE_FRIEND,
+          type: WS_EVENTS.USER.DELETE_FRIEND,
           userId,
           payload
         })
       );
-    } else if (type === USER_CHANNEL_EVENTS.WS_BLOCK_FRIEND) {
+    } else if (type === WS_EVENTS.USER_CHANNEL.BLOCK_FRIEND) {
       pub.publish(
         channelId,
         JSON.stringify({
-          type: CHANNEL_EVENTS.WS_DELETE_FRIEND_ROOM,
+          type: WS_EVENTS.CHANNEL.DELETE_CHANNEL,
           channelId,
           payload
         })
@@ -106,13 +120,13 @@ module.exports = async ({ type, initiator, channelId, userId, payload }) => {
       pub.publish(
         userId,
         JSON.stringify({
-          type: USER_EVENTS.WS_ADD_BLOCKER,
+          type: WS_EVENTS.USER.ADD_BLOCKER,
           userId,
           payload
         })
       );
     }
-  } else if (CHANNELS_EVENTS[type]) {
-    console.log("channelsEvents");
+  } else if (WS_EVENTS.USERS_CHANNELS[type]) {
+    console.log("WS_EVENTS.USERS_CHANNELS");
   }
 };
