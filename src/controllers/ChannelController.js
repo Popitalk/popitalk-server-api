@@ -109,9 +109,7 @@ const controllers = [
               posts: Joi.array()
                 .length(0)
                 .required(),
-              comments: Joi.array()
-                .length(0)
-                .required()
+              comments: Joi.object().required()
             })
             .required()
             .label("addChannelResponse")
