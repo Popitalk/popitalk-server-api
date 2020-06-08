@@ -1,5 +1,5 @@
 const Joi = require("@hapi/joi");
-const { USER_CHANNEL_EVENTS, CHANNEL_EVENTS } = require("../config/constants");
+// const { WS_EVENTS } = require("../config/constants");
 const publisher = require("../config/publisher");
 const PostService = require("../services/PostService");
 
