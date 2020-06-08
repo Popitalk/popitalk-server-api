@@ -1,7 +1,5 @@
 # Project specific
 /node_modules/
-/public/
-/logs/
 /coverage/
 /benchmarks/results/
 .env
