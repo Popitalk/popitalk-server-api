@@ -1,33 +1,28 @@
-SELECT
-  fm.id AS "firstMessageId",
-  lm.id AS "lastMessageId",
-  lm.created_at AS "lastMessageAt"
-FROM
-  messages AS m
-LEFT JOIN LATERAL (
+WITH fm AS (
     SELECT
-      messages.id
+      messages.id AS "firstMessageId"
     FROM
       messages
     WHERE
-      messages.channel_id = m.channel_id
+      messages.channel_id = $1
     ORDER BY
       messages.created_at ASC
     LIMIT
       1
-) fm ON TRUE
-LEFT JOIN LATERAL (
+), lm AS (
     SELECT
-      messages.id,
-      messages.created_at
+      messages.id AS "lastMessageId",
+      messages.created_at AS "lastMessageAt"
     FROM
       messages
     WHERE
-      messages.channel_id = m.channel_id
+      messages.channel_id = $1
     ORDER BY
       messages.created_at DESC
     LIMIT
       1
-) lm ON TRUE
-WHERE
-  m.channel_id = $1
+)
+SELECT
+  *
+FROM
+  fm, lm
