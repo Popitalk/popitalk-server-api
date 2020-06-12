@@ -183,12 +183,6 @@ const controllers = [
             avatar: Joi.optional().meta({ swaggerType: "file" }),
             removeAvatar: Joi.boolean().optional()
           })
-          .with("firstName", "password")
-          .with("lastName", "password")
-          .with("email", "password")
-          .with("avatar", "password")
-          .with("dateOfBirth", "password")
-          .with("removeAvatar", "password")
           .with("newPassword", "password")
           .oxor("avatar", "removeAvatar")
           .required()
