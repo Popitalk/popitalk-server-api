@@ -7,7 +7,7 @@ SELECT
 FROM
   users
 WHERE
-  users.username % $1
+  (users.username % $1 OR users.username LIKE '%' || $1 || '%')
   AND users.deleted_at IS NULL
 ORDER BY
   users.username <-> $1 ASC

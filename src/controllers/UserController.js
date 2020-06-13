@@ -15,8 +15,7 @@ const basicUserSchema = Joi.object()
       .uri()
       .allow(null)
       .required()
-  })
-  .required();
+  });
 
 const controllers = [
   {
@@ -120,7 +119,7 @@ const controllers = [
       },
       response: {
         status: {
-          201: basicUserSchema.label("getUserResponse")
+          201: basicUserSchema.required().label("getUserResponse")
         }
       }
     },
@@ -264,7 +263,7 @@ const controllers = [
               userId: Joi.string()
                 .uuid()
                 .required(),
-              user: basicUserSchema
+              user: basicUserSchema.required()
             })
             .required()
             .label("addFriendRequestResponse")
