@@ -592,7 +592,7 @@ const controllers = [
     },
     async handler(req, res) {
       const { id: fromUser } = req.auth.credentials;
-      const { blockedId: toUser } = req.payload;
+      const { blockedId: toUser } = req.params;
 
       await UserService.deleteBlock({ fromUser, toUser });
       // publisher({

@@ -207,9 +207,9 @@ module.exports.deleteBlock = async ({ fromUser, toUser }) => {
       (userRelationship.type === "block_second_first" &&
         fromUser === userRelationship.secondUserId)
     ) {
-      await t.UserRepository.unblockStranger({
-        userId1: fromUser,
-        userId2: toUser
+      await t.UserRepository.deleteBlock({
+        fromUser,
+        toUser
       });
     } else if (userRelationship.type === "block_both") {
       await t.ChannelRepository.unblockBlocker({

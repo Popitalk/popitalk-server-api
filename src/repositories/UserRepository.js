@@ -91,6 +91,10 @@ class UserRepository {
     ]);
   }
 
+  async deleteBlock({ fromUser, toUser }) {
+    return this.db.one(queries.deleteUserRelationship, [fromUser, toUser]);
+  }
+
   async deleteFriend({ userId1, userId2 }) {
     return this.db.one(queries.deleteUserRelationship, [userId1, userId2]);
   }
