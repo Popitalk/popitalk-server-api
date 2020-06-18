@@ -115,45 +115,83 @@ module.exports.searchUsers = async ({ username }) => {
 
 module.exports.addFriendRequest = async ({ fromUser, toUser }) => {
   return db.task(async t => {
-    await t.UserRepository.addFriendRequest({ fromUser, toUser });
-    const user = await t.UserRepository.getUser({ userId: fromUser });
-    return {
-      id: user.id,
-      username: user.username,
-      firstName: user.firstName,
-      lastName: user.lastName,
-      avatar: user.avatar
-    };
+    const userRelationship = await t.UserRepository.getUserRelationship({
+      userId1: fromUser,
+      userId2: toUser
+    });
+    
+    if (!userRelationship) {
+      await t.UserRepository.addFriendRequest({ fromUser, toUser });
+      const user = await t.UserRepository.getUser({ userId: fromUser });
+      return {
+        id: user.id,
+        username: user.username,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        avatar: user.avatar
+      };
+    }
   });
 };
 
 module.exports.deleteFriendRequest = async ({ userId1, userId2 }) => {
-  return db.UserRepository.deleteFriendRequest({ userId1, userId2 });
+  return db.task(async t => {
+    const userRelationship = await t.UserRepository.getUserRelationship({
+      userId1,
+      userId2
+    });
+    
+    if (
+      userRelationship.type === "friend_first_second" || 
+      userRelationship.type === "friend_second_first"
+    ) {
+      return db.UserRepository.deleteFriendRequest({ userId1, userId2 });
+    }
+  });
 };
 
 module.exports.addFriend = async ({ userId1, userId2 }) => {
   return db.tx(async tx => {
-    await tx.UserRepository.addFriend({ userId1, userId2 });
-    const newChannel = await tx.ChannelRepository.addFriendRoom();
-    await tx.MemberRepository.addMembers({
-      channelId: newChannel.id,
-      userIds: [userId1, userId2]
+    const userRelationship = await tx.UserRepository.getUserRelationship({
+      userId1,
+      userId2
     });
-    const channelInfo = await tx.ChannelRepository.getRoomChannel({
-      channelId: newChannel.id
-    });
-    return channelInfo;
+
+    if (
+      (userRelationship.type === "friend_first_second" &&
+        userId1 === userRelationship.secondUserId) ||
+      (userRelationship.type === "friend_second_first" &&
+        userId1 === userRelationship.firstUserId)
+    ) {
+      await tx.UserRepository.addFriend({ userId1, userId2 });
+      const newChannel = await tx.ChannelRepository.addFriendRoom();
+      await tx.MemberRepository.addMembers({
+        channelId: newChannel.id,
+        userIds: [userId1, userId2]
+      });
+      const channelInfo = await tx.ChannelRepository.getRoomChannel({
+        channelId: newChannel.id
+      });
+      return channelInfo;
+    }
   });
 };
 
 module.exports.deleteFriend = async ({ userId1, userId2 }) => {
   return db.tx(async tx => {
-    await tx.UserRepository.deleteFriend({ userId1, userId2 });
-    const deletedChannel = await tx.ChannelRepository.deleteFriendRoom({
+    const userRelationship = await tx.UserRepository.getUserRelationship({
       userId1,
       userId2
     });
-    return deletedChannel;
+
+    if (userRelationship.type === "friend_both") {
+      await tx.UserRepository.deleteFriend({ userId1, userId2 });
+      const deletedChannel = await tx.ChannelRepository.deleteFriendRoom({
+        userId1,
+        userId2
+      });
+      return deletedChannel;
+    }
   });
 };
 
@@ -166,28 +204,47 @@ module.exports.addBlock = async ({ fromUser, toUser }) => {
 
     let blockInfo;
 
-    // stranger (add)
-    // friend request (update)
-    // friendboth (delete channel, and delete images)
-    // blocked (update) [maybe same as friend request?]
     if (!userRelationship) {
-      console.log("XXX");
-      blockInfo = await t.UserRepository.addStrangerBlock({ fromUser, toUser });
+      // Add a block from user to stranger
+      blockInfo = await t.UserRepository.addBlock({ fromUser, toUser });
+    } else if (
+      userRelationship.type === "friend_first_second" || 
+      userRelationship.type === "friend_second_first"
+    ) {
+      // Reject/Cancel friend request and replace it with a block
+      console.log("Reject/Cancel friend request and replace it with a block");
+      blockInfo = await t.UserRepository.updateBlock({
+        userId1: fromUser,
+        userId2: toUser,
+        blockType: fromUser === userRelationship.firstUserId 
+          ? "block_first_second" 
+          : "block_second_first"
+      });
     } else if (
       (userRelationship.type === "block_first_second" &&
-        fromUser === userRelationship.firstUserId) ||
+        fromUser === userRelationship.secondUserId) || 
       (userRelationship.type === "block_second_first" &&
-        fromUser === userRelationship.secondUserId)
+        fromUser === userRelationship.firstUserId)
     ) {
-      await t.UserRepository.unblockStranger({
-        userId1: fromUser,
-        userId2: toUser
+      // Both users have blocked each other
+      console.log("Both users have blocked each other");
+      blockInfo = await t.UserRepository.updateBlock({
+        userId1: toUser,
+        userId2: fromUser,
+        blockType: "block_both"
       });
-    } else if (userRelationship.type === "block_both") {
-      await t.ChannelRepository.unblockBlocker({
-        fromUser,
-        toUser
+    } else if (userRelationship.type === "friend_both") {
+      // Delete friend and room and add a block
+      console.log("Delete friend and room and add a block");
+      await t.UserRepository.deleteFriend({ 
+        userId1: fromUser, 
+        userId2: toUser 
       });
+      await t.ChannelRepository.deleteFriendRoom({
+        userId1,
+        userId2
+      });
+      blockInfo = await t.UserRepository.addBlock({ fromUser, toUser });
     }
 
     return blockInfo;
@@ -207,14 +264,20 @@ module.exports.deleteBlock = async ({ fromUser, toUser }) => {
       (userRelationship.type === "block_second_first" &&
         fromUser === userRelationship.secondUserId)
     ) {
+      // Delete block from user to stranger
       await t.UserRepository.deleteBlock({
         fromUser,
         toUser
       });
     } else if (userRelationship.type === "block_both") {
-      await t.ChannelRepository.unblockBlocker({
-        fromUser,
-        toUser
+      // Remove the block from this user to the other user
+      console.log("Remove the block from this user to the other user");
+      blockInfo = await t.UserRepository.updateBlock({
+        userId1: toUser,
+        userId2: fromUser,
+        blockType: fromUser === userRelationship.firstUserId 
+          ? "block_second_first" 
+          : "block_first_second"
       });
     }
   });

@@ -442,8 +442,8 @@ const controllers = [
     },
     async handler(req, res) {
       // make sure not already friends
-      const { id: toUser } = req.auth.credentials;
-      const { requesterId: fromUser } = req.payload;
+      const { id: fromUser } = req.auth.credentials;
+      const { requesterId: toUser } = req.payload;
       const { channel, users, messages } = await UserService.addFriend({
         userId1: fromUser,
         userId2: toUser

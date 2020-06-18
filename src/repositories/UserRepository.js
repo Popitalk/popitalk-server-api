@@ -83,11 +83,19 @@ class UserRepository {
     ]);
   }
 
-  async addStrangerBlock({ fromUser, toUser }) {
+  async addBlock({ fromUser, toUser }) {
     return this.db.one(queries.addUserRelationship, [
       fromUser,
       toUser,
       "block"
+    ]);
+  }
+  
+  async updateBlock({ fromUser, toUser, blockType }) {
+    return this.db.one(queries.updateUserRelationship, [
+      fromUser,
+      toUser,
+      blockType
     ]);
   }
 
