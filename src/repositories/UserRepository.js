@@ -83,6 +83,10 @@ class UserRepository {
     ]);
   }
 
+  async deleteFriend({ userId1, userId2 }) {
+    return this.db.one(queries.deleteUserRelationship, [userId1, userId2]);
+  }
+
   async addBlock({ fromUser, toUser }) {
     return this.db.one(queries.addUserRelationship, [
       fromUser,
@@ -101,10 +105,6 @@ class UserRepository {
 
   async deleteBlock({ fromUser, toUser }) {
     return this.db.one(queries.deleteUserRelationship, [fromUser, toUser]);
-  }
-
-  async deleteFriend({ userId1, userId2 }) {
-    return this.db.one(queries.deleteUserRelationship, [userId1, userId2]);
   }
 
   async getUserRelationship({ userId1, userId2 }) {

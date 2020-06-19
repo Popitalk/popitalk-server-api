@@ -202,8 +202,7 @@ module.exports.addBlock = async ({ fromUser, toUser }) => {
       userId2: toUser
     });
 
-    let blockInfo;
-
+    let blockInfo = {};
     if (!userRelationship) {
       // Add a block from user to stranger
       blockInfo = await t.UserRepository.addBlock({ fromUser, toUser });
@@ -212,10 +211,9 @@ module.exports.addBlock = async ({ fromUser, toUser }) => {
       userRelationship.type === "friend_second_first"
     ) {
       // Reject/Cancel friend request and replace it with a block
-      console.log("Reject/Cancel friend request and replace it with a block");
       blockInfo = await t.UserRepository.updateBlock({
-        userId1: fromUser,
-        userId2: toUser,
+        fromUser,
+        toUser,
         blockType: fromUser === userRelationship.firstUserId 
           ? "block_first_second" 
           : "block_second_first"
@@ -227,24 +225,23 @@ module.exports.addBlock = async ({ fromUser, toUser }) => {
         fromUser === userRelationship.firstUserId)
     ) {
       // Both users have blocked each other
-      console.log("Both users have blocked each other");
       blockInfo = await t.UserRepository.updateBlock({
-        userId1: toUser,
-        userId2: fromUser,
+        fromUser,
+        toUser,
         blockType: "block_both"
       });
     } else if (userRelationship.type === "friend_both") {
       // Delete friend and room and add a block
-      console.log("Delete friend and room and add a block");
       await t.UserRepository.deleteFriend({ 
         userId1: fromUser, 
         userId2: toUser 
       });
-      await t.ChannelRepository.deleteFriendRoom({
-        userId1,
-        userId2
+      const deletedChannel = await t.ChannelRepository.deleteFriendRoom({
+        userId1: fromUser, 
+        userId2: toUser 
       });
-      blockInfo = await t.UserRepository.addBlock({ fromUser, toUser });
+      blockInfo.channelId = deletedChannel.id;
+      await t.UserRepository.addBlock({ fromUser, toUser });
     }
 
     return blockInfo;
@@ -271,10 +268,9 @@ module.exports.deleteBlock = async ({ fromUser, toUser }) => {
       });
     } else if (userRelationship.type === "block_both") {
       // Remove the block from this user to the other user
-      console.log("Remove the block from this user to the other user");
       blockInfo = await t.UserRepository.updateBlock({
-        userId1: toUser,
-        userId2: fromUser,
+        fromUser,
+        toUser,
         blockType: fromUser === userRelationship.firstUserId 
           ? "block_second_first" 
           : "block_first_second"
