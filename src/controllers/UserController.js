@@ -279,7 +279,7 @@ const controllers = [
       //   userId: toUser,
       //   payload: { userId: fromUser, user }
       // });
-      return res.response({ userId: fromUser, user }).code(201);
+      return res.response({ userId: toUser, user }).code(201);
     }
   },
   {
@@ -473,7 +473,7 @@ const controllers = [
       // });
       return res
         .response({
-          userId: fromUser,
+          userId: toUser,
           channelId: channel.id,
           channel,
           users,
