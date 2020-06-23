@@ -122,7 +122,7 @@ module.exports.addFriendRequest = async ({ fromUser, toUser }) => {
     
     if (!userRelationship) {
       await t.UserRepository.addFriendRequest({ fromUser, toUser });
-      const user = await t.UserRepository.getUser({ userId: fromUser });
+      const user = await t.UserRepository.getUser({ userId: toUser });
       return {
         id: user.id,
         username: user.username,
