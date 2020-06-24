@@ -24,5 +24,6 @@ module.exports = {
   awsSecretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
   heartbeatInterval: process.env.WS_HEARTBEAT_INTERVAL,
   cseApiKey: process.env.CSE_API_KEY,
-  cseCxYoutube: process.env.CSE_CX_YOUTUBE
+  cseCxYoutube: process.env.CSE_CX_YOUTUBE,
+  youtubeApiKey: process.env.YOUTUBE_API_KEY
 };

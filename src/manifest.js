@@ -107,6 +107,10 @@ const manifest = {
       {
         plugin: require("./controllers/CommentController"),
         routes: { prefix: `${apiPrefix}/comments` }
+      },
+      {
+        plugin: require("./controllers/VideoController"),
+        routes: { prefix: `${apiPrefix}/videos` }
       }
     ]
   }

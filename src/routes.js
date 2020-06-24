@@ -7,6 +7,7 @@ const MemberController = require("./controllers/MemberController");
 const MessageController = require("./controllers/MessageController");
 const PostController = require("./controllers/PostController");
 const CommentController = require("./controllers/CommentController");
+const VideoController = require("./controllers/VideoController");
 
 /* -------------------------------------------------------------------------- */
 /*                                    USERS                                   */
@@ -19,6 +20,7 @@ router.use("/members", MemberController);
 router.use("/messages", MessageController);
 router.use("/posts", PostController);
 router.use("/comments", CommentController);
+router.use("/videos", VideoController);
 // router.use("/users", UserController.addUser); // rename to addUser
 // router.use("/users", UserController.getUser);
 // router.put("/users/", UserController.getUser);
