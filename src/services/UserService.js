@@ -119,7 +119,7 @@ module.exports.addFriendRequest = async ({ fromUser, toUser }) => {
       userId1: fromUser,
       userId2: toUser
     });
-    
+
     if (!userRelationship) {
       await t.UserRepository.addFriendRequest({ fromUser, toUser });
       const user = await t.UserRepository.getUser({ userId: toUser });
@@ -140,9 +140,9 @@ module.exports.deleteFriendRequest = async ({ userId1, userId2 }) => {
       userId1,
       userId2
     });
-    
+
     if (
-      userRelationship.type === "friend_first_second" || 
+      userRelationship.type === "friend_first_second" ||
       userRelationship.type === "friend_second_first"
     ) {
       return db.UserRepository.deleteFriendRequest({ userId1, userId2 });
@@ -207,20 +207,21 @@ module.exports.addBlock = async ({ fromUser, toUser }) => {
       // Add a block from user to stranger
       blockInfo = await t.UserRepository.addBlock({ fromUser, toUser });
     } else if (
-      userRelationship.type === "friend_first_second" || 
+      userRelationship.type === "friend_first_second" ||
       userRelationship.type === "friend_second_first"
     ) {
       // Reject/Cancel friend request and replace it with a block
       blockInfo = await t.UserRepository.updateBlock({
         fromUser,
         toUser,
-        blockType: fromUser === userRelationship.firstUserId 
-          ? "block_first_second" 
-          : "block_second_first"
+        blockType:
+          fromUser === userRelationship.firstUserId
+            ? "block_first_second"
+            : "block_second_first"
       });
     } else if (
       (userRelationship.type === "block_first_second" &&
-        fromUser === userRelationship.secondUserId) || 
+        fromUser === userRelationship.secondUserId) ||
       (userRelationship.type === "block_second_first" &&
         fromUser === userRelationship.firstUserId)
     ) {
@@ -232,13 +233,13 @@ module.exports.addBlock = async ({ fromUser, toUser }) => {
       });
     } else if (userRelationship.type === "friend_both") {
       // Delete friend and room and add a block
-      await t.UserRepository.deleteFriend({ 
-        userId1: fromUser, 
-        userId2: toUser 
+      await t.UserRepository.deleteFriend({
+        userId1: fromUser,
+        userId2: toUser
       });
       const deletedChannel = await t.ChannelRepository.deleteFriendRoom({
-        userId1: fromUser, 
-        userId2: toUser 
+        userId1: fromUser,
+        userId2: toUser
       });
       blockInfo.channelId = deletedChannel.id;
       await t.UserRepository.addBlock({ fromUser, toUser });
@@ -254,6 +255,8 @@ module.exports.deleteBlock = async ({ fromUser, toUser }) => {
       userId1: fromUser,
       userId2: toUser
     });
+
+    let blockInfo;
 
     if (
       (userRelationship.type === "block_first_second" &&
@@ -271,10 +274,13 @@ module.exports.deleteBlock = async ({ fromUser, toUser }) => {
       blockInfo = await t.UserRepository.updateBlock({
         fromUser,
         toUser,
-        blockType: fromUser === userRelationship.firstUserId 
-          ? "block_second_first" 
-          : "block_first_second"
+        blockType:
+          fromUser === userRelationship.firstUserId
+            ? "block_second_first"
+            : "block_first_second"
       });
     }
+
+    return blockInfo;
   });
 };
