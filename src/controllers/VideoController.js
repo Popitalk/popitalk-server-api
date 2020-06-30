@@ -4,33 +4,33 @@ const config = require('../config');
 
 const controllers = [
   {
-    method: "POST",
+    method: "GET",
     path: "/search",
     options: {
       description: "Search for videos",
       tags: ["api"],
       validate: {
-        payload: Joi.object()
+        query: Joi.object()
           .keys({
-            search: Joi.string()
-              .required(),
-            pageToken: Joi.string()
+            source: Joi.string().required(),
+            terms: Joi.string().required(),
+            page: Joi.string()
           })
           .required()
       }
     },
     async handler(req, res) {
-      const { search, pageToken } = req.payload;
+      const { terms, page } = req.query;
       
       let parameters = {
         part: 'snippet',
-        q: search,
+        q: terms,
         maxResults: 25,
         type: 'video',
         key: config.youtubeApiKey
       };
-      if (pageToken) {
-        parameters.pageToken = pageToken;
+      if (page) {
+        parameters.page = page;
       }
 
       try {
