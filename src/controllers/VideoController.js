@@ -30,7 +30,7 @@ const controllers = [
         key: config.youtubeApiKey
       };
       if (page) {
-        parameters.page = page;
+        parameters.pageToken = page;
       }
 
       try {
@@ -51,6 +51,7 @@ const controllers = [
           .response({
             nextPageToken: response.data.nextPageToken,
             prevPageToken: response.data.prevPageToken,
+            totalResults: response.data.pageInfo.totalResults,
             results: results
           })
           .code(201);
