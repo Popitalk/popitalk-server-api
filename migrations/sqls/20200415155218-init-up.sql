@@ -85,6 +85,11 @@ CREATE TABLE channels (
   owner_id UUID REFERENCES users(id) ON UPDATE CASCADE ON DELETE CASCADE,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  queue_start_position INTEGER NOT NULL DEFAULT 0,
+  video_start_time INTEGER NOT NULL DEFAULT 0,
+  clock_start_time TIMESTAMPTZ NOT NULL DEFAULT Now(),
+  status TEXT NOT NULL DEFAULT 'Ended',
+
   CONSTRAINT bounded_type CHECK(type = 'self' OR type = 'friend' OR type = 'group' OR type = 'channel'),
   CONSTRAINT name_length CHECK(length(name) >= 3 AND length(name) <= 20),
   CONSTRAINT description_length CHECK(description IS NULL OR (length(description) >= 1 AND length(description) <= 150)),
@@ -152,11 +157,17 @@ CREATE TABLE members (
 
 CREATE TABLE videos (
   id UUID NOT NULL DEFAULT uuid_generate_v4() PRIMARY KEY,
-  channel_id UUID NOT NULL REFERENCES channels(id) ON UPDATE CASCADE ON DELETE CASCADE,
-  user_id UUID NOT NULL REFERENCES users(id) ON UPDATE CASCADE ON DELETE CASCADE,
-  video TEXT NOT NULL,
+  length INTEGER NOT NULL,
+  video_info JSON NOT NULL,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE channel_videos (
+  id UUID NOT NULL DEFAULT uuid_generate_v4() PRIMARY KEY,
+  channel_id UUID NOT NULL REFERENCES channels(id) ON UPDATE CASCADE ON DELETE CASCADE,
+  video_id UUID NOT NULL REFERENCES videos(id) ON UPDATE CASCADE ON DELETE CASCADE,
+  queue_position INTEGER NOT NULL DEFAULT 0
 );
 
 CREATE TABLE follow_requests (
