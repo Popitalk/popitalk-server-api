@@ -206,3 +206,23 @@ module.exports.deleteBlock = async ({ fromUser, toUser }) => {
     }
   });
 };
+
+module.exports.setPlaying = async ({
+  channelId,
+  userId,
+  videoStartTime,
+  clockStartTime,
+  queueStartPosition,
+  status
+}) => {
+  const setPlaying = await db.ChannelRepository.setPlaying({
+    channelId,
+    userId,
+    videoStartTime,
+    clockStartTime,
+    queueStartPosition,
+    status
+  });
+
+  return setPlaying;
+};

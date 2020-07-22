@@ -93,6 +93,24 @@ class ChannelRepository {
   async deleteFriendRoom({ userId1, userId2 }) {
     return this.db.one(queries.deleteFriendRoom, [userId1, userId2]);
   }
+
+  async setPlaying({
+    channelId,
+    userId,
+    queueStartPosition,
+    clockStartTime,
+    videoStartTime,
+    status
+  }) {
+    return this.db.one(queries.setPlaying, {
+      channelId,
+      userId,
+      queueStartPosition,
+      clockStartTime,
+      videoStartTime,
+      status
+    });
+  }
 }
 
 module.exports = ChannelRepository;

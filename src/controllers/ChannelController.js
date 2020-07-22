@@ -357,7 +357,97 @@ const controllers = [
       // });
       return { channelId };
     }
+  },
+  {
+    method: "PUT",
+    path: "/{channelId}/play",
+    options: {
+      description: "Sets playing status",
+      tags: ["api"],
+      payload: { multipart: { output: "annotated" } },
+      plugins: {
+        "hapi-swagger": {
+          payloadType: "form"
+        }
+      },
+      validate: {
+        params: Joi.object()
+          .keys({
+            channelId: Joi.string()
+              .uuid()
+              .required()
+          })
+          .required(),
+        payload: Joi.object()
+          .keys({
+            queueStartPosition: Joi.number().required(),
+            clockStartTime: Joi.date().timestamp(),
+            videoStartTime: Joi.number().required()
+          })
+          .required()
+      },
+      response: {
+        status: {
+          201: Joi.object()
+            .keys({
+              channelId: Joi.string()
+                .uuid()
+                .required(),
+              queueStartPosition: Joi.number().required(),
+              clockStartTime: Joi.date().timestamp(),
+              videoStartTime: Joi.number().required()
+            })
+            .required()
+            .label("setPlaying")
+        }
+      }
+    },
+    async handler(req, res) {
+      const { id: userId } = req.auth.credentials;
+      const { channelId } = req.params;
+      const setPlaying = await ChannelService.setPlaying({
+        userId,
+        channelId,
+        ...req.payload,
+        status: "Playing"
+      });
+      return { channelId, setPlaying };
+    }
   }
+
+  // {
+  //   method: "PUT",
+  //   path: "/{channelId}/play",
+  //   options: {
+  //     description: "Set Play status",
+  //     tags: ["api"],
+  //     validate: {
+  //       query: Joi.object()
+  //         .keys({
+  //           channelId: Joi.string().required(),
+  //           queueStartPosition: Joi.number().required(),
+  //           clockStartTime: Joi.date().timestamp(),
+  //           videoStartTime: Joi.number().required()
+  //         })
+  //         .required()
+  //     }
+  //   },
+  //   async handler(req, res) {
+  //     const {
+  //       channelId,
+  //       queueStartPosition,
+  //       clockStartTime,
+  //       videoStartTime
+  //     } = req.query;
+
+  //     const setPlaying = await VideoService.setPlaying({
+  //       channelId,
+  //       queueStartPosition,
+  //       clockStartTime,
+  //       videoStartTime
+  //     });
+  //   }
+  // }
 ];
 
 const ChannelController = {
