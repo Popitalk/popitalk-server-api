@@ -7,6 +7,7 @@ DROP TABLE IF EXISTS posts;
 DROP TABLE IF EXISTS seen_messages;
 DROP TABLE IF EXISTS messages;
 DROP TABLE IF EXISTS follow_requests;
+DROP TABLE IF EXISTS channel_videos;
 DROP TABLE IF EXISTS videos;
 DROP TABLE IF EXISTS members;
 DROP TABLE IF EXISTS channel_categories;

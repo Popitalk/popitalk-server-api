@@ -58,6 +58,10 @@ const controllers = [
                 owner_id: Joi.string()
                   .uuid()
                   .required(),
+                status: Joi.string().required(),
+                queueStartPosition: Joi.number().required(),
+                videoStartTime: Joi.number().required(),
+                clockStartTime: Joi.string().required(),
                 created_at: Joi.date()
                   .iso()
                   .required(),

@@ -102,7 +102,7 @@ class ChannelRepository {
     videoStartTime,
     status
   }) {
-    return this.db.one(queries.setPlaying, {
+    let playingStatus = this.db.one(queries.setPlaying, {
       channelId,
       userId,
       queueStartPosition,
@@ -110,6 +110,16 @@ class ChannelRepository {
       videoStartTime,
       status
     });
+
+    return {
+      id: playingStatus.id,
+      updatedChannel: {
+        status: playingStatus.status,
+        queueStartPosition: playingStatus.queueStartPosition,
+        videoStartTime: playingStatus.videoStartTime,
+        clockStartTime: playingStatus.clockStartTime
+      }
+    }
   }
 }
 
