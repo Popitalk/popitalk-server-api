@@ -7,16 +7,20 @@ module.exports = ({
   queueStartPosition,
   videoStartTime,
   clockStartTime,
-  status
+  status = null
 }) => {
+  let playerStatus = {
+    updated_at: knex.raw("NOW()"),
+    queue_start_position: queueStartPosition,
+    video_start_time: videoStartTime,
+    clock_start_time: clockStartTime
+  };
+  if (status !== null) {
+    playerStatus.status = status;
+  }
+
   const query = knex
-    .update({
-      updated_at: knex.raw("NOW()"),
-      queue_start_postion: queueStartPosition,
-      video_start_time: videoStartTime,
-      clock_start_time: clockStartTime,
-      status
-    })
+    .update(playerStatus)
     .from("channels")
     .where("id", channelId)
     .whereExists(q =>

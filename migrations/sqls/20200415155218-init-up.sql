@@ -86,7 +86,7 @@ CREATE TABLE channels (
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   queue_start_position INTEGER NOT NULL DEFAULT 0,
-  video_start_time INTEGER NOT NULL DEFAULT 0,
+  video_start_time DOUBLE PRECISION NOT NULL DEFAULT 0,
   clock_start_time TIMESTAMPTZ NOT NULL DEFAULT Now(),
   status TEXT NOT NULL DEFAULT 'Ended',
 

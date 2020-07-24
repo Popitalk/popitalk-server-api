@@ -94,30 +94,16 @@ class ChannelRepository {
     return this.db.one(queries.deleteFriendRoom, [userId1, userId2]);
   }
 
-  async setPlaying({
-    channelId,
-    userId,
-    queueStartPosition,
-    clockStartTime,
-    videoStartTime,
-    status
-  }) {
-    let playingStatus = this.db.one(queries.setPlaying, {
-      channelId,
-      userId,
-      queueStartPosition,
-      clockStartTime,
-      videoStartTime,
-      status
-    });
+  async updatePlayerStatus(newPlayerStatus) {
+    let playerStatus = this.db.one(queries.updatePlayerStatus, newPlayerStatus);
 
     return {
-      id: playingStatus.id,
+      id: playerStatus.id,
       updatedChannel: {
-        status: playingStatus.status,
-        queueStartPosition: playingStatus.queueStartPosition,
-        videoStartTime: playingStatus.videoStartTime,
-        clockStartTime: playingStatus.clockStartTime
+        status: playerStatus.status,
+        queueStartPosition: playerStatus.queueStartPosition,
+        videoStartTime: playerStatus.videoStartTime,
+        clockStartTime: playerStatus.clockStartTime
       }
     }
   }
