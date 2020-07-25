@@ -95,17 +95,25 @@ class ChannelRepository {
   }
 
   async updatePlayerStatus(newPlayerStatus) {
-    let playerStatus = this.db.one(queries.updatePlayerStatus, newPlayerStatus);
+    const playerStatus = this.db.one(
+      queries.updatePlayerStatus,
+      newPlayerStatus
+    );
 
-    return {
-      id: playerStatus.id,
-      updatedChannel: {
-        status: playerStatus.status,
-        queueStartPosition: playerStatus.queueStartPosition,
-        videoStartTime: playerStatus.videoStartTime,
-        clockStartTime: playerStatus.clockStartTime
-      }
-    }
+    // eslint-disable-next-line promise/catch-or-return
+    playerStatus.then(res => {
+      const reshaped = {
+        id: res.id,
+        updatedChannel: {
+          status: res.status,
+          queueStartPosition: res.queueStartPosition,
+          videoStartTime: res.videoStartTime,
+          clockStartTime: res.clockStartTime
+        }
+      };
+      return reshaped;
+    });
+    return playerStatus;
   }
 }
 
