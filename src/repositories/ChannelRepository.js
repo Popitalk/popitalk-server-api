@@ -115,6 +115,10 @@ class ChannelRepository {
     });
     return playerStatus;
   }
+
+  async getPlayerStatus({ channelId, userId }) {
+    return this.db.one(queries.getPlayerStatus, { channelId, userId });
+  }
 }
 
 module.exports = ChannelRepository;

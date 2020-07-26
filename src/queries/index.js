@@ -46,6 +46,7 @@ module.exports = {
   getChannelLastPostInfo: sql("./getChannelLastPostInfo.sql"),
   updateChannel: require("./updateChannel.js"),
   updatePlayerStatus: require("./updatePlayerStatus.js"),
+  getPlayerStatus: require("./getPlayerStatus.js"),
   deleteChannel: sql("./deleteChannel.sql"),
   deleteFriendRoom: sql("./deleteFriendRoom.sql"),
 

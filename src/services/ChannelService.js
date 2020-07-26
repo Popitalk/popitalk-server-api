@@ -207,8 +207,19 @@ module.exports.deleteBlock = async ({ fromUser, toUser }) => {
   });
 };
 
-module.exports.updatePlayerStatus = async (newPlayerStatus) => {
-  const playerStatus = await db.ChannelRepository.updatePlayerStatus(newPlayerStatus);
+module.exports.updatePlayerStatus = async newPlayerStatus => {
+  const playerStatus = await db.ChannelRepository.updatePlayerStatus(
+    newPlayerStatus
+  );
+
+  return playerStatus;
+};
+
+module.exports.getPlayerStatus = async ({ userId, channelId }) => {
+  const playerStatus = await db.ChannelRepository.getPlayerStatus({
+    userId,
+    channelId
+  });
 
   return playerStatus;
 };

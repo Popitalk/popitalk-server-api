@@ -488,6 +488,34 @@ const controllers = [
       });
       return { channelId, updatedChannel: playerStatus };
     }
+  },
+  {
+    method: "GET",
+    path: "/{channelId}/status",
+    options: {
+      description: "Gets player status for channel",
+      tags: ["api"],
+      validate: {
+        params: Joi.object()
+          .keys({
+            channelId: Joi.string()
+              .uuid()
+              .required()
+          })
+          .required()
+      }
+    },
+
+    async handler(req, res) {
+      const { id: userId } = req.auth.credentials;
+      const { channelId } = req.params;
+      const playerStatus = await ChannelService.getPlayerStatus({
+        userId,
+        channelId
+      });
+
+      return { channelId, updatedChannel: playerStatus };
+    }
   }
 ];
 
