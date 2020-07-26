@@ -419,7 +419,7 @@ const controllers = [
         ...req.payload,
         status: "Playing"
       });
-      return { channelId, playerStatus };
+      return { channelId, updatedChannel: playerStatus };
     }
   },
   {
@@ -453,7 +453,7 @@ const controllers = [
         ...req.payload,
         status: "Paused"
       });
-      return { channelId, playerStatus };
+      return { channelId, updatedChannel: playerStatus };
     }
   },
   {
@@ -486,7 +486,7 @@ const controllers = [
         channelId,
         ...req.payload
       });
-      return { channelId, playerStatus };
+      return { channelId, updatedChannel: playerStatus };
     }
   }
 ];
