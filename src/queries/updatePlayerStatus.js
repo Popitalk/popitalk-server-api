@@ -37,7 +37,6 @@ module.exports = ({
       `)
     )
     .returning([
-      "id",
       "queue_start_position AS queueStartPosition",
       "video_start_time AS videoStartTime",
       "clock_start_time AS clockStartTime",

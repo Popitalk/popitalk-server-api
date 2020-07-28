@@ -128,6 +128,14 @@ module.exports.updateChannel = async ({
   return updatedChannel;
 };
 
+module.exports.updatePlayerStatus = async newPlayerStatus => {
+  const playerStatus = await db.ChannelRepository.updatePlayerStatus(
+    newPlayerStatus
+  );
+
+  return playerStatus;
+};
+
 module.exports.deleteChannel = async ({ channelId, userId }) => {
   return db.ChannelRepository.deleteChannel({ channelId, userId });
 };
@@ -205,14 +213,6 @@ module.exports.deleteBlock = async ({ fromUser, toUser }) => {
       });
     }
   });
-};
-
-module.exports.updatePlayerStatus = async newPlayerStatus => {
-  const playerStatus = await db.ChannelRepository.updatePlayerStatus(
-    newPlayerStatus
-  );
-
-  return playerStatus;
 };
 
 module.exports.getPlayerStatus = async ({ userId, channelId }) => {

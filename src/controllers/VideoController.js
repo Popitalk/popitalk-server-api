@@ -63,6 +63,138 @@ const controllers = [
           .code(500);
       }
     }
+  },
+  {
+    method: "POST",
+    path: "/{channelId}",
+    options: {
+      description: "Adds a video to a channel queue",
+      tags: ["api"],
+      validate: {
+        params: Joi.object()
+          .keys({
+            channelId: Joi.string()
+              .uuid()
+              .required()
+          })
+          .required(),
+        payload: Joi.object()
+          .keys({
+            source: Joi.string().required(),
+            sourceId: Joi.string().required(),
+            length: Joi.number().required(),
+            video_info: Joi.string().required()
+          })
+          .required()
+      }
+    },
+    async handler(req, res) {
+      const { id: userId } = req.auth.credentials;
+      const { channelId } = req.params;
+      const videoInfo = req.payload;
+      const video = await VideoService.addVideo({
+        userId,
+        channelId,
+        videoInfo
+      });
+
+      return res
+        .response({ channelId: channel.id, video })
+        .code(201);
+    }
+  },
+  {
+    method: "PUT",
+    path: "/{channelId}",
+    options: {
+      description: "Updates video order in a channel queue",
+      tags: ["api"],
+      payload: { multipart: { output: "annotated" } },
+      plugins: {
+        "hapi-swagger": {
+          payloadType: "form"
+        }
+      },
+      validate: {
+        params: Joi.object()
+          .keys({
+            channelId: Joi.string()
+              .uuid()
+              .required()
+          })
+          .required(),
+        payload: Joi.object()
+          .keys({
+            videoIds: Joi.array()
+            .items(
+              Joi.string().uuid().required()
+            )
+            .required()
+          })
+          .required()
+      },
+      response: {
+        status: {
+          201: Joi.object()
+            .keys({
+              channelId: Joi.string()
+                .uuid()
+                .required(),
+              success: Joi.boolean().required(),
+              videoIds: Joi.array().items(Joi.string().uuid().required()).required()
+            })
+            .required()
+            .label("updateQueueResponse")
+        }
+      }
+    },
+    async handler(req, res) {
+      const { id: userId } = req.auth.credentials;
+      const { channelId } = req.params;
+      const { videoIds } = req.payload;
+      const channel = await VideoService.updateQueue({
+        userId,
+        channelId,
+        videoIds
+      });
+
+      return { channelId, channel };
+    }
+  },
+  {
+    method: "DELETE",
+    path: "/{queuedVideoId}",
+    options: {
+      description: "Deletes a video from a channel queue",
+      tags: ["api"],
+      validate: {
+        params: Joi.object()
+          .keys({
+            queuedVideoId: Joi.string()
+              .uuid()
+              .required()
+          })
+          .required()
+      },
+      response: {
+        status: {
+          200: Joi.object()
+            .keys({
+              channelId: Joi.string()
+                .uuid()
+                .required()
+            })
+            .required()
+            .label("deleteChannelResponse")
+        }
+      }
+    },
+    async handler(req, res) {
+      const { id: userId } = req.auth.credentials;
+      const { queuedVideoId } = req.params;
+      await VideoService.deleteVideo({ userId, queuedVideoId });
+      return { queuedVideoId };
+    }
   }
 ];
 

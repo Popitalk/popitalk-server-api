@@ -82,6 +82,13 @@ class ChannelRepository {
     });
   }
 
+  async updatePlayerStatus(newPlayerStatus) {
+    return this.db.one(
+      queries.updatePlayerStatus,
+      newPlayerStatus
+    );
+  }
+
   async deleteChannel({ channelId, userId }) {
     return this.db.one(
       queries.deleteChannel,
@@ -92,28 +99,6 @@ class ChannelRepository {
 
   async deleteFriendRoom({ userId1, userId2 }) {
     return this.db.one(queries.deleteFriendRoom, [userId1, userId2]);
-  }
-
-  async updatePlayerStatus(newPlayerStatus) {
-    const playerStatus = this.db.one(
-      queries.updatePlayerStatus,
-      newPlayerStatus
-    );
-
-    // eslint-disable-next-line promise/catch-or-return
-    playerStatus.then(res => {
-      const reshaped = {
-        id: res.id,
-        updatedChannel: {
-          status: res.status,
-          queueStartPosition: res.queueStartPosition,
-          videoStartTime: res.videoStartTime,
-          clockStartTime: res.clockStartTime
-        }
-      };
-      return reshaped;
-    });
-    return playerStatus;
   }
 
   async getPlayerStatus({ channelId, userId }) {
