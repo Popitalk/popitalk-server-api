@@ -2,6 +2,7 @@ const Joi = require("@hapi/joi");
 const {google} = require('googleapis');
 const config = require('../config');
 const VideoService = require("../services/VideoService");
+const moment = require("moment");
 
 const controllers = [
   {
@@ -83,7 +84,7 @@ const controllers = [
           .keys({
             source: Joi.string().required(),
             sourceId: Joi.string().required(),
-            length: Joi.number().required(),
+            length: Joi.number(),
             videoInfo: Joi.string().required()
           })
           .required()
@@ -92,16 +93,35 @@ const controllers = [
     async handler(req, res) {
       const { id: userId } = req.auth.credentials;
       const { channelId } = req.params;
-      const videoInfo = req.payload;
-      const video = await VideoService.addVideo({
-        userId,
-        channelId,
-        ...videoInfo
-      });
+      let videoInfo = req.payload;
+      
+      try {
+        const youtube = google.youtube('v3');
+        const response = await youtube.videos.list({
+          part: 'contentDetails',
+          id: videoInfo.sourceId,
+          key: config.youtubeApiKey
+        });
 
-      return res
-        .response({ channelId: channelId, video })
-        .code(201);
+        const length = response.data.items[0].contentDetails.duration;
+        videoInfo.length = moment.duration(length).asSeconds();
+
+        const video = await VideoService.addVideo({
+          userId,
+          channelId,
+          ...videoInfo
+        });
+
+        return res
+          .response({ channelId: channelId, video })
+          .code(201);
+      } catch(err) {
+        return res
+          .response({
+            error: err
+          })
+          .code(500);
+      }
     }
   },
   {
