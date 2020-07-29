@@ -88,9 +88,12 @@ module.exports.getChannel = async ({ channelId, userId }) => {
       channelInfo = await t.ChannelRepository.getPrivateChannel({ channelId });
     }
 
+    const queue = await t.VideoRepository.getChannelQueue({ channelId });
+
     return {
       ...channelInfo,
-      ...chMemInfo
+      ...chMemInfo,
+      queue
     };
   });
 };

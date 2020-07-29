@@ -12,6 +12,10 @@ class VideoRepository {
     });
   }
 
+  async getChannelQueue({ channelId }) {
+    return this.db.any(queries.getChannelQueue, { channelId });
+  }
+
   async addVideo({ videoId, length, videoInfo }) {
     return this.db.one(queries.addVideo, [videoId, length, videoInfo]);
   }

@@ -57,6 +57,7 @@ module.exports = {
   addVideo: sql("./addVideo.sql"),
   addChannelVideo: sql("./addChannelVideo.sql"),
   getHasPermission: require("./getHasPermission.js"),
+  getChannelQueue: require("./getChannelQueue.js"),
 
   /* -------------------------------------------------------------------------- */
   /*                                   MEMBERS                                  */
