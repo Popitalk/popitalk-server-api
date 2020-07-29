@@ -1,6 +1,7 @@
 const Joi = require("@hapi/joi");
 const {google} = require('googleapis');
 const config = require('../config');
+const VideoService = require("../services/VideoService");
 
 const controllers = [
   {
@@ -83,7 +84,7 @@ const controllers = [
             source: Joi.string().required(),
             sourceId: Joi.string().required(),
             length: Joi.number().required(),
-            video_info: Joi.string().required()
+            videoInfo: Joi.string().required()
           })
           .required()
       }
@@ -95,11 +96,11 @@ const controllers = [
       const video = await VideoService.addVideo({
         userId,
         channelId,
-        videoInfo
+        ...videoInfo
       });
 
       return res
-        .response({ channelId: channel.id, video })
+        .response({ channelId: channelId, video })
         .code(201);
     }
   },
@@ -185,7 +186,7 @@ const controllers = [
                 .required()
             })
             .required()
-            .label("deleteChannelResponse")
+            .label("deleteVideoResponse")
         }
       }
     },

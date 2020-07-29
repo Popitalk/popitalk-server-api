@@ -1,0 +1,24 @@
+const queries = require("../queries");
+
+class VideoRepository {
+  constructor(db) {
+    this.db = db;
+  }
+
+  async getHasPermission({ userId, channelId }) {
+    return this.db.one(queries.getHasPermission, {
+      channelId,
+      userId
+    });
+  }
+
+  async addVideo({ videoId, length, videoInfo }) {
+    return this.db.one(queries.addVideo, [videoId, length, videoInfo]);
+  }
+
+  async addChannelVideo({ channelId, videoId }) {
+    return this.db.one(queries.addChannelVideo, [channelId, videoId]);
+  }
+}
+
+module.exports = VideoRepository;
