@@ -15,9 +15,12 @@ module.exports.addVideo = async ({
     const video = await tx.VideoRepository.addVideo({ videoId, channelId, length, videoInfo });
     const channelVideo = await tx.VideoRepository.addChannelVideo({ channelId, videoId });
     
+    const { videoInfo: dbVideoInfo, ...minVideo } = video;
+
     return {
       ...channelVideo,
-      ...video
+      ...dbVideoInfo,
+      ...minVideo
     };
   });
 };

@@ -15,7 +15,5 @@ module.exports = ({
     .where("cvs.channel_id", channelId)
     .orderBy("cvs.queue_position", "ASC");
 
-  console.log(query.toString());
-
   return query.toString();
 };

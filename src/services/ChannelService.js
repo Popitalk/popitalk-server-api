@@ -89,11 +89,19 @@ module.exports.getChannel = async ({ channelId, userId }) => {
     }
 
     const queue = await t.VideoRepository.getChannelQueue({ channelId });
+    const transformedQueue = queue.map(v => {
+      const { videoInfo, ...minVideo } = v;
+
+      return {
+        ...videoInfo,
+        ...minVideo
+      };
+    });
 
     return {
       ...channelInfo,
       ...chMemInfo,
-      queue
+      queue: transformedQueue
     };
   });
 };
