@@ -10,10 +10,18 @@ module.exports.addVideo = async ({
   videoInfo
 }) => {
   return db.tx(async tx => {
-    await tx.VideoRepository.getHasPermission({ userId, channelId });    
+    await tx.VideoRepository.getHasPermission({ userId, channelId });
     const videoId = `${source} ${sourceId}`;
-    const video = await tx.VideoRepository.addVideo({ videoId, channelId, length, videoInfo });
-    const channelVideo = await tx.VideoRepository.addChannelVideo({ channelId, videoId });
+    const video = await tx.VideoRepository.addVideo({ 
+      videoId, 
+      channelId, 
+      length, 
+      videoInfo 
+    });
+    const channelVideo = await tx.VideoRepository.addChannelVideo({ 
+      channelId, 
+      videoId 
+    });
     
     const { videoInfo: dbVideoInfo, ...minVideo } = video;
 
@@ -28,40 +36,15 @@ module.exports.addVideo = async ({
 module.exports.deleteVideo = async ({
   userId,
   channelId,
-  videoId
+  channelVideoId
 }) => {
   return db.tx(async tx => {
-    let uploadedIcon;
-
-    if (icon) {
-      const { payload: buffer } = icon;
-      const type = fileType(buffer);
-      const fileName = `channelIcon-${userId}_${new Date().getTime()}`;
-      const uploadedImage = await uploadFile(buffer, fileName, type);
-      if (!uploadedImage) throw Boom.internal("Couldn't upload icon");
-      uploadedIcon = uploadedImage.Location;
-    }
-
-    const newChannel = await tx.ChannelRepository.addChannel({
-      ownerId: userId,
-      name,
-      description,
-      public: publicChannel,
-      icon: uploadedIcon
+    await tx.VideoRepository.getHasPermission({ userId, channelId });  
+    const deletedChannelVideo = await tx.VideoRepository.deletedChannelVideo({ 
+      channelVideoId 
     });
 
-    await tx.MemberRepository.addMember({
-      channelId: newChannel.id,
-      userId,
-      admin: true
-    });
-
-    const channelInfo = await tx.ChannelRepository.getAdminChannel({
-      channelId: newChannel.id,
-      userId
-    });
-
-    return channelInfo;
+    return deletedChannelVideo;
   });
 };
 

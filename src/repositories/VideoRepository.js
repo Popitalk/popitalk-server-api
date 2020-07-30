@@ -23,6 +23,10 @@ class VideoRepository {
   async addChannelVideo({ channelId, videoId }) {
     return this.db.one(queries.addChannelVideo, [channelId, videoId]);
   }
+
+  async deleteChannelVideo({ channelVideoId }) {
+    return this.db.one(queries.deleteChannelVideo, { channelVideoId });
+  }
 }
 
 module.exports = VideoRepository;

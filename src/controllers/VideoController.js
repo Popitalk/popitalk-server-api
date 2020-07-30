@@ -184,16 +184,21 @@ const controllers = [
   },
   {
     method: "DELETE",
-    path: "/{queuedVideoId}",
+    path: "/{channelVideoId}",
     options: {
       description: "Deletes a video from a channel queue",
       tags: ["api"],
       validate: {
         params: Joi.object()
           .keys({
-            queuedVideoId: Joi.string()
+            channelVideoId: Joi.string()
               .uuid()
               .required()
+          })
+          .required(),
+        payload: Joi.object()
+          .keys({
+            channelId: Joi.string().required()
           })
           .required()
       },
@@ -212,9 +217,9 @@ const controllers = [
     },
     async handler(req, res) {
       const { id: userId } = req.auth.credentials;
-      const { queuedVideoId } = req.params;
-      await VideoService.deleteVideo({ userId, queuedVideoId });
-      return { queuedVideoId };
+      const { channelVideoId } = req.params;
+      await VideoService.deleteVideo({ userId, channelId, channelVideoId });
+      return { channelVideoId };
     }
   }
 ];
