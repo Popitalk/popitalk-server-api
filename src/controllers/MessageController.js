@@ -1,5 +1,5 @@
 const Joi = require("@hapi/joi");
-// const { WS_EVENTS } = require("../config/constants");
+const { WS_EVENTS } = require("../config/constants");
 const publisher = require("../config/publisher");
 const MessageService = require("../services/MessageService");
 
@@ -70,16 +70,16 @@ const controllers = [
         userId,
         ...req.payload
       });
-      // publisher({
-      //   type: CHANNEL_EVENTS.WS_ADD_MESSAGE,
-      //   channelId,
-      //   initiator: userId,
-      //   payload: {
-      //     userId,
-      //     channelId,
-      //     message: newMessage
-      //   }
-      // });
+      publisher({
+        type: WS_EVENTS.CHANNEL.ADD_MESSAGE,
+        channelId,
+        initiator: userId,
+        payload: {
+          userId,
+          channelId,
+          message: newMessage
+        }
+      });
       return res.response(newMessage).code(201);
     }
   },
@@ -177,16 +177,16 @@ const controllers = [
         userId,
         messageId
       });
-      // publisher({
-      //   type: CHANNEL_EVENTS.WS_DELETE_MESSAGE,
-      //   channelId: deletedMessage.channelId,
-      //   initiator: userId,
-      //   payload: {
-      //     userId,
-      //     channelId: deletedMessage.channelId,
-      //     ...deletedMessage
-      //   }
-      // });
+      publisher({
+        type: WS_EVENTS.CHANNEL.DELETE_MESSAGE,
+        channelId: deletedMessage.channelId,
+        initiator: userId,
+        payload: {
+          userId,
+          channelId: deletedMessage.channelId,
+          ...deletedMessage
+        }
+      });
       return deletedMessage;
     }
   }
