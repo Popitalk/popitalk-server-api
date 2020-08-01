@@ -214,6 +214,9 @@ const controllers = [
             .keys({
               channelVideoId: Joi.string()
                 .uuid()
+                .required(),
+              queuePosition: Joi.number()
+                .integer()
                 .required()
             })
             .required()
