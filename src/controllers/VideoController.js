@@ -212,7 +212,7 @@ const controllers = [
         status: {
           200: Joi.object()
             .keys({
-              channelId: Joi.string()
+              channelVideoId: Joi.string()
                 .uuid()
                 .required()
             })
@@ -225,8 +225,13 @@ const controllers = [
       const { id: userId } = req.auth.credentials;
       const { channelVideoId } = req.params;
       const { channelId } = req.payload;
-      await VideoService.deleteVideo({ userId, channelId, channelVideoId });
-      return { channelVideoId };
+      const deletedVideo = await VideoService.deleteVideo({
+        userId,
+        channelId,
+        channelVideoId
+      });
+      console.log("deletedVideo", deletedVideo);
+      return { ...deletedVideo };
     }
   }
 ];

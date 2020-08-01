@@ -12,17 +12,17 @@ module.exports.addVideo = async ({
   return db.tx(async tx => {
     await tx.VideoRepository.getHasPermission({ userId, channelId });
     const videoId = `${source} ${sourceId}`;
-    const video = await tx.VideoRepository.addVideo({ 
-      videoId, 
-      channelId, 
-      length, 
-      videoInfo 
+    const video = await tx.VideoRepository.addVideo({
+      videoId,
+      channelId,
+      length,
+      videoInfo
     });
-    const channelVideo = await tx.VideoRepository.addChannelVideo({ 
-      channelId, 
-      videoId 
+    const channelVideo = await tx.VideoRepository.addChannelVideo({
+      channelId,
+      videoId
     });
-    
+
     const { videoInfo: dbVideoInfo, ...minVideo } = video;
 
     return {
@@ -33,26 +33,18 @@ module.exports.addVideo = async ({
   });
 };
 
-module.exports.deleteVideo = async ({
-  userId,
-  channelId,
-  channelVideoId
-}) => {
+module.exports.deleteVideo = async ({ userId, channelId, channelVideoId }) => {
   return db.tx(async tx => {
-    await tx.VideoRepository.getHasPermission({ userId, channelId });  
-    const deletedChannelVideo = await tx.VideoRepository.deletedChannelVideo({ 
-      channelVideoId 
+    await tx.VideoRepository.getHasPermission({ userId, channelId });
+    const deletedChannelVideo = await tx.VideoRepository.deleteChannelVideo({
+      channelVideoId
     });
 
     return deletedChannelVideo;
   });
 };
 
-module.exports.updateQueue = async ({
-  userId,
-  channelId,
-  videoIds
-}) => {
+module.exports.updateQueue = async ({ userId, channelId, videoIds }) => {
   return db.tx(async tx => {
     let uploadedIcon;
 
