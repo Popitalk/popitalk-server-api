@@ -1,8 +1,8 @@
 const Joi = require("@hapi/joi");
-const {google} = require('googleapis');
-const config = require('../config');
-const VideoService = require("../services/VideoService");
+const { google } = require("googleapis");
 const moment = require("moment");
+const config = require("../config");
+const VideoService = require("../services/VideoService");
 
 const controllers = [
   {
@@ -23,12 +23,12 @@ const controllers = [
     },
     async handler(req, res) {
       const { terms, page } = req.query;
-      
-      let parameters = {
-        part: 'snippet',
+
+      const parameters = {
+        part: "snippet",
         q: terms,
         maxResults: 25,
-        type: 'video',
+        type: "video",
         key: config.youtubeApiKey
       };
       if (page) {
@@ -36,7 +36,7 @@ const controllers = [
       }
 
       try {
-        const youtube = google.youtube('v3');
+        const youtube = google.youtube("v3");
         const response = await youtube.search.list(parameters);
 
         const results = response.data.items.map(i => {
@@ -46,7 +46,7 @@ const controllers = [
             publishedAt: i.snippet.publishedAt,
             title: i.snippet.title,
             thumbnail: i.snippet.thumbnails.high.url
-          }
+          };
         });
 
         return res
@@ -54,10 +54,10 @@ const controllers = [
             nextPageToken: response.data.nextPageToken,
             prevPageToken: response.data.prevPageToken,
             totalResults: response.data.pageInfo.totalResults,
-            results: results
+            results
           })
           .code(201);
-      } catch(err) {
+      } catch (err) {
         return res
           .response({
             error: err
@@ -93,12 +93,12 @@ const controllers = [
     async handler(req, res) {
       const { id: userId } = req.auth.credentials;
       const { channelId } = req.params;
-      let videoInfo = req.payload;
-      
+      const videoInfo = req.payload;
+
       try {
-        const youtube = google.youtube('v3');
+        const youtube = google.youtube("v3");
         const response = await youtube.videos.list({
-          part: 'contentDetails',
+          part: "contentDetails",
           id: videoInfo.sourceId,
           key: config.youtubeApiKey
         });
@@ -112,10 +112,8 @@ const controllers = [
           ...videoInfo
         });
 
-        return res
-          .response({ channelId: channelId, video })
-          .code(201);
-      } catch(err) {
+        return res.response({ channelId, video }).code(201);
+      } catch (err) {
         return res
           .response({
             error: err
@@ -147,10 +145,12 @@ const controllers = [
         payload: Joi.object()
           .keys({
             videoIds: Joi.array()
-            .items(
-              Joi.string().uuid().required()
-            )
-            .required()
+              .items(
+                Joi.string()
+                  .uuid()
+                  .required()
+              )
+              .required()
           })
           .required()
       },
@@ -162,7 +162,13 @@ const controllers = [
                 .uuid()
                 .required(),
               success: Joi.boolean().required(),
-              videoIds: Joi.array().items(Joi.string().uuid().required()).required()
+              videoIds: Joi.array()
+                .items(
+                  Joi.string()
+                    .uuid()
+                    .required()
+                )
+                .required()
             })
             .required()
             .label("updateQueueResponse")
@@ -218,6 +224,7 @@ const controllers = [
     async handler(req, res) {
       const { id: userId } = req.auth.credentials;
       const { channelVideoId } = req.params;
+      const { channelId } = req.payload;
       await VideoService.deleteVideo({ userId, channelId, channelVideoId });
       return { channelVideoId };
     }
