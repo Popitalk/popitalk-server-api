@@ -6,6 +6,5 @@ module.exports = ({ channelVideoId }) => {
     .where("id", channelVideoId)
     .del()
     .returning("id as channelVideoId");
-  console.log(query.toString());
   return query.toString();
 };

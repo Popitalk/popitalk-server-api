@@ -230,7 +230,6 @@ const controllers = [
         channelId,
         channelVideoId
       });
-      console.log("deletedVideo", deletedVideo);
       return { ...deletedVideo };
     }
   }
