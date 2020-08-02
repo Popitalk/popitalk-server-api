@@ -212,7 +212,7 @@ const controllers = [
         status: {
           200: Joi.object()
             .keys({
-              channelVideoId: Joi.string()
+              channelId: Joi.string()
                 .uuid()
                 .required(),
               queuePosition: Joi.number()
