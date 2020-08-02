@@ -29,7 +29,7 @@ class VideoRepository {
   }
 
   async updateQueuePositionsAfterDelete({ channelId, queuePosition }) {
-    return this.db.one(queries.updateQueuePositionsAfterDelete, {
+    return this.db.any(queries.updateQueuePositionsAfterDelete, {
       channelId,
       queuePosition
     });
