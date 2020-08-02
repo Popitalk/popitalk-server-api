@@ -59,6 +59,7 @@ module.exports = {
   deleteChannelVideo: require("./deleteChannelVideo"),
   getHasPermission: require("./getHasPermission.js"),
   getChannelQueue: require("./getChannelQueue.js"),
+  updateQueuePositionsAfterDelete: require("./updateQueuePositionsAfterDelete"),
 
   /* -------------------------------------------------------------------------- */
   /*                                   MEMBERS                                  */

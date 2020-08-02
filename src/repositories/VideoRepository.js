@@ -27,6 +27,13 @@ class VideoRepository {
   async deleteChannelVideo({ channelVideoId }) {
     return this.db.one(queries.deleteChannelVideo, { channelVideoId });
   }
+
+  async updateQueuePositionsAfterDelete({ channelId, queuePosition }) {
+    return this.db.one(queries.updateQueuePositionsAfterDelete, {
+      channelId,
+      queuePosition
+    });
+  }
 }
 
 module.exports = VideoRepository;

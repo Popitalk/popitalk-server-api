@@ -39,7 +39,9 @@ module.exports.deleteVideo = async ({ userId, channelId, channelVideoId }) => {
     const deletedChannelVideo = await tx.VideoRepository.deleteChannelVideo({
       channelVideoId
     });
-
+    await tx.VideoRepository.updateQueuePositionsAfterDelete({
+      ...deletedChannelVideo
+    });
     return deletedChannelVideo;
   });
 };
