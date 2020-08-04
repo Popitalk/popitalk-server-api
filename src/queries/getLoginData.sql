@@ -80,6 +80,14 @@ WITH self AS (
   WHERE
     members.user_id = self.id
     AND NOT members.banned
+  UNION
+  SELECT
+    follow_requests.channel_id,
+    false AS admin
+  FROM
+    follow_requests, self
+  where
+    follow_requests .user_id = self.id
   ), channels_cte AS (
   SELECT
     channels.id,
