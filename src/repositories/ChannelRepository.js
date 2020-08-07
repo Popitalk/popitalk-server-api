@@ -101,8 +101,8 @@ class ChannelRepository {
     return this.db.one(queries.deleteFriendRoom, [userId1, userId2]);
   }
 
-  async getPlayerStatus({ channelId, userId }) {
-    return this.db.one(queries.getPlayerStatus, { channelId, userId });
+  async getPlayerStatus({ channelId }) {
+    return this.db.one(queries.getPlayerStatus, { channelId });
   }
 }
 

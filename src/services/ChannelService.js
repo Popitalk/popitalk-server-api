@@ -140,11 +140,22 @@ module.exports.updateChannel = async ({
 };
 
 module.exports.updatePlayerStatus = async newPlayerStatus => {
-  const playerStatus = await db.ChannelRepository.updatePlayerStatus(
-    newPlayerStatus
-  );
+  return db.tx(async tx => {
 
-  return playerStatus;
+    let playerStatus = null;
+    if (!newPlayerStatus.status) {
+      playerStatus = await tx.ChannelRepository.getPlayerStatus({
+        channelId: newPlayerStatus.channelId
+      });
+      newPlayerStatus.status = playerStatus.status;
+    } 
+  
+    playerStatus = await tx.ChannelRepository.updatePlayerStatus(
+      newPlayerStatus
+    );
+  
+    return playerStatus;
+  });
 };
 
 module.exports.deleteChannel = async ({ channelId, userId }) => {

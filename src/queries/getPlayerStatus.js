@@ -1,7 +1,7 @@
 /* eslint-disable no-nested-ternary */
 const knex = require("../config/knex");
 
-module.exports = ({ channelId, userId }) => {
+module.exports = ({ channelId }) => {
   const query = knex
     .select(
       "id",
@@ -11,20 +11,7 @@ module.exports = ({ channelId, userId }) => {
       "status"
     )
     .from("channels")
-    .where("id", channelId)
-    .whereExists(q =>
-      q
-        .select("*")
-        .from("members")
-        .where("channel_id", channelId)
-        .andWhere("user_id", userId)
-        .andWhere("banned", false).whereRaw(/* SQL */ `
-        (
-          channels.type != 'channel'
-          OR members.banned = false
-        )
-      `)
-    );
-  console.log("query", query.toString());
+    .where("id", channelId);
+  
   return query.toString();
 };
