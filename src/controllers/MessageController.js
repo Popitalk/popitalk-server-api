@@ -18,7 +18,6 @@ const messageSchema = Joi.object().keys({
     .max(2000)
     .required(),
   upload: Joi.string()
-    .uri()
     .allow(null)
     .required(),
   createdAt: Joi.date()
@@ -53,7 +52,10 @@ const controllers = [
               .required(),
             content: Joi.string()
               .min(1)
-              .max(2000)
+              .max(2000),
+            upload: Joi.string()
+              .allow(null)
+              .required()
           })
           .required()
       },

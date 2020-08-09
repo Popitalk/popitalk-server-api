@@ -1,7 +1,7 @@
 const db = require("../config/database");
 
-module.exports.addMessage = async ({ userId, channelId, content }) => {
-  return db.MessageRepository.addMessage({ userId, channelId, content });
+module.exports.addMessage = async ({ userId, channelId, content, upload }) => {
+  return db.MessageRepository.addMessage({ userId, channelId, content, upload });
 };
 
 module.exports.getMessages = async ({
