@@ -77,9 +77,9 @@ WITH self AS (
     members.admin
   FROM
     members, self
-  WHERE
-    members.user_id = self.id
-    AND NOT members.banned
+  -- WHERE
+  --   members.user_id = self.id
+  --   AND NOT members.banned
   UNION
   SELECT
     follow_requests.channel_id,
