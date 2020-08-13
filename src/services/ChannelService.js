@@ -141,6 +141,10 @@ module.exports.updateChannel = async ({
 
 module.exports.updatePlayerStatus = async newPlayerStatus => {
   return db.tx(async tx => {
+    await tx.VideoRepository.getHasPermission({ 
+      userId: newPlayerStatus.userId, 
+      channelId: newPlayerStatus.channelId 
+    });
 
     let playerStatus = null;
     if (!newPlayerStatus.status) {

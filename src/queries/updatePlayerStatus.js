@@ -4,7 +4,6 @@ const moment = require("moment");
 
 module.exports = ({
   channelId,
-  userId,
   queueStartPosition,
   videoStartTime,
   clockStartTime,
@@ -30,19 +29,6 @@ module.exports = ({
     .update(playerStatus)
     .from("channels")
     .where("id", channelId)
-    .whereExists(q =>
-      q
-        .select("*")
-        .from("members")
-        .where("channel_id", channelId)
-        .andWhere("user_id", userId)
-        .andWhere("admin", true).whereRaw(/* SQL */ `
-        (
-          channels.type != 'channel'
-          OR members.admin
-        )
-      `)
-    )
     .returning([
       "queue_start_position AS queueStartPosition",
       "video_start_time AS videoStartTime",

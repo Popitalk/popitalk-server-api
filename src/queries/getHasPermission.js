@@ -10,12 +10,12 @@ module.exports = ({
     .innerJoin('channels', 'channels.id', 'members.channel_id')
     .where("channel_id", channelId)
     .andWhere("user_id", userId)
-    .andWhere("admin", true).whereRaw(/* SQL */ `
+    .whereRaw(/* SQL */ `
     (
       channels.type != 'channel'
       OR members.admin
     )
   `);
-
+  
   return query.toString();
 };
