@@ -1,6 +1,14 @@
 const glue = require("@hapi/glue");
+const Sentry = require("@sentry/node");
 const config = require("./config");
 const manifest = require("./manifest");
+// or use es6 import statements
+// import * as Sentry from '@sentry/node';
+
+Sentry.init({
+  dsn:
+    "https://c814699d1c9942feb3b19bf8434eaed3@o433742.ingest.sentry.io/5391785"
+});
 
 const startServer = async () => {
   try {
