@@ -28,10 +28,46 @@ class VideoRepository {
     return this.db.one(queries.deleteChannelVideo, { channelVideoId });
   }
 
+  async updateQueuePosition({ channelId, oldIndex, newIndex }) {
+    return this.db.one(queries.updateQueuePosition, {
+      channelId, 
+      oldIndex, 
+      newIndex
+    });
+  }
+
   async updateQueuePositionsAfterDelete({ channelId, queuePosition }) {
     return this.db.any(queries.updateQueuePositionsAfterDelete, {
       channelId,
       queuePosition
+    });
+  }
+
+  async updateQueuePositionsAfterHighToLowSwap({ 
+    channelId, 
+    channelVideoId,
+    oldIndex, 
+    newIndex 
+  }) {
+    return this.db.any(queries.updateQueuePositionsAfterHighToLowSwap, {
+      channelId, 
+      channelVideoId,
+      oldIndex, 
+      newIndex 
+    });
+  }
+
+  async updateQueuePositionsAfterLowToHighSwap({ 
+    channelId, 
+    channelVideoId,
+    oldIndex, 
+    newIndex 
+  }) {
+    return this.db.any(queries.updateQueuePositionsAfterLowToHighSwap, {
+      channelId, 
+      channelVideoId,
+      oldIndex, 
+      newIndex 
     });
   }
 }

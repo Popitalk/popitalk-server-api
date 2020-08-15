@@ -59,7 +59,10 @@ module.exports = {
   deleteChannelVideo: require("./deleteChannelVideo"),
   getHasPermission: require("./getHasPermission.js"),
   getChannelQueue: require("./getChannelQueue.js"),
+  updateQueuePosition: require("./updateQueuePosition.js"),
   updateQueuePositionsAfterDelete: require("./updateQueuePositionsAfterDelete"),
+  updateQueuePositionsAfterHighToLowSwap: require("./updateQueuePositionsAfterHighToLowSwap.js"),
+  updateQueuePositionsAfterLowToHighSwap: require("./updateQueuePositionsAfterLowToHighSwap.js"),
 
   /* -------------------------------------------------------------------------- */
   /*                                   MEMBERS                                  */

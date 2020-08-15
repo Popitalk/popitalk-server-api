@@ -144,13 +144,8 @@ const controllers = [
           .required(),
         payload: Joi.object()
           .keys({
-            videoIds: Joi.array()
-              .items(
-                Joi.string()
-                  .uuid()
-                  .required()
-              )
-              .required()
+            oldIndex: Joi.number().required(),
+            newIndex: Joi.number().required()
           })
           .required()
       },
@@ -161,14 +156,8 @@ const controllers = [
               channelId: Joi.string()
                 .uuid()
                 .required(),
-              success: Joi.boolean().required(),
-              videoIds: Joi.array()
-                .items(
-                  Joi.string()
-                    .uuid()
-                    .required()
-                )
-                .required()
+              oldIndex: Joi.number().required(),
+              newIndex: Joi.number().required()
             })
             .required()
             .label("updateQueueResponse")
@@ -178,14 +167,15 @@ const controllers = [
     async handler(req, res) {
       const { id: userId } = req.auth.credentials;
       const { channelId } = req.params;
-      const { videoIds } = req.payload;
-      const channel = await VideoService.updateQueue({
+      const { oldIndex, newIndex } = req.payload;
+      await VideoService.updateQueue({
         userId,
         channelId,
-        videoIds
+        oldIndex,
+        newIndex
       });
 
-      return { channelId, channel };
+      return { channelId, oldIndex, newIndex };
     }
   },
   {

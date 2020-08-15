@@ -46,38 +46,37 @@ module.exports.deleteVideo = async ({ userId, channelId, channelVideoId }) => {
   });
 };
 
-module.exports.updateQueue = async ({ userId, channelId, videoIds }) => {
+module.exports.updateQueue = async ({ 
+  userId, 
+  channelId, 
+  oldIndex, 
+  newIndex 
+}) => {
+  if (oldIndex === newIndex) return;
+  
   return db.tx(async tx => {
-    let uploadedIcon;
+    await tx.VideoRepository.getHasPermission({ userId, channelId });
 
-    if (icon) {
-      const { payload: buffer } = icon;
-      const type = fileType(buffer);
-      const fileName = `channelIcon-${userId}_${new Date().getTime()}`;
-      const uploadedImage = await uploadFile(buffer, fileName, type);
-      if (!uploadedImage) throw Boom.internal("Couldn't upload icon");
-      uploadedIcon = uploadedImage.Location;
+    const channelVideo = await tx.VideoRepository.updateQueuePosition({ 
+      channelId, 
+      oldIndex, 
+      newIndex 
+    });
+
+    if (oldIndex > newIndex) {
+      await tx.VideoRepository.updateQueuePositionsAfterHighToLowSwap({ 
+        channelId, 
+        channelVideoId: channelVideo.id, 
+        oldIndex, 
+        newIndex
+      });
+    } else if (oldIndex < newIndex) {
+      await tx.VideoRepository.updateQueuePositionsAfterLowToHighSwap({ 
+        channelId, 
+        channelVideoId: channelVideo.id, 
+        oldIndex, 
+        newIndex
+      });
     }
-
-    const newChannel = await tx.ChannelRepository.addChannel({
-      ownerId: userId,
-      name,
-      description,
-      public: publicChannel,
-      icon: uploadedIcon
-    });
-
-    await tx.MemberRepository.addMember({
-      channelId: newChannel.id,
-      userId,
-      admin: true
-    });
-
-    const channelInfo = await tx.ChannelRepository.getAdminChannel({
-      channelId: newChannel.id,
-      userId
-    });
-
-    return channelInfo;
   });
 };
