@@ -115,6 +115,12 @@ module.exports.setTrending = async () => {
 };
 
 const collectRandom = async (count, keys) => {
+  if (keys.length === 0) {
+    const channelKeys = await redis.keys("channel:*");
+    if (channelKeys.length === 0) {
+      return keys;
+    }
+  }
   let randomKey = "";
   while (randomKey.slice(0, 7) !== "channel") {
     randomKey = await redis.randomkey();
