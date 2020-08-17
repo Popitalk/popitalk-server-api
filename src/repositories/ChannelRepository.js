@@ -83,10 +83,7 @@ class ChannelRepository {
   }
 
   async updatePlayerStatus(newPlayerStatus) {
-    return this.db.one(
-      queries.updatePlayerStatus,
-      newPlayerStatus
-    );
+    return this.db.one(queries.updatePlayerStatus, newPlayerStatus);
   }
 
   async deleteChannel({ channelId, userId }) {
@@ -103,6 +100,24 @@ class ChannelRepository {
 
   async getPlayerStatus({ channelId }) {
     return this.db.one(queries.getPlayerStatus, { channelId });
+  }
+
+  async getPostLikesInLast50Hrs({ channelId }) {
+    return this.db.manyOrNone(queries.getPostLikesInLast50Hrs, [channelId]);
+  }
+
+  async getCommentIdsInLast50Hrs({ channelId }) {
+    return this.db.manyOrNone(queries.getCommentIdsInLast50Hrs, [channelId]);
+  }
+
+  async getCountFollowRequestsInLast50Hrs({ channelId }) {
+    return this.db.manyOrNone(queries.getCountFollowRequestsInLast50Hrs, [
+      channelId
+    ]);
+  }
+
+  async getNewChannels() {
+    return this.db.many(queries.getNewChannels);
   }
 }
 

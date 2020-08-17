@@ -91,6 +91,7 @@
     "file-type": "^12.4.0",
     "google-auth-library": "^6.0.2",
     "googleapis": "^52.1.0",
+    "hapi-cron-job": "^2.0.1",
     "hapi-swagger": "^13.0.0",
     "ioredis": "^4.16.0",
     "jest": "^25.1.0",
