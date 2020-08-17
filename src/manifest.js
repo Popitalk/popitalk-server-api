@@ -80,11 +80,7 @@ const manifest = {
         }
       },
       {
-        plugin: {
-          register: require("hapi-cron-job").register,
-          name: require("hapi-cron-job").register.attributes.name,
-          version: require("hapi-cron-job").register.attributes.version
-        },
+        plugin: require("./helpers/hapi-cron-job.js"),
         options: {
           jobs: [
             {
