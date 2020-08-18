@@ -79,6 +79,22 @@ const manifest = {
           }
         }
       },
+      {
+        plugin: require("./helpers/hapi-cron-job.js"),
+        options: {
+          jobs: [
+            {
+              name: "Ranking",
+              enabled: true,
+              schedule: "every 10 s",
+              execute: require("./cron-jobs/rank.js").execute
+            }
+          ]
+        },
+        next: x => {
+          return x;
+        }
+      },
       { plugin: require("./plugins/responseTime") },
       {
         plugin: require("./controllers/UserController"),

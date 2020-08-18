@@ -136,9 +136,9 @@ module.exports.updateChannel = async ({
 
 module.exports.updatePlayerStatus = async newPlayerStatus => {
   return db.tx(async tx => {
-    await tx.VideoRepository.getHasPermission({ 
-      userId: newPlayerStatus.userId, 
-      channelId: newPlayerStatus.channelId 
+    await tx.VideoRepository.getHasPermission({
+      userId: newPlayerStatus.userId,
+      channelId: newPlayerStatus.channelId
     });
 
     const storedPlayerStatus = await tx.ChannelRepository.getPlayerStatus({
@@ -164,7 +164,7 @@ module.exports.updatePlayerStatus = async newPlayerStatus => {
     playerStatus = await tx.ChannelRepository.updatePlayerStatus(
       newPlayerStatus
     );
-  
+
     return playerStatus;
   });
 };
@@ -255,4 +255,40 @@ module.exports.getPlayerStatus = async ({ userId, channelId }) => {
   });
 
   return playerStatus;
+};
+
+module.exports.getAvgPostLikesInLast50Hrs = async ({ channelId }) => {
+  const repeatPostIds = await db.ChannelRepository.getPostLikesInLast50Hrs({
+    channelId
+  });
+  const avgLikes = repeatPostIds.length / [...new Set(repeatPostIds)].length;
+  return avgLikes || 0;
+};
+
+module.exports.getAvgCommentInLast50Hrs = async ({ channelId }) => {
+  const response = await db.ChannelRepository.getCommentIdsInLast50Hrs({
+    channelId
+  });
+  const repeatPostIds = response.map(response.post_id);
+  const avgComments = response.length / [...new Set(repeatPostIds)].length;
+  return avgComments || 0;
+};
+
+module.exports.getAvgCommentInLast50Hrs = async ({ channelId }) => {
+  const response = await db.ChannelRepository.getCountFollowRequestsInLast50Hrs(
+    { channelId }
+  );
+  return response.count || 0;
+};
+
+module.exports.getCountFollowRequestsInLast50Hrs = async ({ channelId }) => {
+  const response = db.ChannelRepository.getCountFollowRequestsInLast50Hrs({
+    channelId
+  });
+  return response.count || 0;
+};
+
+module.exports.getNewChannels = async () => {
+  const response = await db.ChannelRepository.getNewChannels();
+  return response;
 };

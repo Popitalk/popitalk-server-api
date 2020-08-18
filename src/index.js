@@ -14,7 +14,6 @@ const startServer = async () => {
   try {
     const server = await glue.compose(manifest, { relativeTo: __dirname });
     await server.start();
-
     server.log(
       ["serv"],
       `API Server is running on ${server.info.uri} in ${config.mode} mode`

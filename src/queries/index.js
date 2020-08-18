@@ -24,6 +24,12 @@ module.exports = {
   getUserRelationship: sql("./getUserRelationship.sql"),
   updateUserRelationship: sql("./updateUserRelationship.sql"),
   deleteUserRelationship: sql("./deleteUserRelationship.sql"),
+  getCommentIdsInLast50Hrs: sql("./getCommentIdPostIdLast50Hrs.sql"),
+  getCountFollowRequestsInLast50Hrs: sql(
+    "./getCountFollowRequestsInLast50Hrs.sql"
+  ),
+  getNewChannels: sql("./getNewChannels.sql"),
+  getPostLikesInLast50Hrs: sql("./getPostLikesInLast50Hrs.sql"),
 
   /* -------------------------------------------------------------------------- */
   /*                                  SESSIONS                                  */
