@@ -10,7 +10,7 @@ WITH chan AS (
     channels.queue_start_position AS "queueStartPosition",
     channels.video_start_time AS "videoStartTime",
     channels.clock_start_time AS "clockStartTime",
-    channels.owner_id,
+    channels.owner_id AS "ownerId",
     channels.created_at,
     mems.admin_ids AS admins,
     mems.admin_ids AS "memberCount"
