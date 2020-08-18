@@ -1,6 +1,5 @@
 /* eslint-disable no-nested-ternary */
 const knex = require("../config/knex");
-const moment = require("moment");
 
 module.exports = ({
   channelId,
@@ -18,11 +17,6 @@ module.exports = ({
 
   if (status) {
     playerStatus.status = status;
-    
-    if (status === "Playing") {
-      playerStatus.clock_start_time = moment(clockStartTime)
-        .add(3, "seconds").format();
-    }
   }
 
   const query = knex

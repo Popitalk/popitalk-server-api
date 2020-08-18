@@ -168,14 +168,14 @@ const controllers = [
       const { id: userId } = req.auth.credentials;
       const { channelId } = req.params;
       const { oldIndex, newIndex } = req.payload;
-      await VideoService.updateQueue({
+      const playerStatus = await VideoService.updateQueue({
         userId,
         channelId,
         oldIndex,
         newIndex
       });
 
-      return { channelId, oldIndex, newIndex };
+      return { channelId, oldIndex, newIndex, updatedChannel: playerStatus };
     }
   },
   {
@@ -218,12 +218,12 @@ const controllers = [
       const { id: userId } = req.auth.credentials;
       const { channelVideoId } = req.params;
       const { channelId } = req.payload;
-      const deletedVideo = await VideoService.deleteVideo({
+      const { deletedVideo, playerStatus } = await VideoService.deleteVideo({
         userId,
         channelId,
         channelVideoId
       });
-      return { ...deletedVideo };
+      return { ...deletedVideo, updatedChannel: playerStatus };
     }
   }
 ];

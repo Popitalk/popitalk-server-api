@@ -1,7 +1,10 @@
 const Boom = require("@hapi/boom");
 const fileType = require("file-type");
+const moment = require("moment");
 const { uploadFile } = require("../config/aws");
 const db = require("../config/database");
+const { getQueue } = require("./VideoService");
+const { calculatePlayerStatus, BUFFER_TIME } = require("../shared/videoSyncing");
 
 module.exports.addChannel = async ({
   userId,
@@ -88,20 +91,12 @@ module.exports.getChannel = async ({ channelId, userId }) => {
       channelInfo = await t.ChannelRepository.getPrivateChannel({ channelId });
     }
 
-    const queue = await t.VideoRepository.getChannelQueue({ channelId });
-    const transformedQueue = queue.map(v => {
-      const { videoInfo, ...minVideo } = v;
-
-      return {
-        ...videoInfo,
-        ...minVideo
-      };
-    });
+    const queue = await getQueue({ channelId });
 
     return {
       ...channelInfo,
       ...chMemInfo,
-      queue: transformedQueue
+      queue
     };
   });
 };
@@ -146,13 +141,25 @@ module.exports.updatePlayerStatus = async newPlayerStatus => {
       channelId: newPlayerStatus.channelId 
     });
 
-    let playerStatus = null;
+    const storedPlayerStatus = await tx.ChannelRepository.getPlayerStatus({
+      channelId: newPlayerStatus.channelId
+    });
+    const queue = await tx.VideoRepository.getChannelQueue({ 
+      channelId: newPlayerStatus.channelId 
+    });
+    let playerStatus = calculatePlayerStatus(storedPlayerStatus, queue);
+
     if (!newPlayerStatus.status) {
-      playerStatus = await tx.ChannelRepository.getPlayerStatus({
-        channelId: newPlayerStatus.channelId
-      });
       newPlayerStatus.status = playerStatus.status;
     } 
+    
+    if (
+      playerStatus.status !== "Playing" && 
+      newPlayerStatus.status === "Playing"
+    ) {
+      newPlayerStatus.clockStartTime = moment(newPlayerStatus.clockStartTime)
+        .add(BUFFER_TIME, "seconds").format();
+    }
   
     playerStatus = await tx.ChannelRepository.updatePlayerStatus(
       newPlayerStatus
