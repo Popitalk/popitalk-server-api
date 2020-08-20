@@ -1,6 +1,7 @@
 SELECT
   channels.id,
   channels.name,
+  channels.description,
   channels.status,
   channels.icon,
   channels.owner_id AS "ownerId"
