@@ -1,6 +1,6 @@
 const moment = require("moment");
 const db = require("../config/database");
-const { calculatePlayerStatus } = require("../shared/videoSyncing");
+const { calculatePlayerStatus, BUFFER_TIME } = require("../shared/videoSyncing");
 
 module.exports.addVideo = async ({
   userId,
@@ -52,19 +52,27 @@ module.exports.deleteVideo = async ({ userId, channelId, channelVideoId }) => {
     let playerStatus = calculatePlayerStatus(
       storedPlayerStatus, queue, true, currTime);
 
-    if (deletedChannelVideo.queuePosition < storedPlayerStatus.queueStartPosition) {
+    if (deletedChannelVideo.queuePosition < playerStatus.queueStartPosition) {
+      playerStatus = await tx.ChannelRepository.updatePlayerStatus({
+        channelId,
+        queueStartPosition: playerStatus.queueStartPosition - 1,
+        videoStartTime: playerStatus.videoStartTime,
+        clockStartTime: currTime.format(),
+        status: playerStatus.status
+      });
+    } else if (deletedChannelVideo.queuePosition === playerStatus.queueStartPosition) {
       playerStatus = await tx.ChannelRepository.updatePlayerStatus({
         channelId,
         queueStartPosition: playerStatus.queueStartPosition,
-        videoStartTime: playerStatus.videoStartTime,
-        clockStartTime: currTime.format(),
+        videoStartTime: 0,
+        clockStartTime: moment().add(BUFFER_TIME, "seconds").format(),
         status: playerStatus.status
       });
     } else {
       playerStatus = null;
     }
 
-    return { deletedChannelVideo, playerStatus };
+    return { deletedVideo: deletedChannelVideo, playerStatus };
   });
 };
 

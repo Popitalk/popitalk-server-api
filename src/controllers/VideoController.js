@@ -197,32 +197,22 @@ const controllers = [
             channelId: Joi.string().required()
           })
           .required()
-      },
-      response: {
-        status: {
-          200: Joi.object()
-            .keys({
-              channelId: Joi.string()
-                .uuid()
-                .required(),
-              queuePosition: Joi.number()
-                .integer()
-                .required()
-            })
-            .required()
-            .label("deleteVideoResponse")
-        }
       }
     },
     async handler(req, res) {
       const { id: userId } = req.auth.credentials;
       const { channelVideoId } = req.params;
       const { channelId } = req.payload;
-      const { deletedVideo, playerStatus } = await VideoService.deleteVideo({
+      
+      const { 
+        deletedVideo, 
+        playerStatus 
+      } = await VideoService.deleteVideo({
         userId,
         channelId,
         channelVideoId
       });
+
       return { ...deletedVideo, updatedChannel: playerStatus };
     }
   }

@@ -16,6 +16,10 @@ const checkNewPlayerStatus = (
   playlist,
   newPlayerStatus
 ) => {
+  if (newPlayerStatus.queueStartPosition >= playlist.length) {
+    return defaultPlayerStatus();
+  }
+
   if (
     playlist[newPlayerStatus.queueStartPosition].length -
       newPlayerStatus.videoStartTime <
@@ -131,6 +135,10 @@ module.exports.calculatePlayerStatus = (
   }
 
   if (getCurrentOnly) {
+    if (newPlayerStatus.queueStartPosition >= playlist.length) {
+      return defaultPlayerStatus();
+    }
+    
     return newPlayerStatus;
   }
   
