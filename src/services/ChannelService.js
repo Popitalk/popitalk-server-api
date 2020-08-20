@@ -144,23 +144,23 @@ module.exports.updatePlayerStatus = async newPlayerStatus => {
     const storedPlayerStatus = await tx.ChannelRepository.getPlayerStatus({
       channelId: newPlayerStatus.channelId
     });
-    const queue = await tx.VideoRepository.getChannelQueue({ 
-      channelId: newPlayerStatus.channelId 
+    const queue = await tx.VideoRepository.getChannelQueue({
+      channelId: newPlayerStatus.channelId
     });
     let playerStatus = calculatePlayerStatus(storedPlayerStatus, queue);
 
     if (!newPlayerStatus.status) {
       newPlayerStatus.status = playerStatus.status;
-    } 
-    
+    }
+
     if (
-      playerStatus.status !== "Playing" && 
+      playerStatus.status !== "Playing" &&
       newPlayerStatus.status === "Playing"
     ) {
       newPlayerStatus.clockStartTime = moment(newPlayerStatus.clockStartTime)
         .add(BUFFER_TIME, "seconds").format();
     }
-  
+
     playerStatus = await tx.ChannelRepository.updatePlayerStatus(
       newPlayerStatus
     );
@@ -290,5 +290,10 @@ module.exports.getCountFollowRequestsInLast50Hrs = async ({ channelId }) => {
 
 module.exports.getNewChannels = async () => {
   const response = await db.ChannelRepository.getNewChannels();
+  return response;
+};
+
+module.exports.searchChannels = async ({ searchTerm, pageNo }) => {
+  const response = await db.ChannelRepository.searchChannels({ searchTerm, pageNo });
   return response;
 };

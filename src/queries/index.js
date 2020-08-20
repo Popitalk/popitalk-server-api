@@ -55,6 +55,7 @@ module.exports = {
   getPlayerStatus: require("./getPlayerStatus.js"),
   deleteChannel: sql("./deleteChannel.sql"),
   deleteFriendRoom: sql("./deleteFriendRoom.sql"),
+  searchChannels: sql("./searchChannels.sql"),
 
   /* -------------------------------------------------------------------------- */
   /*                                    VIDEOS                                  */

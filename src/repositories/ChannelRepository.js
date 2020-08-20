@@ -119,6 +119,11 @@ class ChannelRepository {
   async getNewChannels() {
     return this.db.many(queries.getNewChannels);
   }
+
+  async searchChannels({ searchTerm, pageNo }) {
+    const offset = (pageNo - 1) * 9;
+    return this.db.manyOrNone(queries.searchChannels, [searchTerm, offset]);
+  }
 }
 
 module.exports = ChannelRepository;

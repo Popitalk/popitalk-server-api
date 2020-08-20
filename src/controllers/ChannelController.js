@@ -259,6 +259,41 @@ const controllers = [
     }
   },
   {
+    method: "GET",
+    path: "/search",
+    options: {
+      description: "Searches channel",
+      tags: ["api"],
+      validate: {
+        query: Joi.object()
+          .keys({
+            searchTerm: Joi.string()
+              .min(1)
+              .required(),
+            pageNo: Joi.string()
+              .min(1)
+              .required()
+          })
+          .required()
+      },
+      response: {
+        status: {
+          200: Joi.array()
+            .required()
+            .label("searchChannelResponse")
+        }
+      }
+    },
+    async handler(req, res) {
+      const { searchTerm, pageNo } = req.query;
+      const channels = await ChannelService.searchChannels({
+        searchTerm,
+        pageNo
+      });
+      return channels;
+    }
+  },
+  {
     method: "PUT",
     path: "/{channelId}",
     options: {
