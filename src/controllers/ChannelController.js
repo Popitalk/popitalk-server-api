@@ -268,7 +268,8 @@ const controllers = [
         query: Joi.object()
           .keys({
             searchTerm: Joi.string()
-              .min(1)
+              .min(0)
+              .allow("")
               .required(),
             pageNo: Joi.string()
               .min(1)
