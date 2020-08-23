@@ -27,7 +27,7 @@ module.exports.getTrending = async ({ userId }) => {
 
     if (channelInfoStr === null) {
       channelInfo = await ChannelService.getChannel({ channelId, userId });
-      redis.set(channelId, JSON.stringify(channelInfo), "EX", 864000);
+      redis.set(channelId, JSON.stringify(channelInfo), "EX", 30);
     } else {
       channelInfo = JSON.parse(channelInfoStr);
     }
@@ -45,6 +45,7 @@ module.exports.getTrending = async ({ userId }) => {
       ...top36Channels,
       [channel[Object.keys(channel)[0]].channel.id]: {
         ...channel[Object.keys(channel)[0]].channel,
+        queue: channel[Object.keys(channel)[0]].queue,
         speciality: "trending"
       }
     };
@@ -139,7 +140,7 @@ module.exports.getDiscover = async ({ userId }) => {
 
     if (channelInfoStr === null) {
       channelInfo = await ChannelService.getChannel({ channelId, userId });
-      redis.set(channelId, JSON.stringify(channelInfo), "EX", 864000);
+      redis.set(channelId, JSON.stringify(channelInfo), "EX", 30);
     } else {
       channelInfo = JSON.parse(channelInfoStr);
     }
@@ -157,6 +158,7 @@ module.exports.getDiscover = async ({ userId }) => {
       ...discoverChannels,
       [channel[Object.keys(channel)[0]].channel.id]: {
         ...channel[Object.keys(channel)[0]].channel,
+        queue: channel[Object.keys(channel)[0]].queue,
         speciality: "discover"
       }
     };
