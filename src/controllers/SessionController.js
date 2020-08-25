@@ -138,8 +138,7 @@ const controllers = [
       tags: ["api"],
       response: {
         status: {
-          200: Joi.object()
-            .keys({ wsTicket: Joi.string().uuid().required() }).required()
+          200: loginResponseSchema
         }
       }
     },
@@ -151,7 +150,7 @@ const controllers = [
 
       const wsTicket = await wsBooth(loginData);
 
-      return { wsTicket };
+      return { ...loginData, wsTicket };
     }
   },
   {
