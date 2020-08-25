@@ -2,7 +2,6 @@ const Joi = require("@hapi/joi");
 // const { WS_EVENTS } = require("../config/constants");
 const publisher = require("../config/publisher");
 const ChannelService = require("../services/ChannelService");
-const ranker = require("../ranking/ranker");
 
 const playerValidation = {
   params: Joi.object()
@@ -244,7 +243,7 @@ const controllers = [
     async handler(req, res) {
       const { id: userId } = req.auth.credentials;
       const { channelId } = req.params;
-      ranker.sentChannel({ channelId, userId });
+      // ranker.sentChannel({ channelId, userId });
       const channelInfo = await ChannelService.getChannel({
         userId,
         channelId
