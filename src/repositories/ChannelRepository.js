@@ -117,7 +117,7 @@ class ChannelRepository {
   }
 
   async getNewChannels() {
-    return this.db.many(queries.getNewChannels);
+    return this.db.manyOrNone(queries.getNewChannels);
   }
 
   async searchChannels({ searchTerm, pageNo }) {
