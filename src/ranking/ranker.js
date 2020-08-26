@@ -21,6 +21,12 @@ module.exports.sentChannel = async ({ channelId, userId }) => {
 
 module.exports.getTrending = async ({ userId }) => {
   const top36ChannelIds = await redis.lrange("trending", 0, 36);
+  if (top36ChannelIds.length !== 0) {
+    return {
+      trendingChannels: [],
+      trendingChannelsUsers: []
+    };
+  }
   const top36ChannelsPromises = top36ChannelIds.map(async channelId => {
     const channelInfoStr = await redis.get(channelId);
     let channelInfo;
@@ -134,6 +140,12 @@ const collectRandom = async (count, keys) => {
 
 module.exports.getDiscover = async ({ userId }) => {
   const channelIds = await collectRandom(36, []);
+  if (channelIds.length !== 0) {
+    return {
+      discoverChannels: [],
+      discoverChannelsUsers: []
+    };
+  }
   const channelsPromises = channelIds.map(async channelId => {
     const channelInfoStr = await redis.get(channelId);
     let channelInfo;

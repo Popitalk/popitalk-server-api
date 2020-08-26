@@ -4,7 +4,10 @@ const moment = require("moment");
 const { uploadFile } = require("../config/aws");
 const db = require("../config/database");
 const { getQueue } = require("./VideoService");
-const { calculatePlayerStatus, BUFFER_TIME } = require("../shared/videoSyncing");
+const {
+  calculatePlayerStatus,
+  BUFFER_TIME
+} = require("../shared/videoSyncing");
 
 module.exports.addChannel = async ({
   userId,
@@ -71,33 +74,45 @@ module.exports.getChannel = async ({ channelId, userId }) => {
       channelId,
       userId
     });
-    const { type, isPublic, isOwner, isAdmin, isMember, isBanned } = chMemInfo;
+    if (chMemInfo) {
+      const {
+        type,
+        isPublic,
+        isOwner,
+        isAdmin,
+        isMember,
+        isBanned
+      } = chMemInfo;
 
-    if (isBanned) throw Boom.unauthorized("You're banned from this channel");
+      if (isBanned) throw Boom.unauthorized("You're banned from this channel");
 
-    if (type !== "channel" && isMember) {
-      channelInfo = await t.ChannelRepository.getRoomChannel({ channelId });
-    } else if (isAdmin) {
-      channelInfo = await t.ChannelRepository.getAdminChannel({
-        channelId,
-        userId
-      });
-    } else if (isMember || isPublic) {
-      channelInfo = await t.ChannelRepository.getPublicChannel({
-        channelId,
-        userId
-      });
-    } else if (!isMember && !isPublic) {
-      channelInfo = await t.ChannelRepository.getPrivateChannel({ channelId });
+      if (type !== "channel" && isMember) {
+        channelInfo = await t.ChannelRepository.getRoomChannel({ channelId });
+      } else if (isAdmin) {
+        channelInfo = await t.ChannelRepository.getAdminChannel({
+          channelId,
+          userId
+        });
+      } else if (isMember || isPublic) {
+        channelInfo = await t.ChannelRepository.getPublicChannel({
+          channelId,
+          userId
+        });
+      } else if (!isMember && !isPublic) {
+        channelInfo = await t.ChannelRepository.getPrivateChannel({
+          channelId
+        });
+      }
+
+      const queue = await getQueue({ channelId });
+
+      return {
+        ...channelInfo,
+        ...chMemInfo,
+        queue
+      };
     }
-
-    const queue = await getQueue({ channelId });
-
-    return {
-      ...channelInfo,
-      ...chMemInfo,
-      queue
-    };
+    return {};
   });
 };
 
@@ -158,7 +173,8 @@ module.exports.updatePlayerStatus = async newPlayerStatus => {
       newPlayerStatus.status === "Playing"
     ) {
       newPlayerStatus.clockStartTime = moment(newPlayerStatus.clockStartTime)
-        .add(BUFFER_TIME, "seconds").format();
+        .add(BUFFER_TIME, "seconds")
+        .format();
     }
 
     playerStatus = await tx.ChannelRepository.updatePlayerStatus(
@@ -294,6 +310,9 @@ module.exports.getNewChannels = async () => {
 };
 
 module.exports.searchChannels = async ({ searchTerm, pageNo }) => {
-  const response = await db.ChannelRepository.searchChannels({ searchTerm, pageNo });
+  const response = await db.ChannelRepository.searchChannels({
+    searchTerm,
+    pageNo
+  });
   return response;
 };
