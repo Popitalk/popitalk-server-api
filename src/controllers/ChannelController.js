@@ -1,5 +1,5 @@
 const Joi = require("@hapi/joi");
-// const { WS_EVENTS } = require("../config/constants");
+const { WS_EVENTS } = require("../config/constants");
 const publisher = require("../config/publisher");
 const ChannelService = require("../services/ChannelService");
 
@@ -456,7 +456,17 @@ const controllers = [
         ...req.payload,
         status: "Playing"
       });
-      return { channelId, updatedChannel: playerStatus };
+
+      const payload = { channelId, updatedChannel: playerStatus };
+      
+      publisher({
+        type: WS_EVENTS.CHANNEL.UPDATE_CHANNEL,
+        channelId,
+        initiator: userId,
+        payload: payload
+      });
+      
+      return payload;
     }
   },
   {
@@ -490,7 +500,17 @@ const controllers = [
         ...req.payload,
         status: "Paused"
       });
-      return { channelId, updatedChannel: playerStatus };
+
+      const payload = { channelId, updatedChannel: playerStatus };
+      
+      publisher({
+        type: WS_EVENTS.CHANNEL.UPDATE_CHANNEL,
+        channelId,
+        initiator: userId,
+        payload: payload
+      });
+      
+      return payload;
     }
   },
   {

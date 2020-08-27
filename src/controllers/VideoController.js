@@ -2,6 +2,8 @@ const Joi = require("@hapi/joi");
 const { google } = require("googleapis");
 const moment = require("moment");
 const config = require("../config");
+const { WS_EVENTS } = require("../config/constants");
+const publisher = require("../config/publisher");
 const VideoService = require("../services/VideoService");
 
 const controllers = [
@@ -112,7 +114,16 @@ const controllers = [
           ...videoInfo
         });
 
-        return res.response({ channelId, video }).code(201);
+        const payload = { channelId, video };
+        
+        publisher({
+          type: WS_EVENTS.VIDEO_CONTROL.ADD_VIDEO,
+          channelId,
+          initiator: userId,
+          payload: payload
+        });
+
+        return res.response(payload).code(201);
       } catch (err) {
         return res
           .response({
@@ -175,7 +186,21 @@ const controllers = [
         newIndex
       });
 
-      return { channelId, oldIndex, newIndex, updatedChannel: playerStatus };
+      const payload = { 
+        channelId, 
+        oldIndex, 
+        newIndex, 
+        updatedChannel: playerStatus 
+      };
+      
+      publisher({
+        type: WS_EVENTS.VIDEO_CONTROL.REORDER_QUEUE,
+        channelId,
+        initiator: userId,
+        payload: payload
+      });
+
+      return payload;
     }
   },
   {
@@ -213,7 +238,16 @@ const controllers = [
         channelVideoId
       });
 
-      return { ...deletedVideo, updatedChannel: playerStatus };
+      const payload = { ...deletedVideo, updatedChannel: playerStatus };
+      
+      publisher({
+        type: WS_EVENTS.VIDEO_CONTROL.DELETE_VIDEO,
+        channelId,
+        initiator: userId,
+        payload: payload
+      });
+
+      return payload;
     }
   }
 ];

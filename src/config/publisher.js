@@ -22,7 +22,7 @@ module.exports = async ({ type, initiator, channelId, userId, payload }) => {
         payload
       })
     );
-  } else if (WS_EVENTS.CHANNEL[type]) {
+  } else if (WS_EVENTS.CHANNEL[type] || WS_EVENTS.VIDEO_CONTROL[type]) {
     pub.publish(
       channelId,
       JSON.stringify({
