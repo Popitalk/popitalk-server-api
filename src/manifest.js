@@ -117,6 +117,10 @@ const manifest = {
         routes: { prefix: `${apiPrefix}/messages` }
       },
       {
+        plugin: require("./controllers/GifController"),
+        routes: { prefix: `${apiPrefix}/gifs` }
+      },
+      {
         plugin: require("./controllers/PostController"),
         routes: { prefix: `${apiPrefix}/posts` }
       },

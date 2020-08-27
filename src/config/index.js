@@ -25,5 +25,6 @@ module.exports = {
   heartbeatInterval: process.env.WS_HEARTBEAT_INTERVAL,
   cseApiKey: process.env.CSE_API_KEY,
   cseCxYoutube: process.env.CSE_CX_YOUTUBE,
-  youtubeApiKey: process.env.YOUTUBE_API_KEY
+  youtubeApiKey: process.env.YOUTUBE_API_KEY,
+  giphyApiKey: process.env.GIPHY_API_KEY
 };
