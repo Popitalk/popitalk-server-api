@@ -219,12 +219,6 @@ async function seedDb() {
 
     console.log("Seeded groups");
 
-    await ChannelService.addChannel({
-      userId: silentFuzzleId,
-      name: "Silent's channel",
-      description: "Silent's channel's descrition"
-    });
-
     console.log("Seeded database.");
   } catch (error) {
     console.error(error);
