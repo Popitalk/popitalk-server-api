@@ -30,8 +30,8 @@ class VideoRepository {
 
   async updateQueuePosition({ channelId, oldIndex, newIndex }) {
     return this.db.one(queries.updateQueuePosition, {
-      channelId, 
-      oldIndex, 
+      channelId,
+      oldIndex,
       newIndex
     });
   }
@@ -43,31 +43,31 @@ class VideoRepository {
     });
   }
 
-  async updateQueuePositionsAfterHighToLowSwap({ 
-    channelId, 
+  async updateQueuePositionsAfterHighToLowSwap({
+    channelId,
     channelVideoId,
-    oldIndex, 
-    newIndex 
+    oldIndex,
+    newIndex
   }) {
     return this.db.any(queries.updateQueuePositionsAfterHighToLowSwap, {
-      channelId, 
+      channelId,
       channelVideoId,
-      oldIndex, 
-      newIndex 
+      oldIndex,
+      newIndex
     });
   }
 
-  async updateQueuePositionsAfterLowToHighSwap({ 
-    channelId, 
+  async updateQueuePositionsAfterLowToHighSwap({
+    channelId,
     channelVideoId,
-    oldIndex, 
-    newIndex 
+    oldIndex,
+    newIndex
   }) {
     return this.db.any(queries.updateQueuePositionsAfterLowToHighSwap, {
-      channelId, 
+      channelId,
       channelVideoId,
-      oldIndex, 
-      newIndex 
+      oldIndex,
+      newIndex
     });
   }
 }

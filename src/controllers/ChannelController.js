@@ -244,11 +244,13 @@ const controllers = [
     async handler(req, res) {
       const { id: userId } = req.auth.credentials;
       const { channelId } = req.params;
-      ranker.sentChannel({ channelId, userId });
       const channelInfo = await ChannelService.getChannel({
         userId,
         channelId
       });
+      if (channelInfo.type === "channel") {
+        ranker.sentChannel({ channelId, userId });
+      }
       // publisher({
       //   type: USER_EVENTS.WS_SUBSCRIBE_CHANNEL,
       //   channelId,

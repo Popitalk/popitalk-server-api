@@ -21,7 +21,7 @@ module.exports.sentChannel = async ({ channelId, userId }) => {
 
 module.exports.getTrending = async ({ userId }) => {
   const top36ChannelIds = await redis.lrange("trending", 0, 36);
-  if (top36ChannelIds.length !== 0) {
+  if (top36ChannelIds.length < 3) {
     return {
       trendingChannels: [],
       trendingChannelsUsers: []
@@ -32,7 +32,11 @@ module.exports.getTrending = async ({ userId }) => {
     let channelInfo;
 
     if (channelInfoStr === null) {
-      channelInfo = await ChannelService.getChannel({ channelId, userId });
+      try {
+        channelInfo = await ChannelService.getChannel({ channelId, userId });
+      } catch {
+        return {};
+      }
       redis.set(channelId, JSON.stringify(channelInfo), "EX", 30);
     } else {
       channelInfo = JSON.parse(channelInfoStr);
@@ -47,18 +51,20 @@ module.exports.getTrending = async ({ userId }) => {
   let top36Channels;
   let top36ChannelsUsers;
   top36ChannelsArray.forEach(channel => {
-    top36Channels = {
-      ...top36Channels,
-      [channel[Object.keys(channel)[0]].channel.id]: {
-        ...channel[Object.keys(channel)[0]].channel,
-        queue: channel[Object.keys(channel)[0]].queue,
-        speciality: "trending"
-      }
-    };
-    top36ChannelsUsers = {
-      ...top36ChannelsUsers,
-      ...channel[Object.keys(channel)[0]].users
-    };
+    try {
+      top36Channels = {
+        ...top36Channels,
+        [channel[Object.keys(channel)[0]].channel.id]: {
+          ...channel[Object.keys(channel)[0]].channel,
+          queue: channel[Object.keys(channel)[0]].queue,
+          speciality: "trending"
+        }
+      };
+      top36ChannelsUsers = {
+        ...top36ChannelsUsers,
+        ...channel[Object.keys(channel)[0]].users
+      };
+    } catch {}
   });
 
   return {
@@ -70,15 +76,11 @@ module.exports.getTrending = async ({ userId }) => {
 module.exports.setTrending = async () => {
   const listOfActiveChannels = await redis.keys("channel:*");
 
-  // this is only run if less than 36 channels were
-  // organically opened in the last 50 hrs
   let listOfChannels = [];
   listOfChannels = listOfActiveChannels.map(channel => channel.slice(8));
-  if (listOfChannels.length < 36) {
-    const channelIds = await ChannelService.getNewChannels();
-    for (let i = 0; i < channelIds.length; i += 2) {
-      listOfChannels.push(channelIds[i].id);
-    }
+  if (listOfChannels.length < 6) {
+    await redis.del("trending");
+    return;
   }
 
   // sorting out top 36
@@ -129,8 +131,13 @@ const collectRandom = async (count, keys) => {
     }
   }
   let randomKey = "";
+  let i = 10;
   while (randomKey.slice(0, 7) !== "channel") {
+    i--;
     randomKey = await redis.randomkey();
+    if (i < 0) {
+      return keys;
+    }
   }
   if (count === 1) {
     return [...keys, randomKey.slice(8)];
@@ -139,8 +146,9 @@ const collectRandom = async (count, keys) => {
 };
 
 module.exports.getDiscover = async ({ userId }) => {
-  const channelIds = await collectRandom(36, []);
-  if (channelIds.length !== 0) {
+  let channelIds = await collectRandom(36, []);
+  channelIds = Array.from(new Set(channelIds));
+  if (channelIds.length < 3) {
     return {
       discoverChannels: [],
       discoverChannelsUsers: []
@@ -151,7 +159,11 @@ module.exports.getDiscover = async ({ userId }) => {
     let channelInfo;
 
     if (channelInfoStr === null) {
-      channelInfo = await ChannelService.getChannel({ channelId, userId });
+      try {
+        channelInfo = await ChannelService.getChannel({ channelId, userId });
+      } catch {
+        return {};
+      }
       redis.set(channelId, JSON.stringify(channelInfo), "EX", 30);
     } else {
       channelInfo = JSON.parse(channelInfoStr);
@@ -166,18 +178,20 @@ module.exports.getDiscover = async ({ userId }) => {
   let discoverChannels;
   let discoverChannelsUsers;
   ChannelsArray.forEach(channel => {
-    discoverChannels = {
-      ...discoverChannels,
-      [channel[Object.keys(channel)[0]].channel.id]: {
-        ...channel[Object.keys(channel)[0]].channel,
-        queue: channel[Object.keys(channel)[0]].queue,
-        speciality: "discover"
-      }
-    };
-    discoverChannelsUsers = {
-      ...discoverChannelsUsers,
-      ...channel[Object.keys(channel)[0]].users
-    };
+    try {
+      discoverChannels = {
+        ...discoverChannels,
+        [channel[Object.keys(channel)[0]].channel.id]: {
+          ...channel[Object.keys(channel)[0]].channel,
+          queue: channel[Object.keys(channel)[0]].queue,
+          speciality: "discover"
+        }
+      };
+      discoverChannelsUsers = {
+        ...discoverChannelsUsers,
+        ...channel[Object.keys(channel)[0]].users
+      };
+    } catch {}
   });
   return {
     discoverChannels,
