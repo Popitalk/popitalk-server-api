@@ -66,6 +66,44 @@ const controllers = [
       return trendingGifs.data;
       //   return [{ success: "success" }];
     }
+  },
+  {
+    method: "GET",
+    path: "/search/{offset}",
+    options: {
+      description: "Search for gifs",
+      tags: ["api"],
+      validate: {
+        params: Joi.object()
+          .keys({
+            offset: Joi.number().required()
+          })
+          .required(),
+        query: Joi.object()
+          .keys({
+            // Matches alphanumeric, space, underscore and hyphen.
+            searchTerm: Joi.string()
+              .pattern(new RegExp("^[A-Za-z0-9? ,_-]+$"))
+              .required()
+          })
+          .optional()
+      },
+      response: {
+        status: {
+          200: Joi.array()
+            .required()
+            .label("searchGifs")
+        }
+      }
+    },
+    async handler(req, res) {
+      const response = await fetch(
+        `https://api.giphy.com/v1/gifs/search?api_key=${config.giphyApiKey}&q=${req.query.searchTerm}&limit=10&offset=${req.params.offset}&rating=pg-13&lang=en`
+      );
+      const searchResult = await response.json();
+      return searchResult.data;
+      //   return [{ success: "success" }];
+    }
   }
 ];
 
