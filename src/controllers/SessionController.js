@@ -138,20 +138,17 @@ const controllers = [
       tags: ["api"],
       response: {
         status: {
-          200: Joi.object()
-            .keys({ wsTicket: Joi.string().uuid().required() }).required()
+          200: loginResponseSchema
         }
       }
     },
     async handler(req, res) {
       const { id: userId } = req.auth.credentials;
-      // TODO: This does not need to retrieve all the login data to generate a wsTicket.
-      // Replace with a simpler SQL query
       const loginData = await SessionService.getLoginData({ userId });
 
       const wsTicket = await wsBooth(loginData);
 
-      return { wsTicket };
+      return { ...loginData, wsTicket };
     }
   },
   {

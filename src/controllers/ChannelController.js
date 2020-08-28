@@ -2,6 +2,7 @@ const Joi = require("@hapi/joi");
 const { WS_EVENTS } = require("../config/constants");
 const publisher = require("../config/publisher");
 const ChannelService = require("../services/ChannelService");
+const ranker = require("../ranking/ranker");
 
 const playerValidation = {
   params: Joi.object()
@@ -243,11 +244,13 @@ const controllers = [
     async handler(req, res) {
       const { id: userId } = req.auth.credentials;
       const { channelId } = req.params;
-      // ranker.sentChannel({ channelId, userId });
       const channelInfo = await ChannelService.getChannel({
         userId,
         channelId
       });
+      if (channelInfo.type === "channel") {
+        ranker.sentChannel({ channelId, userId });
+      }
       // publisher({
       //   type: USER_EVENTS.WS_SUBSCRIBE_CHANNEL,
       //   channelId,
@@ -458,14 +461,14 @@ const controllers = [
       });
 
       const payload = { channelId, updatedChannel: playerStatus };
-      
+
       publisher({
         type: WS_EVENTS.CHANNEL.UPDATE_CHANNEL,
         channelId,
         initiator: userId,
-        payload: payload
+        payload
       });
-      
+
       return payload;
     }
   },
@@ -502,14 +505,14 @@ const controllers = [
       });
 
       const payload = { channelId, updatedChannel: playerStatus };
-      
+
       publisher({
         type: WS_EVENTS.CHANNEL.UPDATE_CHANNEL,
         channelId,
         initiator: userId,
-        payload: payload
+        payload
       });
-      
+
       return payload;
     }
   },

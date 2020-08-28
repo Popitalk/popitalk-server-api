@@ -1,6 +1,9 @@
 const moment = require("moment");
 const db = require("../config/database");
-const { calculatePlayerStatus, BUFFER_TIME } = require("../shared/videoSyncing");
+const {
+  calculatePlayerStatus,
+  BUFFER_TIME
+} = require("../shared/videoSyncing");
 
 module.exports.addVideo = async ({
   userId,
@@ -44,13 +47,17 @@ module.exports.deleteVideo = async ({ userId, channelId, channelVideoId }) => {
       ...deletedChannelVideo
     });
 
-    const storedPlayerStatus = await tx.ChannelRepository.getPlayerStatus({ 
-      channelId 
+    const storedPlayerStatus = await tx.ChannelRepository.getPlayerStatus({
+      channelId
     });
     const queue = await this.getQueue({ channelId });
     const currTime = moment();
     let playerStatus = calculatePlayerStatus(
-      storedPlayerStatus, queue, true, currTime);
+      storedPlayerStatus,
+      queue,
+      true,
+      currTime
+    );
 
     if (deletedChannelVideo.queuePosition < playerStatus.queueStartPosition) {
       playerStatus = await tx.ChannelRepository.updatePlayerStatus({
@@ -60,12 +67,16 @@ module.exports.deleteVideo = async ({ userId, channelId, channelVideoId }) => {
         clockStartTime: currTime.format(),
         status: playerStatus.status
       });
-    } else if (deletedChannelVideo.queuePosition === playerStatus.queueStartPosition) {
+    } else if (
+      deletedChannelVideo.queuePosition === playerStatus.queueStartPosition
+    ) {
       playerStatus = await tx.ChannelRepository.updatePlayerStatus({
         channelId,
         queueStartPosition: playerStatus.queueStartPosition,
         videoStartTime: 0,
-        clockStartTime: moment().add(BUFFER_TIME, "seconds").format(),
+        clockStartTime: moment()
+          .add(BUFFER_TIME, "seconds")
+          .format(),
         status: playerStatus.status
       });
     } else {
@@ -88,12 +99,12 @@ module.exports.getQueue = async ({ channelId }) => {
   });
 
   return transformedQueue;
-}
+};
 
-module.exports.updateQueue = async ({ 
-  userId, 
-  channelId, 
-  oldIndex, 
+module.exports.updateQueue = async ({
+  userId,
+  channelId,
+  oldIndex,
   newIndex
 }) => {
   if (oldIndex === newIndex) return;
@@ -101,35 +112,39 @@ module.exports.updateQueue = async ({
   return db.tx(async tx => {
     await tx.VideoRepository.getHasPermission({ userId, channelId });
 
-    const channelVideo = await tx.VideoRepository.updateQueuePosition({ 
-      channelId, 
-      oldIndex, 
-      newIndex 
+    const channelVideo = await tx.VideoRepository.updateQueuePosition({
+      channelId,
+      oldIndex,
+      newIndex
     });
 
     if (oldIndex > newIndex) {
-      await tx.VideoRepository.updateQueuePositionsAfterHighToLowSwap({ 
-        channelId, 
-        channelVideoId: channelVideo.id, 
-        oldIndex, 
+      await tx.VideoRepository.updateQueuePositionsAfterHighToLowSwap({
+        channelId,
+        channelVideoId: channelVideo.id,
+        oldIndex,
         newIndex
       });
     } else {
-      await tx.VideoRepository.updateQueuePositionsAfterLowToHighSwap({ 
-        channelId, 
-        channelVideoId: channelVideo.id, 
-        oldIndex, 
+      await tx.VideoRepository.updateQueuePositionsAfterLowToHighSwap({
+        channelId,
+        channelVideoId: channelVideo.id,
+        oldIndex,
         newIndex
       });
     }
-    
-    const storedPlayerStatus = await tx.ChannelRepository.getPlayerStatus({ 
-      channelId 
+
+    const storedPlayerStatus = await tx.ChannelRepository.getPlayerStatus({
+      channelId
     });
     const queue = await this.getQueue({ channelId });
     const currTime = moment();
     let playerStatus = calculatePlayerStatus(
-      storedPlayerStatus, queue, true, currTime);
+      storedPlayerStatus,
+      queue,
+      true,
+      currTime
+    );
 
     const queueStartPosition = playerStatus.queueStartPosition;
     let newQueueStartPosition = -1;
@@ -138,9 +153,15 @@ module.exports.updateQueue = async ({
       newQueueStartPosition = 0;
     } else if (oldIndex === queueStartPosition) {
       newQueueStartPosition = newIndex;
-    } else if (newIndex <= queueStartPosition && oldIndex > queueStartPosition) {
+    } else if (
+      newIndex <= queueStartPosition &&
+      oldIndex > queueStartPosition
+    ) {
       newQueueStartPosition = queueStartPosition + 1;
-    } else if (oldIndex < queueStartPosition && newIndex >= queueStartPosition) {
+    } else if (
+      oldIndex < queueStartPosition &&
+      newIndex >= queueStartPosition
+    ) {
       newQueueStartPosition = queueStartPosition - 1;
     }
 

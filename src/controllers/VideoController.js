@@ -75,6 +75,28 @@ const controllers = [
     }
   },
   {
+    method: "GET",
+    path: "/queue/{channelId}",
+    options: {
+      description: "Gets the channel queue",
+      tags: ["api"],
+      validate: {
+        params: Joi.object()
+          .keys({
+            channelId: Joi.string()
+              .uuid()
+              .required()
+          })
+          .required()
+      }
+    },
+    async handler(req, res) {
+      const { channelId } = req.params;
+      const queue = await VideoService.getQueue({ channelId });
+      return res.response({ queue }).code(201);
+    }
+  },
+  {
     method: "POST",
     path: "/{channelId}",
     options: {
@@ -234,11 +256,8 @@ const controllers = [
       const { id: userId } = req.auth.credentials;
       const { channelVideoId } = req.params;
       const { channelId } = req.payload;
-      
-      const { 
-        deletedVideo, 
-        playerStatus 
-      } = await VideoService.deleteVideo({
+
+      const { deletedVideo, playerStatus } = await VideoService.deleteVideo({
         userId,
         channelId,
         channelVideoId

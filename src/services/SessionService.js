@@ -1,5 +1,6 @@
 const bcrypt = require("bcryptjs");
 const db = require("../config/database");
+const CircDepRes = require("../ranking/cir_dep_resolver");
 
 module.exports.login = async ({ usernameOrEmail, password }) => {
   return db.task(async t => {
@@ -10,14 +11,12 @@ module.exports.login = async ({ usernameOrEmail, password }) => {
 
     if (!user || !(await bcrypt.compare(password, user.password))) return false;
 
-    const loginData = await t.SessionRepository.getLoginData({
-      userId: user.id
-    });
+    const loginData = await CircDepRes.getLoginData({ userId: user.id });
 
     return loginData;
   });
 };
 
 module.exports.getLoginData = async ({ userId }) => {
-  return db.SessionRepository.getLoginData({ userId });
+  return CircDepRes.getLoginData({ userId });
 };

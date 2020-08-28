@@ -51,7 +51,7 @@ class ChannelRepository {
   }
 
   async getChannelAndMemberInfo({ channelId, userId }) {
-    return this.db.one(queries.getChannelAndMemberInfo, [channelId, userId]);
+    return this.db.oneOrNone(queries.getChannelAndMemberInfo, [channelId, userId]);
   }
 
   async getChannelLastMessageInfo({ channelId }) {
@@ -117,7 +117,7 @@ class ChannelRepository {
   }
 
   async getNewChannels() {
-    return this.db.many(queries.getNewChannels);
+    return this.db.manyOrNone(queries.getNewChannels);
   }
 
   async searchChannels({ searchTerm, pageNo }) {
