@@ -2,6 +2,7 @@ const glue = require("@hapi/glue");
 const Sentry = require("@sentry/node");
 const config = require("./config");
 const manifest = require("./manifest");
+const { setTrendingQueue } = require("./config/jobs");
 // or use es6 import statements
 // import * as Sentry from '@sentry/node';
 
@@ -18,6 +19,8 @@ const startServer = async () => {
       ["serv"],
       `API Server is running on ${server.info.uri} in ${config.mode} mode`
     );
+
+    setTrendingQueue.add("", { repeat: { cron: "* * * * *" } });
 
     // [
     //   "SIGINT",

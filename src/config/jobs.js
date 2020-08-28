@@ -1,10 +1,31 @@
 const Queue = require("bull");
 const config = require("./index");
 
-const sendRegistrationEmailJob = require("../jobs/sendRegistrationEmail");
-const sendVerificationEmailJob = require("../jobs/sendVerificationEmail");
+// const sendRegistrationEmailJob = require("../jobs/sendRegistrationEmail");
+// const sendVerificationEmailJob = require("../jobs/sendVerificationEmail");
+const setTrendingJob = require("../jobs/setTrending");
 
-const registrationEmailQueue = new Queue("registrationEmail", {
+// const registrationEmailQueue = new Queue("registrationEmail", {
+//   redis: {
+//     host: config.redisHost || "localhost",
+//     port: config.redisPort || 6379,
+//     db: config.redisIndex || 0,
+//     password: config.redisPassword || null
+//   },
+//   prefix: config.jobsPrefix || "bull"
+// });
+
+// const verificationEmailQueue = new Queue("verificationEmail", {
+//   redis: {
+//     host: config.redisHost || "localhost",
+//     port: config.redisPort || 6379,
+//     db: config.redisIndex || 0,
+//     password: config.redisPassword || null
+//   },
+//   prefix: config.jobsPrefix || "bull"
+// });
+
+const setTrendingQueue = new Queue("trending", {
   redis: {
     host: config.redisHost || "localhost",
     port: config.redisPort || 6379,
@@ -14,27 +35,26 @@ const registrationEmailQueue = new Queue("registrationEmail", {
   prefix: config.jobsPrefix || "bull"
 });
 
-const verificationEmailQueue = new Queue("verificationEmail", {
-  redis: {
-    host: config.redisHost || "localhost",
-    port: config.redisPort || 6379,
-    db: config.redisIndex || 0,
-    password: config.redisPassword || null
-  },
-  prefix: config.jobsPrefix || "bull"
-});
+// registrationEmailQueue.process(async (job, done) => {
+//   await sendRegistrationEmailJob({ email: job.data.email });
+//   done();
+// });
 
-registrationEmailQueue.process(async (job, done) => {
-  await sendRegistrationEmailJob({ email: job.data.email });
+// verificationEmailQueue.process(async (job, done) => {
+//   await sendVerificationEmailJob({ email: job.data.email });
+//   done();
+// });
+
+setTrendingQueue.process(async (job, done) => {
+  await setTrendingJob();
   done();
 });
 
-verificationEmailQueue.process(async (job, done) => {
-  await sendVerificationEmailJob({ email: job.data.email });
-  done();
-});
+// const sendRegistrationEmail = email => registrationEmailQueue.add({ email });
+// const sendVerificationEmail = email => verificationEmailQueue.add({ email });
 
-const sendRegistrationEmail = email => registrationEmailQueue.add({ email });
-const sendVerificationEmail = email => verificationEmailQueue.add({ email });
-
-module.exports = { sendRegistrationEmail, sendVerificationEmail };
+module.exports = {
+  // sendRegistrationEmail,
+  // sendVerificationEmail,
+  setTrendingQueue
+};

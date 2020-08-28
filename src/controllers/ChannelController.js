@@ -2,7 +2,7 @@ const Joi = require("@hapi/joi");
 const { WS_EVENTS } = require("../config/constants");
 const publisher = require("../config/publisher");
 const ChannelService = require("../services/ChannelService");
-const ranker = require("../ranking/ranker");
+const sentChannel = require("../ranking/sentChannel.js");
 
 const playerValidation = {
   params: Joi.object()
@@ -249,7 +249,7 @@ const controllers = [
         channelId
       });
       if (channelInfo.type === "channel") {
-        ranker.sentChannel({ channelId, userId });
+        sentChannel({ channelId, userId });
       }
       // publisher({
       //   type: USER_EVENTS.WS_SUBSCRIBE_CHANNEL,

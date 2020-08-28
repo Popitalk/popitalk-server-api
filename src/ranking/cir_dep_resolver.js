@@ -1,5 +1,6 @@
 const db = require("../config/database");
-const { getTrending, getDiscover } = require("./ranker");
+const getTrending = require("./getTrending");
+const getDiscover = require("./getDiscover");
 
 module.exports.getLoginData = async ({ userId }) => {
   return db.task(async t => {
