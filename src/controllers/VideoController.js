@@ -17,7 +17,7 @@ const controllers = [
         query: Joi.object()
           .keys({
             source: Joi.string().required(),
-            terms: Joi.string().required(),
+            terms: Joi.string(),
             page: Joi.string()
           })
           .required()
@@ -26,21 +26,27 @@ const controllers = [
     async handler(req, res) {
       const { terms, page } = req.query;
 
+      const api = (terms && terms !== "") ? "search" : "videos";
+
       const parameters = {
         part: "snippet",
-        q: terms,
         maxResults: 25,
-        type: "video",
         key: config.youtubeApiKey
       };
+      if (terms && terms !== "") {
+        parameters.q = terms;
+        parameters.type = "video";
+      } else {
+        parameters.chart = "mostPopular";
+      }
       if (page) {
         parameters.pageToken = page;
       }
 
       try {
         const youtube = google.youtube("v3");
-        const response = await youtube.search.list(parameters);
-
+        const response = await youtube[api].list(parameters);
+    
         const results = response.data.items.map(i => {
           return {
             id: i.id.videoId,
@@ -50,7 +56,7 @@ const controllers = [
             thumbnail: i.snippet.thumbnails.high.url
           };
         });
-
+    
         return res
           .response({
             nextPageToken: response.data.nextPageToken,

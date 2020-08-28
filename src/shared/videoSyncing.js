@@ -2,7 +2,7 @@ const moment = require("moment");
 
 module.exports.BUFFER_TIME = 3;
 
-const defaultPlayerStatus = () => {
+module.exports.defaultPlayerStatus = () => {
   return {
     queueStartPosition: 0,
     videoStartTime: 0,
@@ -17,7 +17,7 @@ const checkNewPlayerStatus = (
   newPlayerStatus
 ) => {
   if (newPlayerStatus.queueStartPosition >= playlist.length) {
-    return defaultPlayerStatus();
+    return this.defaultPlayerStatus();
   }
 
   if (
@@ -37,7 +37,7 @@ const checkNewPlayerStatus = (
       );
     } else {
       // Consider the stream ended
-      return defaultPlayerStatus();
+      return this.defaultPlayerStatus();
     }
   }
 
@@ -77,7 +77,9 @@ module.exports.calculatePlayerStatus = (
   getCurrentOnly,
   currTime = moment()
 ) => {
-  if (playlist.length === 0 || status === "Ended") return defaultPlayerStatus();
+  if (playlist.length === 0 || status === "Ended") {
+    return this.defaultPlayerStatus();
+  }
 
   const momentStartTime = moment(clockStartTime);
 
@@ -115,7 +117,7 @@ module.exports.calculatePlayerStatus = (
 
       if (newPlayerStatus.queueStartPosition === playlist.length) {
         // The stream has ended
-        return defaultPlayerStatus();
+        return this.defaultPlayerStatus();
       }
 
       // Subtract the video length from the elapsed time
@@ -136,7 +138,7 @@ module.exports.calculatePlayerStatus = (
 
   if (getCurrentOnly) {
     if (newPlayerStatus.queueStartPosition >= playlist.length) {
-      return defaultPlayerStatus();
+      return this.defaultPlayerStatus();
     }
     
     return newPlayerStatus;
