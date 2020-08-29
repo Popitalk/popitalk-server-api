@@ -310,9 +310,15 @@ module.exports.getNewChannels = async () => {
 };
 
 module.exports.searchChannels = async ({ searchTerm, pageNo }) => {
-  const response = await db.ChannelRepository.searchChannels({
+  const channelsInfo = await db.ChannelRepository.searchChannels({
     searchTerm,
     pageNo
   });
-  return response;
+
+  const channelsPromise = channelsInfo.map(async channelInfo => {
+    const queue = await getQueue({ channelId: channelInfo.id });
+    return { ...channelInfo, queue };
+  });
+  const channels = await Promise.all(channelsPromise);
+  return channels;
 };

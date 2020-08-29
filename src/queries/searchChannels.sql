@@ -3,6 +3,7 @@ SELECT
   channels.name,
   channels.description,
   channels.status,
+  channels.queue_start_position AS "queueStartPosition",
   channels.icon,
   channels.owner_id AS "ownerId"
 FROM
