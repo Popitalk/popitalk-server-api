@@ -124,6 +124,10 @@ class ChannelRepository {
     const offset = (pageNo - 1) * 9;
     return this.db.manyOrNone(queries.searchChannels, [searchTerm, offset]);
   }
+
+  async getAvatars({ channelId }) {
+    return this.db.manyOrNone(queries.getAvatars, [channelId]);
+  }
 }
 
 module.exports = ChannelRepository;

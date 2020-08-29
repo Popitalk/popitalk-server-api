@@ -317,7 +317,10 @@ module.exports.searchChannels = async ({ searchTerm, pageNo }) => {
 
   const channelsPromise = channelsInfo.map(async channelInfo => {
     const queue = await getQueue({ channelId: channelInfo.id });
-    return { ...channelInfo, queue };
+    const avatars = await db.ChannelRepository.getAvatars({
+      channelId: channelInfo.id
+    });
+    return { ...channelInfo, queue, avatars };
   });
   const channels = await Promise.all(channelsPromise);
   return channels;
