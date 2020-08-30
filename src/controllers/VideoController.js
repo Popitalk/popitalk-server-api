@@ -48,9 +48,11 @@ const controllers = [
         const response = await youtube[api].list(parameters);
     
         const results = response.data.items.map(i => {
+          const id = i.id.videoId ? i.id.videoId : i.id;
+
           return {
-            id: i.id.videoId,
-            url: `https://www.youtube.com/watch?v=${i.id.videoId}`,
+            id,
+            url: `https://www.youtube.com/watch?v=${id}`,
             publishedAt: i.snippet.publishedAt,
             title: i.snippet.title,
             thumbnail: i.snippet.thumbnails.high.url
