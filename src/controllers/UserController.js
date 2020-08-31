@@ -2,6 +2,7 @@ const Joi = require("@hapi/joi");
 // const { WS_EVENTS } = require("../config/constants");
 const UserService = require("../services/UserService");
 const publisher = require("../config/publisher");
+const { playerStatusJoi } = require("../helpers/commonJois");
 
 const basicUserSchema = Joi.object()
   .keys({
@@ -403,6 +404,7 @@ const controllers = [
                   public: Joi.boolean()
                     .valid(false)
                     .required(),
+                  ...playerStatusJoi,
                   createdAt: Joi.date()
                     .iso()
                     .required(),

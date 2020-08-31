@@ -3,6 +3,7 @@ const { WS_EVENTS } = require("../config/constants");
 const publisher = require("../config/publisher");
 const ChannelService = require("../services/ChannelService");
 const sentChannel = require("../ranking/sentChannel.js");
+const { playerStatusJoi } = require("../helpers/commonJois");
 
 const playerValidation = {
   params: Joi.object()
@@ -82,13 +83,10 @@ const controllers = [
                 public: Joi.boolean()
                   .valid()
                   .required(),
-                owner_id: Joi.string()
+                ownerId: Joi.string()
                   .uuid()
                   .required(),
-                status: Joi.string().required(),
-                queueStartPosition: Joi.number().required(),
-                videoStartTime: Joi.number().required(),
-                clockStartTime: Joi.string().required(),
+                ...playerStatusJoi,
                 created_at: Joi.date()
                   .iso()
                   .required(),
@@ -155,12 +153,14 @@ const controllers = [
         ...req.payload,
         userId
       });
-      // publisher({
-      //   type: USER_EVENTS.WS_SUBSCRIBE_CHANNEL,
-      //   channelId: newChannel.id,
-      //   userId,
-      //   payload: { userId, channelId: newChannel.id, type: "channel" }
-      // });
+      
+      publisher({
+        type: WS_EVENTS.USER.SUBSCRIBE_CHANNEL,
+        channelId: channel.id,
+        userId,
+        payload: { userId, channelId: channel.id, type: "channel" }
+      });
+
       return res
         .response({
           channelId: channel.id,
@@ -203,24 +203,24 @@ const controllers = [
         userId,
         userIds
       });
-      // publisher({
-      //   type: USER_EVENTS.WS_SUBSCRIBE_CHANNEL,
-      //   channelId: channel.id,
-      //   userId,
-      //   payload: { userId, channelId: channel.id, type: "group" }
-      // });
-      // userIds.forEach(uid => {
-      //   publisher({
-      //     type: USER_EVENTS.WS_ADD_CHANNEL,
-      //     channelId: channel.id,
-      //     userId: uid,
-      //     payload: { channel, users, channelId: channel.id, type: "group" }
-      //   });
-      // });
 
-      return res
-        .response({ channelId: channel.id, channel, users, messages })
-        .code(201);
+      const payload = { channelId: channel.id, channel, users, messages };
+      publisher({
+        type: WS_EVENTS.USER.SUBSCRIBE_CHANNEL,
+        channelId: channel.id,
+        userId,
+        payload: { ...payload, type: "group" }
+      });
+      userIds.forEach(uid => {
+        publisher({
+          type: WS_EVENTS.USER.ADD_CHANNEL,
+          channelId: channel.id,
+          userId: uid,
+          payload: { ...payload, type: "group" }
+        });
+      });
+
+      return res.response(payload).code(201);
     }
   },
   {
@@ -251,12 +251,12 @@ const controllers = [
       if (channelInfo.type === "channel") {
         sentChannel({ channelId, userId });
       }
-      // publisher({
-      //   type: USER_EVENTS.WS_SUBSCRIBE_CHANNEL,
-      //   channelId,
-      //   userId,
-      //   payload: { userId, channelId, type: "channel" }
-      // });
+      publisher({
+        type: WS_EVENTS.USER.SUBSCRIBE_CHANNEL,
+        channelId,
+        userId,
+        payload: { userId, channelId, type: "channel" }
+      });
       return { channelId, ...channelInfo };
     }
   },
@@ -377,14 +377,16 @@ const controllers = [
         channelId,
         ...req.payload
       });
-      // publisher({
-      //   type: CHANNEL_EVENTS.WS_UPDATE_CHANNEL,
-      //   channelId,
-      //   initiator: userId,
-      //   payload: { userId, channelId, channel }
-      // });
 
-      return { channelId, channel };
+      const payload = { channelId, updatedChannel: channel }; 
+      publisher({
+        type: WS_EVENTS.CHANNEL.UPDATE_CHANNEL,
+        channelId,
+        initiator: userId,
+        payload: payload
+      });
+
+      return payload;
     }
   },
   {
