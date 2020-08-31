@@ -189,7 +189,7 @@ CREATE TABLE messages (
   CONSTRAINT content_length CHECK(length(content) >= 1 AND length(content) <= 2000)
 );
 
-CREATE TABLE seen_messages (
+CREATE TABLE chat_notifications (
   channel_id UUID NOT NULL REFERENCES channels(id) ON UPDATE CASCADE ON DELETE CASCADE,
   user_id UUID NOT NULL REFERENCES users(id) ON UPDATE CASCADE ON DELETE CASCADE,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),

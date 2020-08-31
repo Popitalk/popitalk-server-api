@@ -191,6 +191,49 @@ const controllers = [
       });
       return deletedMessage;
     }
+  },
+  // Chat notifications
+  {
+    method: "POST",
+    path: "/notifications",
+    options: {
+      description: "Adds chat notification",
+      tags: ["api"],
+      validate: {
+        payload: Joi.object()
+          .keys({
+            channelId: Joi.string()
+              .uuid()
+              .required()
+          })
+          .required()
+      },
+      response: {
+        status: {
+          201: Joi.object()
+            .keys({
+              channelId: Joi.string()
+                .uuid()
+                .required(),
+              userId: Joi.string()
+                .uuid()
+                .required()
+            })
+            .required()
+            .label("deleteMessageResponse")
+        }
+      }
+    },
+    async handler(req, res) {
+      const { id: userId } = req.auth.credentials;
+      const { channelId } = req.payload;
+      const newChatNotification = await MessageService.addChatNotification({
+        userId,
+        channelId
+      });
+      console.log(newChatNotification);
+      return res.response(newChatNotification).code(201);
+    }
   }
 ];
 
