@@ -61,17 +61,9 @@ module.exports.addChatNotification = async ({ userId, channelId }) => {
 //   });
 // };
 
-// module.exports.deleteMessage = async ({ userId, messageId }) => {
-//   return db.task(async t => {
-//     const deletedMessage = await t.MessageRepository.deleteMessage({
-//       userId,
-//       messageId
-//     });
-
-//     const channelLastMessageInfo = (await t.ChannelRepository.getChannelLastMessageInfo(
-//       { channelId: deletedMessage.channelId }
-//     )) || { firstMessageId: null, lastMessageId: null, lastMessageAt: null };
-
-//     return { ...deletedMessage, ...channelLastMessageInfo };
-//   });
-// };
+module.exports.deleteChatNotification = async ({ userId, channelId }) => {
+  return db.MessageRepository.deleteChatNotification({
+    userId,
+    channelId
+  });
+};

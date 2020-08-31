@@ -31,6 +31,9 @@ class MessageRepository {
   async addChatNotification({ userId, channelId }) {
     return this.db.one(queries.addChatNotification, [channelId, userId]);
   }
+  async deleteChatNotification({ userId, channelId }) {
+    return this.db.one(queries.deleteChatNotification, [channelId, userId]);
+  }
 }
 
 module.exports = MessageRepository;

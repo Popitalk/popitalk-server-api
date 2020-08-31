@@ -220,7 +220,7 @@ const controllers = [
                 .required()
             })
             .required()
-            .label("deleteMessageResponse")
+            .label("addMessageResponse")
         }
       }
     },
@@ -231,8 +231,46 @@ const controllers = [
         userId,
         channelId
       });
-      console.log(newChatNotification);
       return res.response(newChatNotification).code(201);
+    }
+  },
+  {
+    method: "DELETE",
+    path: "/notifications",
+    options: {
+      description: "Deletes chat notification",
+      tags: ["api"],
+      validate: {
+        query: Joi.object().keys({
+          channelId: Joi.string()
+            .uuid()
+            .required()
+        })
+      },
+      response: {
+        status: {
+          200: Joi.object()
+            .keys({
+              channelId: Joi.string()
+                .uuid()
+                .required(),
+              userId: Joi.string()
+                .uuid()
+                .required()
+            })
+            .required()
+            .label("deleteChatNotificationResponse")
+        }
+      }
+    },
+    async handler(req, res) {
+      const { id: userId } = req.auth.credentials;
+      const { channelId } = req.query;
+      const deletedMessage = await MessageService.deleteChatNotification({
+        userId,
+        channelId
+      });
+      return deletedMessage;
     }
   }
 ];
