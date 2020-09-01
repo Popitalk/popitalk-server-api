@@ -1,5 +1,5 @@
 {
-  "name": "popitalk-api-server",
+  "name": "popitalk-server-api",
   "version": "1.0.0",
   "description": "Popitalk API Server",
   "main": "index.js",
