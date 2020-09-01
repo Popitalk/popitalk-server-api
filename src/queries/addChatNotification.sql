@@ -8,6 +8,7 @@ FROM
 WHERE
   members.channel_id = $1
   AND members.user_id = $2
+ON CONFLICT DO NOTHING
 RETURNING
   channel_id AS "channelId",
   user_id AS "userId"

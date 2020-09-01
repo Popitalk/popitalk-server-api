@@ -29,10 +29,13 @@ class MessageRepository {
   }
   // Chat notificaitons
   async addChatNotification({ userId, channelId }) {
-    return this.db.one(queries.addChatNotification, [channelId, userId]);
+    return this.db.oneOrNone(queries.addChatNotification, [channelId, userId]);
   }
   async deleteChatNotification({ userId, channelId }) {
-    return this.db.one(queries.deleteChatNotification, [channelId, userId]);
+    return this.db.oneOrNone(queries.deleteChatNotification, [
+      channelId,
+      userId
+    ]);
   }
 }
 

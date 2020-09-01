@@ -12,8 +12,7 @@ WITH chan AS (
     fm.id AS "firstMessageId",
     lm.id AS "lastMessageId",
     lm.created_at AS "lastMessageAt",
-    members.ids AS "members",
-    seen.ids AS "chatNotifications"
+    members.ids AS "members"
   FROM
     channels
   LEFT JOIN LATERAL (

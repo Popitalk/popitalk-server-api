@@ -55,3 +55,8 @@ module.exports.addBan = async ({ channelId, fromUser, toUser }) => {
 module.exports.deleteBan = async ({ channelId, fromUser, toUser }) => {
   return db.MemberRepository.deleteBan({ channelId, fromUser, toUser });
 };
+module.exports.getAllMembersFromChannel = async ({ channelId }) => {
+  return db.MemberRepository.getAllMembersFromChannel({
+    channelId
+  });
+};

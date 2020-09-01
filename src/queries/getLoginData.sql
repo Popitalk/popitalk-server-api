@@ -128,7 +128,7 @@ WITH self AS (
             FROM
               chat_notifications
             WHERE
-              chat_notifications.channel_id = channels.id AND chat_notifications.user_id = user_id
+              chat_notifications.channel_id = channels.id AND chat_notifications.user_id = $1
         )
         ELSE
           NULL

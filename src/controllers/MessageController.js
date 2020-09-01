@@ -2,6 +2,7 @@ const Joi = require("@hapi/joi");
 const { WS_EVENTS } = require("../config/constants");
 const publisher = require("../config/publisher");
 const MessageService = require("../services/MessageService");
+const MemberService = require("../services/MemberService");
 
 const messageSchema = Joi.object().keys({
   id: Joi.string()
@@ -71,6 +72,19 @@ const controllers = [
       const newMessage = await MessageService.addMessage({
         userId,
         ...req.payload
+      });
+      // Returns array of member objects.
+      const members = await MemberService.getAllMembersFromChannel({
+        channelId
+      });
+      // If member is no the one who sent the message,
+      // Add a notification
+      members.forEach(member => {
+        if (member.user_id != userId)
+          MessageService.addChatNotification({
+            userId: member.user_id,
+            channelId
+          });
       });
       publisher({
         type: WS_EVENTS.CHANNEL.ADD_MESSAGE,
@@ -194,47 +208,6 @@ const controllers = [
   },
   // Chat notifications
   {
-    method: "POST",
-    path: "/notifications",
-    options: {
-      description: "Adds chat notification",
-      tags: ["api"],
-      validate: {
-        payload: Joi.object()
-          .keys({
-            channelId: Joi.string()
-              .uuid()
-              .required()
-          })
-          .required()
-      },
-      response: {
-        status: {
-          201: Joi.object()
-            .keys({
-              channelId: Joi.string()
-                .uuid()
-                .required(),
-              userId: Joi.string()
-                .uuid()
-                .required()
-            })
-            .required()
-            .label("addMessageResponse")
-        }
-      }
-    },
-    async handler(req, res) {
-      const { id: userId } = req.auth.credentials;
-      const { channelId } = req.payload;
-      const newChatNotification = await MessageService.addChatNotification({
-        userId,
-        channelId
-      });
-      return res.response(newChatNotification).code(201);
-    }
-  },
-  {
     method: "DELETE",
     path: "/notifications",
     options: {
@@ -249,15 +222,14 @@ const controllers = [
       },
       response: {
         status: {
-          200: Joi.object()
-            .keys({
-              channelId: Joi.string()
-                .uuid()
-                .required(),
-              userId: Joi.string()
-                .uuid()
-                .required()
-            })
+          200: Joi.object({
+            channelId: Joi.string()
+              .uuid()
+              .optional(),
+            userId: Joi.string()
+              .uuid()
+              .optional()
+          })
             .required()
             .label("deleteChatNotificationResponse")
         }
@@ -270,7 +242,8 @@ const controllers = [
         userId,
         channelId
       });
-      return deletedMessage;
+      // If no messages is deleted, return an empty object
+      return deletedMessage ? deletedMessage : {};
     }
   }
 ];
