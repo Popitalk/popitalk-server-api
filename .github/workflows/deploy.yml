@@ -20,6 +20,6 @@ jobs:
             pm2 delete popitalk-server-api
             git pull
             npm install
-            npm run db-reset2
+            npm run db-reset
             env NODE_ENV=production pm2 start ./src/index.js --name "popitalk-server-api"
             exit
