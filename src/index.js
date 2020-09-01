@@ -1,74 +1,47 @@
-/* eslint-disable no-param-reassign */
-const http = require("http");
-const express = require("express");
-const WebSocket = require("ws");
+const glue = require("@hapi/glue");
+const Sentry = require("@sentry/node");
 const config = require("./config");
+const manifest = require("./manifest");
+const { setTrendingQueue } = require("./config/jobs");
+// or use es6 import statements
+// import * as Sentry from '@sentry/node';
 
-if (config.mode !== "production") {
-  require("./helpers/createProjectDirectories");
-}
-
-require("./config/pubSub");
-require("./config/jobs");
-
-const expressInit = require("./helpers/expressInit");
-const upgradeHandler = require("./websockets/upgradeHandler");
-const messageHandler = require("./websockets/messageHandler");
-const closeHandler = require("./websockets/closeHandler");
-const loginEvent = require("./websockets/events/loginEvent");
-const { websocketsOfUsers } = require("./config/state");
-const { HELLO, PING } = require("./config/constants");
-
-const app = express();
-const logger = require("./config/logger");
-
-expressInit(app);
-
-const server = http.createServer(app);
-const wss = new WebSocket.Server({ clientTracking: false, noServer: true });
-
-upgradeHandler(wss, server);
-
-wss.on("connection", async (ws, request) => {
-  const userId = request.session.passport.user;
-
-  messageHandler(ws, userId);
-  closeHandler(ws, userId);
-
-  await loginEvent(ws, request);
+Sentry.init({
+  dsn:
+    "https://c814699d1c9942feb3b19bf8434eaed3@o433742.ingest.sentry.io/5391785"
 });
 
-const heartbeat = setInterval(() => {
-  websocketsOfUsers.forEach(client => {
-    try {
-      // Check if this triggers logoutHandler
-      if (client.isAlive === false) return client.terminate();
+const startServer = async () => {
+  try {
+    const server = await glue.compose(manifest, { relativeTo: __dirname });
+    await server.start();
+    server.log(
+      ["serv"],
+      `API Server is running on ${server.info.uri} in ${config.mode} mode`
+    );
 
-      client.isAlive = false;
+    setTrendingQueue.add("", { repeat: { cron: "* * * * *" } });
 
-      if (client.readyState === 1) {
-        client.send(
-          JSON.stringify({
-            type: PING
-          })
-        );
-      }
-    } catch (error) {
-      logger.error(error);
-    }
-  });
-}, config.heartbeatInterval);
+    // [
+    //   "SIGINT",
+    //   "SIGTERM",
+    //   "SIGQUIT",
+    //   // "SIGKILL",
+    //   "uncaughtException",
+    //   "unhandledRejection"
+    // ].forEach(signal => {
+    //   process.on(signal, async () => {
+    //     server.log(["serv"], "Server stopped");
+    //     await server.stop({ timeout: 60000 });
+    //     // await closeAllConnections();
+    //     process.exit(1);
+    //   });
+    // });
+  } catch (error) {
+    // eslint-disable-next-line no-console
+    console.error(error);
+    process.exit(1);
+  }
+};
 
-server.listen(config.port || 4000, config.host || "localhost", () => {
-  logger.info(
-    `Server is running at ${server.address().address}:${
-      server.address().port
-    } in ${app.get("env")} mode`
-  );
-});
-
-if (config.mode === "production") {
-  require("./helpers/gracefulExit")(server);
-}
-
-module.exports = { server, heartbeat };
+startServer();

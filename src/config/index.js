@@ -6,7 +6,6 @@ module.exports = {
   host: process.env.HOST,
   port: process.env.PORT,
   corsOrigin: process.env.CORS_ORIGIN,
-  logsPathDev: resolve(process.cwd(), "./logs/"),
   dbHost: process.env.DB_HOST,
   dbPort: process.env.DB_PORT,
   dbName: process.env.DB_NAME,
@@ -17,7 +16,7 @@ module.exports = {
   redisIndex: process.env.REDIS_DATABASE,
   redisPassword: process.env.REDIS_PASSWORD,
   sessionName: process.env.SESSION_NAME,
-  sessionSecret: process.env.SESSION_SECRET,
+  sessionPassword: process.env.SESSION_PASSWORD,
   sessionPrefix: process.env.SESSION_PREFIX,
   jobsPrefix: process.env.JOBS_PREFIX,
   s3Bucket: process.env.S3_BUCKET,
@@ -25,5 +24,7 @@ module.exports = {
   awsSecretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
   heartbeatInterval: process.env.WS_HEARTBEAT_INTERVAL,
   cseApiKey: process.env.CSE_API_KEY,
-  cseCxYoutube: process.env.CSE_CX_YOUTUBE
+  cseCxYoutube: process.env.CSE_CX_YOUTUBE,
+  youtubeApiKey: process.env.YOUTUBE_API_KEY,
+  giphyApiKey: process.env.GIPHY_API_KEY
 };
