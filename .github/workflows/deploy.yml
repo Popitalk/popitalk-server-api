@@ -16,10 +16,10 @@ jobs:
           password: ${{ secrets.SSH_PASSWORD }}
           script_stop: false
           script: |
-            cd projects/playnows-server/
-            pm2 delete playnows-server
+            cd projects/popitalk-server-api/
+            pm2 delete popitalk-server-api
             git pull
             npm install
             npm run db-reset2
-            env NODE_ENV=production pm2 start ./src/index.js --name "playnows-server"
+            env NODE_ENV=production pm2 start ./src/index.js --name "popitalk-server-api"
             exit
