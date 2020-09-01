@@ -13,15 +13,21 @@ The codebase for `popitalk-server-api` is written in Node.js with [Hapi](https:/
 
 ### First time setup
 
-1. API setup requires PostgreSQL & Redis
+1. Clone the repository
+
+```
+git clone https://github.com/Popitalk/popitalk-server-api
+```
+
+2. The API setup requires PostgreSQL & Redis
 
 * Install [PostgreSQL](https://www.postgresql.org/) and install this [extension](https://github.com/iCyberon/pg_hashids).
-* Install [Redis](https://redis.io/.)
+* Install [Redis](https://redis.io/.).
 * For Windows, Redis can be setup with: 
-  * https://github.com/microsoftarchive/redis/releases 
-  * https://github.com/ServiceStack/redis-windows
+  - https://github.com/microsoftarchive/redis/releases 
+  - https://github.com/ServiceStack/redis-windows
 
-2. Next create a database:
+3. Next, create a database:
 
 ```
 CREATE DATABASE playnows;
@@ -30,10 +36,9 @@ GRANT ALL PRIVILEGES ON DATABASE playnows TO playnows;
 ALTER ROLE playnows superuser;
 ```
 
-3. Finally to run the repository locally:
+4. Finally to run the repository locally:
 
 ```
-git clone https://github.com/Popitalk/popitalk-client
 npm install
 npm run devserver
 ```
