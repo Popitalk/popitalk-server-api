@@ -4,19 +4,18 @@ const UserService = require("../services/UserService");
 const publisher = require("../config/publisher");
 const { playerStatusJoi } = require("../helpers/commonJois");
 
-const basicUserSchema = Joi.object()
-  .keys({
-    id: Joi.string()
-      .uuid()
-      .required(),
-    firstName: Joi.string().required(),
-    lastName: Joi.string().required(),
-    username: Joi.string().required(),
-    avatar: Joi.string()
-      .uri()
-      .allow(null)
-      .required()
-  });
+const basicUserSchema = Joi.object().keys({
+  id: Joi.string()
+    .uuid()
+    .required(),
+  firstName: Joi.string().required(),
+  lastName: Joi.string().required(),
+  username: Joi.string().required(),
+  avatar: Joi.string()
+    .uri()
+    .allow(null)
+    .required()
+});
 
 const controllers = [
   {
@@ -425,9 +424,7 @@ const controllers = [
                     )
                     .length(2)
                     .required(),
-                  seenMessages: Joi.array()
-                    .length(0)
-                    .required()
+                  isNewMessages: Joi.bool().required()
                 })
                 .required(),
               users: Joi.object()

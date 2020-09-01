@@ -124,11 +124,11 @@ WITH self AS (
           channels.type = 'group'
         THEN (
             SELECT
-              COALESCE(ARRAY_AGG(chat_notifications.user_id), ARRAY[]::UUID[])
+              channel_id
             FROM
               chat_notifications
             WHERE
-              chat_notifications.channel_id = channels.id
+              chat_notifications.channel_id = channels.id AND chat_notifications.user_id = user_id
         )
         ELSE
           NULL
@@ -205,7 +205,7 @@ WITH self AS (
         channels_cte.last_message_content,
         'members',
         channels_cte.members,
-        'seenMessages',
+        'chatNotifications',
         channels_cte.chat_notifications
       )
     ) AS channels
