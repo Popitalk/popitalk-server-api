@@ -1,7 +1,12 @@
 const db = require("../config/database");
 
 module.exports.addMessage = async ({ userId, channelId, content, upload }) => {
-  return db.MessageRepository.addMessage({ userId, channelId, content, upload });
+  return db.MessageRepository.addMessage({
+    userId,
+    channelId,
+    content,
+    upload
+  });
 };
 
 module.exports.getMessages = async ({
@@ -30,5 +35,35 @@ module.exports.deleteMessage = async ({ userId, messageId }) => {
     )) || { firstMessageId: null, lastMessageId: null, lastMessageAt: null };
 
     return { ...deletedMessage, ...channelLastMessageInfo };
+  });
+};
+
+// Chat notificaitons
+
+module.exports.addChatNotification = async ({ userId, channelId }) => {
+  return db.MessageRepository.addChatNotification({
+    userId,
+    channelId
+  });
+};
+
+// module.exports.getMessages = async ({
+//   userId,
+//   channelId,
+//   afterMessageId,
+//   beforeMessageId
+// }) => {
+//   return db.MessageRepository.getMessages({
+//     userId,
+//     channelId,
+//     afterMessageId,
+//     beforeMessageId
+//   });
+// };
+
+module.exports.deleteChatNotification = async ({ userId, channelId }) => {
+  return db.MessageRepository.deleteChatNotification({
+    userId,
+    channelId
   });
 };

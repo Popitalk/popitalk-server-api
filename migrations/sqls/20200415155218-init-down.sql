@@ -4,7 +4,7 @@ DROP TABLE IF EXISTS comment_likes;
 DROP TABLE IF EXISTS comments;
 DROP TABLE IF EXISTS post_likes;
 DROP TABLE IF EXISTS posts;
-DROP TABLE IF EXISTS seen_messages;
+DROP TABLE IF EXISTS chat_notifications;
 DROP TABLE IF EXISTS messages;
 DROP TABLE IF EXISTS follow_requests;
 DROP TABLE IF EXISTS channel_videos;

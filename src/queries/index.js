@@ -88,6 +88,7 @@ module.exports = {
   deleteAdmin: sql("./deleteAdmin.sql"),
   addBan: sql("./addBan.sql"),
   deleteBan: sql("./deleteBan.sql"),
+  getAllMembersFromChannel: sql("./getAllMembersFromChannel.sql"),
 
   /* -------------------------------------------------------------------------- */
   /*                                  MESSAGES                                  */
@@ -96,6 +97,8 @@ module.exports = {
   addMessage: sql("./addMessage.sql"),
   deleteMessage: sql("./deleteMessage.sql"),
   getMessages: require("./getMessages.js"),
+  addChatNotification: sql("./addChatNotification.sql"),
+  deleteChatNotification: sql("./deleteChatNotification.sql"),
 
   /* -------------------------------------------------------------------------- */
   /*                                    POSTS                                   */

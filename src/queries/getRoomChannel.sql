@@ -12,8 +12,7 @@ WITH chan AS (
     fm.id AS "firstMessageId",
     lm.id AS "lastMessageId",
     lm.created_at AS "lastMessageAt",
-    members.ids AS "members",
-    seen.ids AS "seenMessages"
+    members.ids AS "members"
   FROM
     channels
   LEFT JOIN LATERAL (
@@ -52,11 +51,11 @@ WITH chan AS (
     ) members ON TRUE
   LEFT JOIN LATERAL (
       SELECT
-        COALESCE(ARRAY_AGG(seen_messages.user_id), ARRAY[]::UUID[]) AS ids
+        COALESCE(ARRAY_AGG(chat_notifications.user_id), ARRAY[]::UUID[]) AS ids
       FROM
-        seen_messages
+        chat_notifications
       WHERE
-        seen_messages.channel_id = channels.id
+        chat_notifications.channel_id = channels.id
     ) seen ON TRUE
   WHERE
     channels.id = $1
