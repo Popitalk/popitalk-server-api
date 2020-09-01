@@ -1,5 +1,5 @@
 const Joi = require("@hapi/joi");
-// const { WS_EVENTS } = require("../config/constants");
+const { WS_EVENTS } = require("../config/constants");
 const publisher = require("../config/publisher");
 const MemberService = require("../services/MemberService");
 const ChannelService = require("../services/ChannelService");
@@ -242,12 +242,12 @@ const controllers = [
         fromUser,
         toUser
       });
-      // publisher({
-      //   type: CHANNEL_EVENTS.WS_ADD_ADMIN,
-      //   channelId,
-      //   initiator: fromUser,
-      //   payload: { channelId, userId: toUser }
-      // });
+      publisher({
+        type: WS_EVENTS.CHANNEL.ADD_ADMIN,
+        channelId,
+        initiator: fromUser,
+        payload: { channelId, userId: toUser }
+      });
       return res.response({ channelId, ...memberInfo }).code(201);
     }
   },
