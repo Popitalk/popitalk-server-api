@@ -456,12 +456,27 @@ const controllers = [
           type: "friend"
         }
       });
+      // Sends event to user who accepts the friendship
       publisher({
         type: WS_EVENTS.USER.ADD_FRIEND,
         userId: fromUser,
         channelId: channel.id,
         payload: {
           userId: toUser,
+          channelId: channel.id,
+          type: "friend",
+          channel,
+          users,
+          messages
+        }
+      });
+      // Sends event to user who requested the friendship
+      publisher({
+        type: WS_EVENTS.USER.ADD_FRIEND,
+        userId: toUser,
+        channelId: channel.id,
+        payload: {
+          userId: fromUser,
           channelId: channel.id,
           type: "friend",
           channel,
