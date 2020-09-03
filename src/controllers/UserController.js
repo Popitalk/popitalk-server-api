@@ -1,5 +1,5 @@
 const Joi = require("@hapi/joi");
-// const { WS_EVENTS } = require("../config/constants");
+const { WS_EVENTS } = require("../config/constants");
 const UserService = require("../services/UserService");
 const publisher = require("../config/publisher");
 const { playerStatusJoi } = require("../helpers/commonJois");
@@ -274,11 +274,11 @@ const controllers = [
       const { id: fromUser } = req.auth.credentials;
       const { requesteeId: toUser } = req.payload;
       const user = await UserService.addFriendRequest({ fromUser, toUser });
-      // publisher({
-      //   type: USER_EVENTS.WS_ADD_RECEIVED_FRIEND_REQUEST,
-      //   userId: toUser,
-      //   payload: { userId: fromUser, user }
-      // });
+      publisher({
+        type: WS_EVENTS.USER.ADD_RECEIVED_FRIEND_REQUEST,
+        userId: toUser,
+        payload: { userId: fromUser, user }
+      });
       return res.response({ userId: toUser, user }).code(201);
     }
   },
@@ -423,8 +423,7 @@ const controllers = [
                         .required()
                     )
                     .length(2)
-                    .required(),
-                  isNewMessages: Joi.bool().required()
+                    .required()
                 })
                 .required(),
               users: Joi.object()
