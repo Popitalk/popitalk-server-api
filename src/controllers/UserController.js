@@ -446,29 +446,29 @@ const controllers = [
         userId1: fromUser,
         userId2: toUser
       });
-      // publisher({
-      //   type: USER_EVENTS.WS_SUBSCRIBE_CHANNEL,
-      //   userId: toUser,
-      //   channelId: channel.id,
-      //   payload: {
-      //     userId: fromUser,
-      //     channelId: channel.id,
-      //     type: "friend"
-      //   }
-      // });
-      // publisher({
-      //   type: USER_EVENTS.WS_ADD_FRIEND,
-      //   userId: fromUser,
-      //   channelId: channel.id,
-      //   payload: {
-      //     userId: toUser,
-      //     channelId: channel.id,
-      //     type: "friend",
-      //     channel,
-      //     users,
-      //     messages
-      //   }
-      // });
+      publisher({
+        type: WS_EVENTS.USER.SUBSCRIBE_CHANNEL,
+        userId: toUser,
+        channelId: channel.id,
+        payload: {
+          userId: fromUser,
+          channelId: channel.id,
+          type: "friend"
+        }
+      });
+      publisher({
+        type: WS_EVENTS.USER.ADD_FRIEND,
+        userId: fromUser,
+        channelId: channel.id,
+        payload: {
+          userId: toUser,
+          channelId: channel.id,
+          type: "friend",
+          channel,
+          users,
+          messages
+        }
+      });
       return res
         .response({
           userId: toUser,
@@ -517,12 +517,12 @@ const controllers = [
         userId1: userId,
         userId2: friendId
       });
-      // publisher({
-      //   type: USER_CHANNEL_EVENTS.WS_UNFRIEND,
-      //   userId: friendId,
-      //   channelId: deletedChannel.id,
-      //   payload: { userId, channelId: deletedChannel.id }
-      // });
+      publisher({
+        type: WS_EVENTS.USER_CHANNEL.UNFRIEND,
+        userId: friendId,
+        channelId: deletedChannel.id,
+        payload: { userId, channelId: deletedChannel.id }
+      });
       return { userId: friendId, channelId: deletedChannel.id };
     }
   },
