@@ -242,6 +242,7 @@ module.exports.addBlock = async ({ fromUser, toUser }) => {
         userId2: toUser
       });
       blockInfo.channelId = deletedChannel.id;
+      blockInfo.isFriend = true;
       await t.UserRepository.addBlock({ fromUser, toUser });
     }
 

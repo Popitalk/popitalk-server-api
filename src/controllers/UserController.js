@@ -562,21 +562,20 @@ const controllers = [
       const { blockedId: toUser } = req.payload;
 
       const blockedInfo = await UserService.addBlock({ fromUser, toUser });
-
-      // if (blockedInfo.isFriend) {
-      //   publisher({
-      //     type: USER_CHANNEL_EVENTS.WS_BLOCK_FRIEND,
-      //     channelId: blockedInfo.channelId,
-      //     userId: toUser,
-      //     payload: { userId: fromUser, channelId: blockedInfo.channelId }
-      //   });
-      // } else {
-      //   publisher({
-      //     type: USER_EVENTS.WS_ADD_BLOCKER,
-      //     userId: toUser,
-      //     payload: { userId: fromUser }
-      //   });
-      // }
+      if (blockedInfo.isFriend) {
+        publisher({
+          type: WS_EVENTS.USER_CHANNEL.BLOCK_FRIEND,
+          channelId: blockedInfo.channelId,
+          userId: toUser,
+          payload: { userId: fromUser, channelId: blockedInfo.channelId }
+        });
+      } else {
+        publisher({
+          type: WS_EVENTS.USER.ADD_BLOCKER,
+          userId: toUser,
+          payload: { userId: fromUser }
+        });
+      }
 
       return res
         .response({
