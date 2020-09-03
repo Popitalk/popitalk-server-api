@@ -316,11 +316,11 @@ const controllers = [
         userId1: fromUser,
         userId2: toUser
       });
-      // publisher({
-      //   type: USER_EVENTS.WS_DELETE_RECEIVED_FRIEND_REQUEST,
-      //   userId: toUser,
-      //   payload: { userId: fromUser }
-      // });
+      publisher({
+        type: WS_EVENTS.USER.DELETE_RECEIVED_FRIEND_REQUEST,
+        userId: toUser,
+        payload: { userId: fromUser }
+      });
       return { userId: toUser };
     }
   },
@@ -358,11 +358,11 @@ const controllers = [
         userId1: fromUser,
         userId2: toUser
       });
-      // publisher({
-      //   type: USER_EVENTS.WS_DELETE_SENT_FRIEND_REQUEST,
-      //   userId: fromUser,
-      //   payload: { userId: toUser }
-      // });
+      publisher({
+        type: WS_EVENTS.USER.DELETE_SENT_FRIEND_REQUEST,
+        userId: fromUser,
+        payload: { userId: toUser }
+      });
       return { userId: fromUser };
     }
   },
