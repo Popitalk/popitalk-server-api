@@ -49,8 +49,8 @@ module.exports = {
           authenticated: req.auth.isAuthenticated,
           credentials: req.auth.credentials,
           requestHeaders: req.headers,
-          responseHeaders: req.response.headers,
-          response: req.response.source,
+          responseHeaders: req.response?.headers || {},
+          response: req.response?.source,
           responseTime: req.responseTime,
           logs: formattedLogCollection(req.logs)
         });
@@ -66,7 +66,7 @@ module.exports = {
           orig: req.orig,
           credentials: req.auth.credentials,
           responseTime: req.responseTime,
-          response: req.response.source,
+          response: req.response?.source || {},
           logs: formattedLogCollection(req.logs)
         };
 
