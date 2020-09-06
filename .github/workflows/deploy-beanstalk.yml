@@ -33,8 +33,8 @@ jobs:
         with:
           aws_access_key: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws_secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          application_name: popitalk-server-api
-          environment_name: PopitalkServerApi-env
+          application_name: popitalk-server
+          environment_name: PopitalkServer-env
           version_label: ${{ github.sha }}
           region: ${{ secrets.AWS_DEFAULT_REGION }}
           deployment_package: server.zip
