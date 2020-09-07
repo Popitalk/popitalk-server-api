@@ -3,6 +3,7 @@
 /coverage/
 /benchmarks/results/
 dump.rdb
+.env
 
 # Other
 *.log
