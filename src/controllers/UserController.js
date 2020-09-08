@@ -98,7 +98,6 @@ const controllers = [
       }
     },
     async handler(req, res) {
-      console.log("aws test 1: ", req.payload);
       const newUser = await UserService.addUser(req.payload);
       return res.response(newUser).code(201);
     }

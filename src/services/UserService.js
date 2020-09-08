@@ -13,7 +13,6 @@ module.exports.addUser = async ({
   password
 }) => {
   return db.tx(async tx => {
-    console.log("aws test 2: In service");
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const newUser = await tx.UserRepository.addUser({
@@ -24,8 +23,6 @@ module.exports.addUser = async ({
       dateOfBirth,
       password: hashedPassword
     });
-
-    console.log("aws test 3: added user", newUser);
 
     if (!newUser.newUser) {
       if (newUser.username === username)
