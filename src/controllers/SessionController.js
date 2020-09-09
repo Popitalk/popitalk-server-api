@@ -134,7 +134,7 @@ const controllers = [
       req.yar.clear("auth");
 
       req.logger({
-        test: "test 2",
+        test: "test 4",
         log: req.auth
       });
 

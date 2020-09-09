@@ -52,9 +52,11 @@ const manifest = {
         options: {
           name: config.sessionName || "S3SS10N",
           maxCookieSize: 0,
+          storeBlank: false,
           cache: { cache: "redisCache", expiresIn: 604800000 },
           cookieOptions: {
-            isSecure: config.mode === "production",
+            isSecure: false,
+            // isSecure: config.mode === "production",
             password:
               config.sessionPassword || "really_really_long_session_password",
             ttl: 864000000
