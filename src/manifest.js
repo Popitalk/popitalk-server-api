@@ -25,16 +25,17 @@ const manifest = {
     routes: {
       cors: true,
       // cors: config.mode === "production" ? { origin: [1, 2, 3] } : true,
-      security:
-        config.mode === "production"
-          ? {
-              hsts: false,
-              xss: true,
-              noOpen: true,
-              noSniff: true,
-              xframe: false
-            }
-          : false,
+      security: false,
+      // security:
+      //   config.mode === "production"
+      //     ? {
+      //         hsts: false,
+      //         xss: true,
+      //         noOpen: true,
+      //         noSniff: true,
+      //         xframe: false
+      //       }
+      //     : false,
       timeout: { server: 10000 },
       auth: { strategies: ["simple"] },
       log: { collect: true },

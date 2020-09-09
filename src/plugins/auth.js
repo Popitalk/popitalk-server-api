@@ -9,7 +9,7 @@ module.exports = {
         const auth = req.yar.get("auth");
 
         req.logger({
-          test: "test 1",
+          test: "test 1: auth",
           log: auth
         });
 
