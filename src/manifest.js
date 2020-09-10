@@ -59,6 +59,8 @@ const manifest = {
           cache: { cache: "redisCache", expiresIn: 604800000 },
           cookieOptions: {
             isSecure: false,
+            isHttpOnly: false,
+            isSameSite: false,
             // isSecure: config.mode === "production",
             password:
               config.sessionPassword || "really_really_long_session_password",
