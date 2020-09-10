@@ -102,20 +102,12 @@ WITH self AS (
     lm.content AS last_message_content,
     lm.username AS last_message_username,
     (
-      CASE
-        WHEN
-          channels.type != 'channel'
-        THEN (
-            SELECT
-              ARRAY_AGG(members.user_id)
-            FROM
-              members
-            WHERE
-              members.channel_id = channels.id
-        )
-        ELSE
-          NULL
-      END
+      SELECT
+        ARRAY_AGG(members.user_id)
+      FROM
+        members
+      WHERE
+        members.channel_id = channels.id      
     ) AS members,
     (
       CASE
