@@ -2,8 +2,8 @@
 /node_modules/
 /coverage/
 /benchmarks/results/
-.env
 dump.rdb
+.env
 
 # Other
 *.log

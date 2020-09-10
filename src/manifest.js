@@ -25,16 +25,17 @@ const manifest = {
     routes: {
       cors: true,
       // cors: config.mode === "production" ? { origin: [1, 2, 3] } : true,
-      security:
-        config.mode === "production"
-          ? {
-              hsts: false,
-              xss: true,
-              noOpen: true,
-              noSniff: true,
-              xframe: false
-            }
-          : false,
+      security: false,
+      // security:
+      //   config.mode === "production"
+      //     ? {
+      //         hsts: false,
+      //         xss: true,
+      //         noOpen: true,
+      //         noSniff: true,
+      //         xframe: false
+      //       }
+      //     : false,
       timeout: { server: 10000 },
       auth: { strategies: ["simple"] },
       log: { collect: true },
@@ -52,9 +53,11 @@ const manifest = {
         options: {
           name: config.sessionName || "S3SS10N",
           maxCookieSize: 0,
+          storeBlank: false,
           cache: { cache: "redisCache", expiresIn: 604800000 },
           cookieOptions: {
-            isSecure: config.mode === "production",
+            isSecure: false,
+            // isSecure: config.mode === "production",
             password:
               config.sessionPassword || "really_really_long_session_password",
             ttl: 864000000
