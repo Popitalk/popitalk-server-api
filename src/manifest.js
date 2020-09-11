@@ -23,7 +23,9 @@ const manifest = {
       }
     ],
     routes: {
-      cors: true,
+      cors: {
+        credentials: true
+      },
       // cors: config.mode === "production" ? { origin: [1, 2, 3] } : true,
       security: false,
       // security:
@@ -57,6 +59,8 @@ const manifest = {
           cache: { cache: "redisCache", expiresIn: 604800000 },
           cookieOptions: {
             isSecure: false,
+            isHttpOnly: false,
+            isSameSite: false,
             // isSecure: config.mode === "production",
             password:
               config.sessionPassword || "really_really_long_session_password",
