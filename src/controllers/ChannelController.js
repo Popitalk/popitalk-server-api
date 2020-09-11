@@ -153,7 +153,7 @@ const controllers = [
         ...req.payload,
         userId
       });
-      
+
       publisher({
         type: WS_EVENTS.USER.SUBSCRIBE_CHANNEL,
         channelId: channel.id,
@@ -378,7 +378,7 @@ const controllers = [
         ...req.payload
       });
 
-      const payload = { channelId, updatedChannel: channel }; 
+      const payload = { channelId, updatedChannel: channel };
       publisher({
         type: WS_EVENTS.CHANNEL.UPDATE_CHANNEL,
         channelId,
@@ -421,12 +421,12 @@ const controllers = [
       const { id: userId } = req.auth.credentials;
       const { channelId } = req.params;
       await ChannelService.deleteChannel({ userId, channelId });
-      // publisher({
-      //   type: CHANNEL_EVENTS.WS_DELETE_CHANNEL,
-      //   channelId,
-      //   initiator: userId,
-      //   payload: { channelId }
-      // });
+      publisher({
+        type: WS_EVENTS.CHANNEL.DELETE_CHANNEL,
+        channelId,
+        initiator: userId,
+        payload: { channelId }
+      });
       return { channelId };
     }
   },
