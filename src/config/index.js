@@ -5,7 +5,7 @@ module.exports = {
   mode: process.env.NODE_ENV,
   host: process.env.HOST,
   port: process.env.PORT,
-  corsOrigin: process.env.CORS_ORIGIN,
+  corsOrigin: process.env.CORS_ORIGIN.split(","),
   dbHost: process.env.DB_HOST,
   dbPort: process.env.DB_PORT,
   dbName: process.env.DB_NAME,
