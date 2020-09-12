@@ -1,8 +1,6 @@
 const config = require("./config");
 const validationFailAction = require("./helpers/validationFailAction");
 
-const apiPrefix = "/api";
-
 const manifest = {
   server: {
     port: config.port || 4000,
@@ -75,10 +73,8 @@ const manifest = {
       {
         plugin: require("hapi-swagger"),
         options: {
-          basePath: apiPrefix,
-          pathPrefixSize: 2,
-          documentationPath: `${apiPrefix}/docs`,
-          jsonPath: `${apiPrefix}/swagger.json`,
+          documentationPath: `/docs`,
+          jsonPath: `/swagger.json`,
           uiCompleteScript:
             "document.getElementsByClassName('topbar')[0].style.display = 'none';",
           info: {
@@ -90,39 +86,39 @@ const manifest = {
       { plugin: require("./plugins/responseTime") },
       {
         plugin: require("./controllers/UserController"),
-        routes: { prefix: `${apiPrefix}/users` }
+        routes: { prefix: `/users` }
       },
       {
         plugin: require("./controllers/SessionController"),
-        routes: { prefix: `${apiPrefix}/sessions` }
+        routes: { prefix: `/sessions` }
       },
       {
         plugin: require("./controllers/ChannelController"),
-        routes: { prefix: `${apiPrefix}/channels` }
+        routes: { prefix: `/channels` }
       },
       {
         plugin: require("./controllers/MemberController"),
-        routes: { prefix: `${apiPrefix}/members` }
+        routes: { prefix: `/members` }
       },
       {
         plugin: require("./controllers/MessageController"),
-        routes: { prefix: `${apiPrefix}/messages` }
+        routes: { prefix: `/messages` }
       },
       {
         plugin: require("./controllers/GifController"),
-        routes: { prefix: `${apiPrefix}/gifs` }
+        routes: { prefix: `/gifs` }
       },
       {
         plugin: require("./controllers/PostController"),
-        routes: { prefix: `${apiPrefix}/posts` }
+        routes: { prefix: `/posts` }
       },
       {
         plugin: require("./controllers/CommentController"),
-        routes: { prefix: `${apiPrefix}/comments` }
+        routes: { prefix: `/comments` }
       },
       {
         plugin: require("./controllers/VideoController"),
-        routes: { prefix: `${apiPrefix}/videos` }
+        routes: { prefix: `/videos` }
       }
     ]
   }
