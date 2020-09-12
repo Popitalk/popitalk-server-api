@@ -105,11 +105,6 @@ const controllers = [
         credentials
       });
 
-      req.logger({
-        test: "test 3: login",
-        log: req.yar.get("auth")
-      });
-
       const wsTicket = await wsBooth(loginData);
 
       return { ...loginData, wsTicket };
@@ -132,12 +127,6 @@ const controllers = [
     },
     async handler(req, res) {
       req.yar.clear("auth");
-
-      req.logger({
-        test: "test 4: logout",
-        log: req.yar.get("auth")
-      });
-
       return res.response({}).code(204);
     }
   },
@@ -175,10 +164,6 @@ const controllers = [
       }
     },
     async handler(req, res) {
-      req.logger({
-        test: "test 2: validate",
-        log: req.yar.get("auth")
-      });
       const { id: userId } = req.auth.credentials;
       const loginData = await SessionService.getLoginData({ userId });
 

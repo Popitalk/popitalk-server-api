@@ -7,12 +7,6 @@ module.exports = {
     server.auth.scheme("basic", () => ({
       authenticate(req, res) {
         const auth = req.yar.get("auth");
-
-        req.logger({
-          test: "test 1: auth",
-          log: auth
-        });
-
         if (!auth) throw Boom.unauthorized();
         const { isAuthenticated, credentials } = auth;
         if (!isAuthenticated) throw Boom.unauthorized();
