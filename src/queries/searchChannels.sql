@@ -9,7 +9,7 @@ SELECT
 FROM
   channels
 WHERE
-  (channels.name % $1 OR channels.name LIKE '%' || $1 || '%')
+  similarity(channels.name, $1) > 0.2
   AND channels.type = 'channel'
 ORDER BY
   channels.name <-> $1 ASC

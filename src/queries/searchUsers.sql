@@ -7,7 +7,7 @@ SELECT
 FROM
   users
 WHERE
-  (users.username % $1 OR users.username LIKE '%' || $1 || '%')
+  similarity(users.username, $1) > 0.2
   AND users.deleted_at IS NULL
 ORDER BY
   users.username <-> $1 ASC
