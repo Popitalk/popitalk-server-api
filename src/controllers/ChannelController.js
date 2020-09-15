@@ -383,7 +383,7 @@ const controllers = [
         type: WS_EVENTS.CHANNEL.UPDATE_CHANNEL,
         channelId,
         initiator: userId,
-        payload: payload
+        payload
       });
 
       return payload;
@@ -577,6 +577,24 @@ const controllers = [
       });
 
       return { channelId, updatedChannel: playerStatus };
+    }
+  },
+  {
+    method: "GET",
+    path: "/discover",
+    options: {
+      description: "Discovers channels",
+      tags: ["api"]
+      // response: {
+      //   status: {
+      //     200: loginResponseSchema
+      //   }
+      // }
+    },
+    async handler(req, res) {
+      const discoveredChannels = await ChannelService.discoverChannels();
+
+      return discoveredChannels;
     }
   }
 ];

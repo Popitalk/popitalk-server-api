@@ -1,6 +1,7 @@
 const Boom = require("@hapi/boom");
 const fileType = require("file-type");
 const moment = require("moment");
+const redis = require("../config/redis");
 const { uploadFile } = require("../config/aws");
 const db = require("../config/database");
 const { getQueue } = require("./VideoService");
@@ -324,4 +325,30 @@ module.exports.searchChannels = async ({ searchTerm, pageNo }) => {
   });
   const channels = await Promise.all(channelsPromise);
   return channels;
+};
+
+module.exports.discoverChannels = async () => {
+  let discoveredChannels = await redis.get("discoveredChannels");
+
+  if (!discoveredChannels) {
+    discoveredChannels = await db.ChannelRepository.getDiscoveredChannels();
+    await redis.setex(
+      "discoveredChannels",
+      10,
+      JSON.stringify(discoveredChannels)
+    );
+  } else {
+    discoveredChannels = JSON.parse(discoveredChannels);
+  }
+
+  const channelIds = discoveredChannels.map(c => c.channelId);
+
+  let videosInfo = await db.VideoRepository.getVideosInfo({ channelIds });
+  videosInfo = videosInfo.videoInfo;
+
+  discoveredChannels.forEach((dc, index) => {
+    discoveredChannels[index].videoInfo = videosInfo[dc.channelId];
+  });
+
+  return discoveredChannels;
 };

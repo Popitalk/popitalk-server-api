@@ -26,7 +26,7 @@ const controllers = [
     async handler(req, res) {
       const { terms, page } = req.query;
 
-      const api = (terms && terms !== "") ? "search" : "videos";
+      const api = terms && terms !== "" ? "search" : "videos";
 
       const parameters = {
         part: "snippet",
@@ -46,7 +46,7 @@ const controllers = [
       try {
         const youtube = google.youtube("v3");
         const response = await youtube[api].list(parameters);
-    
+
         const results = response.data.items.map(i => {
           const id = i.id.videoId ? i.id.videoId : i.id;
 
@@ -58,7 +58,7 @@ const controllers = [
             thumbnail: i.snippet.thumbnails.high.url
           };
         });
-    
+
         return res
           .response({
             nextPageToken: response.data.nextPageToken,
@@ -145,12 +145,12 @@ const controllers = [
         });
 
         const payload = { channelId, video };
-        
+
         publisher({
           type: WS_EVENTS.VIDEO_CONTROL.ADD_VIDEO,
           channelId,
           initiator: userId,
-          payload: payload
+          payload
         });
 
         return res.response(payload).code(201);
@@ -216,18 +216,18 @@ const controllers = [
         newIndex
       });
 
-      const payload = { 
-        channelId, 
-        oldIndex, 
-        newIndex, 
-        updatedChannel: playerStatus 
+      const payload = {
+        channelId,
+        oldIndex,
+        newIndex,
+        updatedChannel: playerStatus
       };
-      
+
       publisher({
         type: WS_EVENTS.VIDEO_CONTROL.REORDER_QUEUE,
         channelId,
         initiator: userId,
-        payload: payload
+        payload
       });
 
       return payload;
@@ -266,12 +266,12 @@ const controllers = [
       });
 
       const payload = { ...deletedVideo, updatedChannel: playerStatus };
-      
+
       publisher({
         type: WS_EVENTS.VIDEO_CONTROL.DELETE_VIDEO,
         channelId,
         initiator: userId,
-        payload: payload
+        payload
       });
 
       return payload;

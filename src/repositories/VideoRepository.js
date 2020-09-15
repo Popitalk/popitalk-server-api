@@ -70,6 +70,10 @@ class VideoRepository {
       newIndex
     });
   }
+
+  async getVideosInfo({ channelIds }) {
+    return this.db.one(queries.getVideosInfo, [channelIds]);
+  }
 }
 
 module.exports = VideoRepository;

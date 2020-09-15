@@ -57,6 +57,7 @@ module.exports = {
   deleteFriendRoom: sql("./deleteFriendRoom.sql"),
   searchChannels: sql("./searchChannels.sql"),
   getAvatars: sql("./getAvatars.sql"),
+  getDiscoveredChannels: sql("./getDiscoveredChannels.sql"),
 
   /* -------------------------------------------------------------------------- */
   /*                                    VIDEOS                                  */
@@ -71,6 +72,7 @@ module.exports = {
   updateQueuePositionsAfterDelete: require("./updateQueuePositionsAfterDelete"),
   updateQueuePositionsAfterHighToLowSwap: require("./updateQueuePositionsAfterHighToLowSwap.js"),
   updateQueuePositionsAfterLowToHighSwap: require("./updateQueuePositionsAfterLowToHighSwap.js"),
+  getVideosInfo: sql("./getVideosInfo.sql"),
 
   /* -------------------------------------------------------------------------- */
   /*                                   MEMBERS                                  */

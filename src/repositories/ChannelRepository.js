@@ -51,7 +51,10 @@ class ChannelRepository {
   }
 
   async getChannelAndMemberInfo({ channelId, userId }) {
-    return this.db.oneOrNone(queries.getChannelAndMemberInfo, [channelId, userId]);
+    return this.db.oneOrNone(queries.getChannelAndMemberInfo, [
+      channelId,
+      userId
+    ]);
   }
 
   async getChannelLastMessageInfo({ channelId }) {
@@ -127,6 +130,10 @@ class ChannelRepository {
 
   async getAvatars({ channelId }) {
     return this.db.manyOrNone(queries.getAvatars, [channelId]);
+  }
+
+  async getDiscoveredChannels() {
+    return this.db.any(queries.getDiscoveredChannels);
   }
 }
 
