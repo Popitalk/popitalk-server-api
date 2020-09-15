@@ -58,6 +58,7 @@ module.exports = {
   searchChannels: sql("./searchChannels.sql"),
   getAvatars: sql("./getAvatars.sql"),
   getDiscoveredChannels: sql("./getDiscoveredChannels.sql"),
+  getTrendingChannels: sql("./getTrendingChannels.sql"),
 
   /* -------------------------------------------------------------------------- */
   /*                                    VIDEOS                                  */

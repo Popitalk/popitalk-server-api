@@ -135,6 +135,10 @@ class ChannelRepository {
   async getDiscoveredChannels() {
     return this.db.any(queries.getDiscoveredChannels);
   }
+
+  async getTrendingChannels() {
+    return this.db.any(queries.getTrendingChannels);
+  }
 }
 
 module.exports = ChannelRepository;

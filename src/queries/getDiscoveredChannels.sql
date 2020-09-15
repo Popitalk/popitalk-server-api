@@ -9,4 +9,4 @@ WHERE
   channels.type = 'channel'
   AND channels.public
 ORDER BY
-  random() FETCH FIRST 3 ROWS ONLY
+  random() FETCH FIRST 5 ROWS ONLY

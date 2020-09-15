@@ -334,7 +334,7 @@ module.exports.discoverChannels = async () => {
     discoveredChannels = await db.ChannelRepository.getDiscoveredChannels();
     await redis.setex(
       "discoveredChannels",
-      10,
+      30,
       JSON.stringify(discoveredChannels)
     );
   } else {
@@ -347,8 +347,13 @@ module.exports.discoverChannels = async () => {
   videosInfo = videosInfo.videoInfo;
 
   discoveredChannels.forEach((dc, index) => {
-    discoveredChannels[index].videoInfo = videosInfo[dc.channelId];
+    discoveredChannels[index].videoInfo = videosInfo[dc.channelId] || null;
   });
 
   return discoveredChannels;
+};
+
+module.exports.trendingChannels = async () => {
+  const trendingChannels = await db.ChannelRepository.getTrendingChannels();
+  return trendingChannels;
 };

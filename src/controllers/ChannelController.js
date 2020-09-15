@@ -583,7 +583,7 @@ const controllers = [
     method: "GET",
     path: "/discover",
     options: {
-      description: "Discovers channels",
+      description: "Discover channels",
       tags: ["api"]
       // response: {
       //   status: {
@@ -595,6 +595,24 @@ const controllers = [
       const discoveredChannels = await ChannelService.discoverChannels();
 
       return discoveredChannels;
+    }
+  },
+  {
+    method: "GET",
+    path: "/trending",
+    options: {
+      description: "Trending channels",
+      tags: ["api"]
+      // response: {
+      //   status: {
+      //     200: loginResponseSchema
+      //   }
+      // }
+    },
+    async handler(req, res) {
+      const trendingChannels = await ChannelService.trendingChannels();
+
+      return trendingChannels;
     }
   }
 ];
