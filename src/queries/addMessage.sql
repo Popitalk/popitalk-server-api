@@ -1,15 +1,23 @@
 INSERT INTO
   messages (channel_id, user_id, content, upload)
 SELECT
-  members.channel_id AS "channel_id",
-  members.user_id AS "user_id",
+  id as "channel_id",
+  $2 as "user_id",
   $3 AS "content",
   $4 AS "upload"
 FROM
-  members
+  channels
 WHERE
-  members.channel_id = $1
-  AND members.user_id = $2
+  (id = $1 AND public = true)
+  OR $1 IN
+  (
+  SELECT
+    id
+  FROM
+    members
+  WHERE
+    channel_id = $1 AND members.user_id = $2
+  )
 RETURNING
   id AS "id",
   channel_id AS "channelId",
