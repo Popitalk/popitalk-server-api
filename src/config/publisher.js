@@ -47,7 +47,6 @@ module.exports = async ({ type, initiator, channelId, userId, payload }) => {
         channelId,
         JSON.stringify({
           type: WS_EVENTS.CHANNEL.ADD_MEMBER,
-          channelId,
           payload,
           initiator
         })
