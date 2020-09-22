@@ -91,6 +91,7 @@ CREATE TABLE channels (
   status TEXT NOT NULL DEFAULT 'Ended',
 
   CONSTRAINT bounded_type CHECK(type = 'self' OR type = 'friend' OR type = 'group' OR type = 'channel'),
+  CONSTRAINT bounded_status CHECK(status = 'Playing' OR status = 'Paused' OR status = 'Ended'),
   CONSTRAINT name_length CHECK(length(name) >= 3 AND length(name) <= 20),
   CONSTRAINT description_length CHECK(description IS NULL OR (length(description) >= 1 AND length(description) <= 150)),
   CONSTRAINT channel_owner CHECK(

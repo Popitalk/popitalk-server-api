@@ -57,7 +57,7 @@ module.exports = {
   deleteFriendRoom: sql("./deleteFriendRoom.sql"),
   searchChannels: sql("./searchChannels.sql"),
   getAvatars: sql("./getAvatars.sql"),
-  getDiscoveredChannels: sql("./getDiscoveredChannels.sql"),
+  getDiscoverChannels: sql("./getDiscoverChannels.sql"),
   getTrendingChannels: sql("./getTrendingChannels.sql"),
 
   /* -------------------------------------------------------------------------- */

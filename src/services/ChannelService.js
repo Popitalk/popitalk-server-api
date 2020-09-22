@@ -328,29 +328,21 @@ module.exports.searchChannels = async ({ searchTerm, pageNo }) => {
 };
 
 module.exports.discoverChannels = async () => {
-  let discoveredChannels = await redis.get("discoveredChannels");
+  let discoverChannels = await redis.get("discoverChannels");
 
-  if (!discoveredChannels) {
-    discoveredChannels = await db.ChannelRepository.getDiscoveredChannels();
-    await redis.setex(
-      "discoveredChannels",
-      30,
-      JSON.stringify(discoveredChannels)
-    );
+  if (!discoverChannels) {
+    discoverChannels = (await db.ChannelRepository.getDiscoverChannels())
+      .channelIds;
+    await redis.setex("discoverChannels", 5, JSON.stringify(discoverChannels));
   } else {
-    discoveredChannels = JSON.parse(discoveredChannels);
+    discoverChannels = JSON.parse(discoverChannels);
   }
 
-  const channelIds = discoveredChannels.map(c => c.channelId);
-
-  let videosInfo = await db.VideoRepository.getVideosInfo({ channelIds });
-  videosInfo = videosInfo.videoInfo;
-
-  discoveredChannels.forEach((dc, index) => {
-    discoveredChannels[index].videoInfo = videosInfo[dc.channelId] || null;
+  const videosInfo = await db.VideoRepository.getVideosInfo({
+    channelIds: discoverChannels
   });
 
-  return discoveredChannels;
+  return videosInfo;
 };
 
 module.exports.trendingChannels = async () => {

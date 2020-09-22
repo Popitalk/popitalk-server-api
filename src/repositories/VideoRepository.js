@@ -72,7 +72,7 @@ class VideoRepository {
   }
 
   async getVideosInfo({ channelIds }) {
-    return this.db.one(queries.getVideosInfo, [channelIds]);
+    return this.db.any(queries.getVideosInfo, [channelIds]);
   }
 }
 

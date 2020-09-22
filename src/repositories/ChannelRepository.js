@@ -132,8 +132,8 @@ class ChannelRepository {
     return this.db.manyOrNone(queries.getAvatars, [channelId]);
   }
 
-  async getDiscoveredChannels() {
-    return this.db.any(queries.getDiscoveredChannels);
+  async getDiscoverChannels() {
+    return this.db.one(queries.getDiscoverChannels);
   }
 
   async getTrendingChannels() {
