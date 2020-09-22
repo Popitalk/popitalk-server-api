@@ -61,13 +61,13 @@ const controllers = [
         channelId,
         userId
       });
-      // publisher({
-      //   type: USER_CHANNEL_EVENTS.WS_JOIN_CHANNEL,
-      //   userId,
-      //   channelId,
-      //   initiator: userId,
-      //   payload: { userId, channelId, user, type }
-      // });
+      publisher({
+        type: WS_EVENTS.USER_CHANNEL.JOIN_CHANNEL,
+        userId,
+        channelId,
+        initiator: userId,
+        payload: { userId, channelId, user, type }
+      });
       return res.response({ channelId, userId, user, type }).code(201);
     }
   },
@@ -179,13 +179,13 @@ const controllers = [
       const { id: userId } = req.auth.credentials;
       const { channelId } = req.params;
       await MemberService.deleteMember({ userId, channelId });
-      // publisher({
-      //   type: USER_CHANNEL_EVENTS.WS_LEAVE_CHANNEL,
-      //   userId,
-      //   channelId,
-      //   initiator: userId,
-      //   payload: { channelId, userId }
-      // });
+      publisher({
+        type: WS_EVENTS.USER_CHANNEL.LEAVE_CHANNEL,
+        userId,
+        channelId,
+        initiator: userId,
+        payload: { channelId, userId }
+      });
       return { channelId, userId };
     }
   },

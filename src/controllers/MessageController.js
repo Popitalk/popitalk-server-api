@@ -77,7 +77,7 @@ const controllers = [
       const members = await MemberService.getAllMembersFromChannel({
         channelId
       });
-      // If member is no the one who sent the message,
+      // If member is not the one who sent the message,
       // Add a notification
       members.forEach(member => {
         if (member.user_id != userId)
