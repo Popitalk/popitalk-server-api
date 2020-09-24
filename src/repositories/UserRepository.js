@@ -94,7 +94,7 @@ class UserRepository {
       "block"
     ]);
   }
-  
+
   async updateBlock({ fromUser, toUser, blockType }) {
     return this.db.one(queries.updateUserRelationship, [
       fromUser,
@@ -109,6 +109,10 @@ class UserRepository {
 
   async getUserRelationship({ userId1, userId2 }) {
     return this.db.oneOrNone(queries.getUserRelationship, [userId1, userId2]);
+  }
+
+  async getUsers({ userIds }) {
+    return this.db.one(queries.getUsers, [userIds]);
   }
 }
 

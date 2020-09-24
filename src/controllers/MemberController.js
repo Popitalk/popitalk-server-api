@@ -62,8 +62,7 @@ const controllers = [
         userId
       });
       publisher({
-        type: WS_EVENTS.USER_CHANNEL.JOIN_CHANNEL,
-        userId,
+        type: WS_EVENTS.CHANNEL.ADD_MEMBER,
         channelId,
         initiator: userId,
         payload: { userId, channelId, user, type }
@@ -179,13 +178,14 @@ const controllers = [
       const { id: userId } = req.auth.credentials;
       const { channelId } = req.params;
       await MemberService.deleteMember({ userId, channelId });
+
       publisher({
-        type: WS_EVENTS.USER_CHANNEL.LEAVE_CHANNEL,
-        userId,
+        type: WS_EVENTS.CHANNEL.DELETE_MEMBER,
         channelId,
         initiator: userId,
-        payload: { channelId, userId }
+        payload: { userId, channelId }
       });
+
       return { channelId, userId };
     }
   },

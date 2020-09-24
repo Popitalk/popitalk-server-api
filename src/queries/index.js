@@ -17,6 +17,7 @@ module.exports = {
 
   addUser: sql("./addUser.sql"),
   getUser: require("./getUser"),
+  getUsers: sql("./getUsers.sql"),
   updateUser: require("./updateUser.js"),
   deleteUser: sql("./deleteUser.sql"),
   searchUsers: sql("./searchUsers.sql"),

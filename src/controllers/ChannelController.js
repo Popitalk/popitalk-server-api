@@ -2,8 +2,9 @@ const Joi = require("@hapi/joi");
 const { WS_EVENTS } = require("../config/constants");
 const publisher = require("../config/publisher");
 const ChannelService = require("../services/ChannelService");
-const sentChannel = require("../ranking/sentChannel.js");
+const UserService = require("../services/UserService");
 const { playerStatusJoi } = require("../helpers/commonJois");
+const redis = require("../config/redis");
 
 const playerValidation = {
   params: Joi.object()
@@ -248,16 +249,64 @@ const controllers = [
         userId,
         channelId
       });
-      if (channelInfo.type === "channel") {
-        sentChannel({ channelId, userId });
-      }
+
+      await redis.sadd(`viewers:${channelId}`, userId);
+
+      let user = await UserService.getUser({ userId });
+
+      user = {
+        username: user.username,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        avatar: user.avatar
+      };
+
       publisher({
-        type: WS_EVENTS.USER.SUBSCRIBE_CHANNEL,
-        channelId,
+        type: WS_EVENTS.USER_CHANNEL.JOIN_CHANNEL,
         userId,
-        payload: { userId, channelId, type: "channel" }
+        channelId,
+        initiator: userId,
+        payload: { userId, channelId, user, type: channelInfo.type }
       });
+
       return { channelId, ...channelInfo };
+    }
+  },
+  {
+    method: "POST",
+    path: "/{channelId}/leave",
+    options: {
+      description: "Leaves channel",
+      tags: ["api"],
+      validate: {
+        params: Joi.object()
+          .keys({
+            channelId: Joi.string()
+              .uuid()
+              .required()
+          })
+          .required()
+      }
+    },
+    async handler(req, res) {
+      const { id: userId } = req.auth.credentials;
+      const { channelId } = req.params;
+      const channelInfo = await ChannelService.getChannel({
+        userId,
+        channelId
+      });
+
+      await redis.srem(`viewers:${channelId}`, userId);
+
+      publisher({
+        type: WS_EVENTS.USER_CHANNEL.LEAVE_CHANNEL,
+        userId,
+        channelId,
+        initiator: userId,
+        payload: { userId, channelId, type: channelInfo.type }
+      });
+
+      return { channelId };
     }
   },
   {

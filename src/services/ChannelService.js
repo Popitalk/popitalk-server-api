@@ -107,6 +107,22 @@ module.exports.getChannel = async ({ channelId, userId }) => {
 
       const queue = await getQueue({ channelId });
 
+      const viewerIds = await redis.smembers(`viewers:${channelId}`);
+      const { users: viewersUsers } = await t.UserRepository.getUsers({
+        userIds: viewerIds
+      });
+      channelInfo = {
+        ...channelInfo,
+        channel: {
+          ...channelInfo.channel,
+          viewers: viewerIds
+        },
+        users: {
+          ...channelInfo.users,
+          ...viewersUsers
+        }
+      };
+
       return {
         ...channelInfo,
         ...chMemInfo,
