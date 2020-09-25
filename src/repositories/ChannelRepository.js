@@ -137,7 +137,7 @@ class ChannelRepository {
   }
 
   async getTrendingChannels() {
-    return this.db.any(queries.getTrendingChannels);
+    return this.db.one(queries.getTrendingChannels);
   }
 }
 

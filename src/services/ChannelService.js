@@ -344,24 +344,103 @@ module.exports.searchChannels = async ({ searchTerm, pageNo }) => {
 };
 
 module.exports.discoverChannels = async () => {
-  let discoverChannels = await redis.get("discoverChannels");
+  return db.task(async t => {
+    let discoverChannels = await redis.get("discoverChannels");
 
-  if (!discoverChannels) {
-    discoverChannels = (await db.ChannelRepository.getDiscoverChannels())
-      .channelIds;
-    await redis.setex("discoverChannels", 5, JSON.stringify(discoverChannels));
-  } else {
-    discoverChannels = JSON.parse(discoverChannels);
-  }
+    if (!discoverChannels) {
+      discoverChannels = (await t.ChannelRepository.getDiscoverChannels())
+        .channelIds;
+      await redis.setex(
+        "discoverChannels",
+        5,
+        JSON.stringify(discoverChannels)
+      );
+    } else {
+      discoverChannels = JSON.parse(discoverChannels);
+    }
 
-  const videosInfo = await db.VideoRepository.getVideosInfo({
-    channelIds: discoverChannels
+    const { channels } = await t.VideoRepository.getVideosInfo({
+      channelIds: discoverChannels
+    });
+
+    let response = {
+      channels,
+      users: {}
+    };
+
+    const channelIds = Object.keys(response.channels);
+    const allViewersIds = new Set();
+
+    for await (const cid of channelIds) {
+      const viewers = await redis.smembers(`viewers:${cid}`);
+      viewers.forEach(allViewersIds.add, allViewersIds);
+
+      response = {
+        ...response,
+        channels: {
+          ...response.channels,
+          [cid]: {
+            ...response.channels[cid],
+            viewers
+          }
+        }
+      };
+    }
+
+    const { users } = await t.UserRepository.getUsers({
+      userIds: [...allViewersIds]
+    });
+
+    response = {
+      ...response,
+      users: {
+        ...response.users,
+        ...users
+      }
+    };
+    return response;
   });
-
-  return videosInfo;
 };
 
 module.exports.trendingChannels = async () => {
-  const trendingChannels = await db.ChannelRepository.getTrendingChannels();
-  return trendingChannels;
+  return db.task(async t => {
+    const { channels } = await t.ChannelRepository.getTrendingChannels();
+
+    let response = {
+      channels,
+      users: {}
+    };
+
+    const channelIds = Object.keys(response.channels);
+    const allViewersIds = new Set();
+
+    for await (const cid of channelIds) {
+      const viewers = await redis.smembers(`viewers:${cid}`);
+      viewers.forEach(allViewersIds.add, allViewersIds);
+
+      response = {
+        ...response,
+        channels: {
+          ...response.channels,
+          [cid]: {
+            ...response.channels[cid],
+            viewers
+          }
+        }
+      };
+    }
+
+    const { users } = await t.UserRepository.getUsers({
+      userIds: [...allViewersIds]
+    });
+
+    response = {
+      ...response,
+      users: {
+        ...response.users,
+        ...users
+      }
+    };
+    return response;
+  });
 };
