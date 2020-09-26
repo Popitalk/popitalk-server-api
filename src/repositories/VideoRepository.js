@@ -71,8 +71,8 @@ class VideoRepository {
     });
   }
 
-  async getVideosInfo({ channelIds }) {
-    return this.db.one(queries.getVideosInfo, [channelIds]);
+  async getVideosInfo({ channelIds, userId }) {
+    return this.db.one(queries.getVideosInfo, [channelIds, userId]);
   }
 }
 

@@ -310,42 +310,6 @@ const controllers = [
     }
   },
   {
-    method: "GET",
-    path: "/search",
-    options: {
-      description: "Searches channel",
-      tags: ["api"],
-      validate: {
-        query: Joi.object()
-          .keys({
-            searchTerm: Joi.string()
-              .min(0)
-              .allow("")
-              .required(),
-            pageNo: Joi.string()
-              .min(1)
-              .required()
-          })
-          .required()
-      },
-      response: {
-        status: {
-          200: Joi.array()
-            .required()
-            .label("searchChannelResponse")
-        }
-      }
-    },
-    async handler(req, res) {
-      const { searchTerm, pageNo } = req.query;
-      const channels = await ChannelService.searchChannels({
-        searchTerm,
-        pageNo
-      });
-      return channels;
-    }
-  },
-  {
     method: "PUT",
     path: "/{channelId}",
     options: {
@@ -641,7 +605,10 @@ const controllers = [
       // }
     },
     async handler(req, res) {
-      const discoveredChannels = await ChannelService.discoverChannels();
+      const { id: userId } = req.auth.credentials;
+      const discoveredChannels = await ChannelService.discoverChannels({
+        userId
+      });
 
       return discoveredChannels;
     }
@@ -659,9 +626,72 @@ const controllers = [
       // }
     },
     async handler(req, res) {
-      const trendingChannels = await ChannelService.trendingChannels();
+      const { id: userId } = req.auth.credentials;
+      const trendingChannels = await ChannelService.trendingChannels({
+        userId
+      });
 
       return trendingChannels;
+    }
+  },
+  {
+    method: "GET",
+    path: "/following",
+    options: {
+      description: "Following channels",
+      tags: ["api"]
+      // response: {
+      //   status: {
+      //     200: loginResponseSchema
+      //   }
+      // }
+    },
+    async handler(req, res) {
+      const { id: userId } = req.auth.credentials;
+      const followingChannels = await ChannelService.followingChannels({
+        userId
+      });
+
+      return followingChannels;
+    }
+  },
+  {
+    method: "GET",
+    path: "/search",
+    options: {
+      description: "Searches channel",
+      tags: ["api"],
+      validate: {
+        query: Joi.object()
+          .keys({
+            searchTerm: Joi.string()
+              .min(0)
+              .allow("")
+              .required(),
+            pageNo: Joi.string()
+              .min(1)
+              .required()
+          })
+          .required()
+      }
+      // response: {
+      //   status: {
+      //     200: Joi.array()
+      //       .required()
+      //       .label("searchChannelResponse")
+      //   }
+      // }
+    },
+    async handler(req, res) {
+      const { id: userId } = req.auth.credentials;
+      const { searchTerm, pageNo } = req.query;
+      const channels = await ChannelService.searchChannels({
+        searchTerm,
+        pageNo,
+        userId
+      });
+
+      return channels;
     }
   }
 ];

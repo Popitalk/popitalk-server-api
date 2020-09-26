@@ -2,9 +2,9 @@ SELECT
   COALESCE(JSON_OBJECT_AGG(
     chans.id,
     JSON_BUILD_OBJECT(
-      'channelName',
+      'name',
       chans.name,
-      'channelIcon',
+      'icon',
       chans.icon,
       'playbackStatus',
       chans.status,
@@ -71,3 +71,12 @@ WHERE
     FROM
       unnest($1::UUID[])
   )
+  AND EXISTS (
+    SELECT
+      1
+    FROM
+      members
+    WHERE
+      members.channel_id = chans.id
+      AND NOT (members.user_id = $2 AND members.banned)
+)

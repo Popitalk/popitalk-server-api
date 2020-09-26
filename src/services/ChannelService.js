@@ -326,24 +326,72 @@ module.exports.getNewChannels = async () => {
   return response;
 };
 
-module.exports.searchChannels = async ({ searchTerm, pageNo }) => {
-  const channelsInfo = await db.ChannelRepository.searchChannels({
-    searchTerm,
-    pageNo
-  });
-
-  const channelsPromise = channelsInfo.map(async channelInfo => {
-    const queue = await getQueue({ channelId: channelInfo.id });
-    const avatars = await db.ChannelRepository.getAvatars({
-      channelId: channelInfo.id
+module.exports.searchChannels = async ({ searchTerm, pageNo, userId }) => {
+  return db.task(async t => {
+    const { channels } = await t.ChannelRepository.searchChannels({
+      searchTerm,
+      pageNo,
+      userId
     });
-    return { ...channelInfo, queue, avatars };
+
+    let response = {
+      channels,
+      users: {}
+    };
+
+    const channelIds = Object.keys(response.channels);
+    const allViewersIds = new Set();
+
+    for await (const cid of channelIds) {
+      const viewers = await redis.smembers(`viewers:${cid}`);
+      viewers.forEach(allViewersIds.add, allViewersIds);
+
+      response = {
+        ...response,
+        channels: {
+          ...response.channels,
+          [cid]: {
+            ...response.channels[cid],
+            viewers
+          }
+        }
+      };
+    }
+
+    const { users } = await t.UserRepository.getUsers({
+      userIds: [...allViewersIds]
+    });
+
+    response = {
+      ...response,
+      users: {
+        ...response.users,
+        ...users
+      }
+    };
+
+    return response;
   });
-  const channels = await Promise.all(channelsPromise);
-  return channels;
 };
 
-module.exports.discoverChannels = async () => {
+// module.exports.searchChannels = async ({ searchTerm, pageNo }) => {
+//   const channelsInfo = await db.ChannelRepository.searchChannels({
+//     searchTerm,
+//     pageNo
+//   });
+
+//   const channelsPromise = channelsInfo.map(async channelInfo => {
+//     const queue = await getQueue({ channelId: channelInfo.id });
+//     const avatars = await db.ChannelRepository.getAvatars({
+//       channelId: channelInfo.id
+//     });
+//     return { ...channelInfo, queue, avatars };
+//   });
+//   const channels = await Promise.all(channelsPromise);
+//   return channels;
+// };
+
+module.exports.discoverChannels = async ({ userId }) => {
   return db.task(async t => {
     let discoverChannels = await redis.get("discoverChannels");
 
@@ -360,7 +408,8 @@ module.exports.discoverChannels = async () => {
     }
 
     const { channels } = await t.VideoRepository.getVideosInfo({
-      channelIds: discoverChannels
+      channelIds: discoverChannels,
+      userId
     });
 
     let response = {
@@ -398,13 +447,16 @@ module.exports.discoverChannels = async () => {
         ...users
       }
     };
+
     return response;
   });
 };
 
-module.exports.trendingChannels = async () => {
+module.exports.trendingChannels = async ({ userId }) => {
   return db.task(async t => {
-    const { channels } = await t.ChannelRepository.getTrendingChannels();
+    const { channels } = await t.ChannelRepository.getTrendingChannels({
+      userId
+    });
 
     let response = {
       channels,
@@ -441,6 +493,53 @@ module.exports.trendingChannels = async () => {
         ...users
       }
     };
+
+    return response;
+  });
+};
+
+module.exports.followingChannels = async ({ userId }) => {
+  return db.task(async t => {
+    const { channels } = await t.ChannelRepository.getFollowingChannels({
+      userId
+    });
+
+    let response = {
+      channels,
+      users: {}
+    };
+
+    const channelIds = Object.keys(response.channels);
+    const allViewersIds = new Set();
+
+    for await (const cid of channelIds) {
+      const viewers = await redis.smembers(`viewers:${cid}`);
+      viewers.forEach(allViewersIds.add, allViewersIds);
+
+      response = {
+        ...response,
+        channels: {
+          ...response.channels,
+          [cid]: {
+            ...response.channels[cid],
+            viewers
+          }
+        }
+      };
+    }
+
+    const { users } = await t.UserRepository.getUsers({
+      userIds: [...allViewersIds]
+    });
+
+    response = {
+      ...response,
+      users: {
+        ...response.users,
+        ...users
+      }
+    };
+
     return response;
   });
 };

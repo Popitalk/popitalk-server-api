@@ -60,6 +60,7 @@ module.exports = {
   getAvatars: sql("./getAvatars.sql"),
   getDiscoverChannels: sql("./getDiscoverChannels.sql"),
   getTrendingChannels: sql("./getTrendingChannels.sql"),
+  getFollowingChannels: sql("./getFollowingChannels.sql"),
 
   /* -------------------------------------------------------------------------- */
   /*                                    VIDEOS                                  */

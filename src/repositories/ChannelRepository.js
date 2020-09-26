@@ -123,9 +123,9 @@ class ChannelRepository {
     return this.db.manyOrNone(queries.getNewChannels);
   }
 
-  async searchChannels({ searchTerm, pageNo }) {
+  async searchChannels({ searchTerm, pageNo, userId }) {
     const offset = (pageNo - 1) * 9;
-    return this.db.manyOrNone(queries.searchChannels, [searchTerm, offset]);
+    return this.db.one(queries.searchChannels, [searchTerm, offset, userId]);
   }
 
   async getAvatars({ channelId }) {
@@ -136,8 +136,12 @@ class ChannelRepository {
     return this.db.one(queries.getDiscoverChannels);
   }
 
-  async getTrendingChannels() {
-    return this.db.one(queries.getTrendingChannels);
+  async getTrendingChannels({ userId }) {
+    return this.db.one(queries.getTrendingChannels, [userId]);
+  }
+
+  async getFollowingChannels({ userId }) {
+    return this.db.one(queries.getFollowingChannels, [userId]);
   }
 }
 

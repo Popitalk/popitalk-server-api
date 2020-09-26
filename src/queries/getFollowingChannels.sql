@@ -7,16 +7,12 @@ WITH chans AS (
     channels
   ON
     channels.id = members.channel_id
+    AND members.user_id = $1
   WHERE
     channels.type = 'channel'
     AND channels.public
-    AND members.created_at > (CURRENT_DATE - INTERVAL '10 days')
-  GROUP BY
-    channels.id
-  ORDER BY
-    COUNT(*) DESC, channels.created_at DESC
-  LIMIT
-    5
+    AND NOT channels.owner_id = $1
+    AND NOT members.banned
 )
 SELECT
   COALESCE(JSON_OBJECT_AGG(
@@ -83,13 +79,3 @@ SELECT
   ), '{}'::JSON) AS "channels"
 FROM
   chans
-WHERE
-  EXISTS (
-    SELECT
-      1
-    FROM
-      members
-    WHERE
-      members.channel_id = chans.id
-      AND NOT (members.user_id = $1 AND members.banned)
-  )
