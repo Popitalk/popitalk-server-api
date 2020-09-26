@@ -20,7 +20,7 @@ WITH chans AS (
   LIMIT
     9
   OFFSET
-    $2
+    ($2 -1) * 9
 )
 SELECT
   COALESCE(JSON_OBJECT_AGG(

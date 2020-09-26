@@ -664,13 +664,16 @@ const controllers = [
       validate: {
         query: Joi.object()
           .keys({
-            searchTerm: Joi.string()
-              .min(0)
-              .allow("")
+            channelName: Joi.string()
+              .min(2)
+              .max(50)
               .required(),
-            pageNo: Joi.string()
+            page: Joi.number()
+              .integer()
+              .positive()
               .min(1)
-              .required()
+              .default(1)
+              .optional()
           })
           .required()
       }
@@ -684,10 +687,10 @@ const controllers = [
     },
     async handler(req, res) {
       const { id: userId } = req.auth.credentials;
-      const { searchTerm, pageNo } = req.query;
+      const { channelName, page } = req.query;
       const channels = await ChannelService.searchChannels({
-        searchTerm,
-        pageNo,
+        channelName,
+        page,
         userId
       });
 

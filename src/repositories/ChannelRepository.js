@@ -123,9 +123,8 @@ class ChannelRepository {
     return this.db.manyOrNone(queries.getNewChannels);
   }
 
-  async searchChannels({ searchTerm, pageNo, userId }) {
-    const offset = (pageNo - 1) * 9;
-    return this.db.one(queries.searchChannels, [searchTerm, offset, userId]);
+  async searchChannels({ channelName, page, userId }) {
+    return this.db.one(queries.searchChannels, [channelName, page, userId]);
   }
 
   async getAvatars({ channelId }) {

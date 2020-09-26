@@ -326,17 +326,16 @@ module.exports.getNewChannels = async () => {
   return response;
 };
 
-module.exports.searchChannels = async ({ searchTerm, pageNo, userId }) => {
+module.exports.searchChannels = async ({ channelName, page, userId }) => {
   return db.task(async t => {
     const { channels } = await t.ChannelRepository.searchChannels({
-      searchTerm,
-      pageNo,
+      channelName,
+      page,
       userId
     });
 
     let response = {
-      channels,
-      users: {}
+      channels
     };
 
     const channelIds = Object.keys(response.channels);
@@ -363,8 +362,9 @@ module.exports.searchChannels = async ({ searchTerm, pageNo, userId }) => {
     });
 
     response = {
-      ...response,
-      users: {
+      channelIds,
+      channels: response.channels,
+      viewers: {
         ...response.users,
         ...users
       }
@@ -373,23 +373,6 @@ module.exports.searchChannels = async ({ searchTerm, pageNo, userId }) => {
     return response;
   });
 };
-
-// module.exports.searchChannels = async ({ searchTerm, pageNo }) => {
-//   const channelsInfo = await db.ChannelRepository.searchChannels({
-//     searchTerm,
-//     pageNo
-//   });
-
-//   const channelsPromise = channelsInfo.map(async channelInfo => {
-//     const queue = await getQueue({ channelId: channelInfo.id });
-//     const avatars = await db.ChannelRepository.getAvatars({
-//       channelId: channelInfo.id
-//     });
-//     return { ...channelInfo, queue, avatars };
-//   });
-//   const channels = await Promise.all(channelsPromise);
-//   return channels;
-// };
 
 module.exports.discoverChannels = async ({ userId }) => {
   return db.task(async t => {
@@ -413,8 +396,7 @@ module.exports.discoverChannels = async ({ userId }) => {
     });
 
     let response = {
-      channels,
-      users: {}
+      channels
     };
 
     const channelIds = Object.keys(response.channels);
@@ -441,8 +423,9 @@ module.exports.discoverChannels = async ({ userId }) => {
     });
 
     response = {
-      ...response,
-      users: {
+      channelIds,
+      channels: response.channels,
+      viewers: {
         ...response.users,
         ...users
       }
@@ -459,8 +442,7 @@ module.exports.trendingChannels = async ({ userId }) => {
     });
 
     let response = {
-      channels,
-      users: {}
+      channels
     };
 
     const channelIds = Object.keys(response.channels);
@@ -487,8 +469,9 @@ module.exports.trendingChannels = async ({ userId }) => {
     });
 
     response = {
-      ...response,
-      users: {
+      channelIds,
+      channels: response.channels,
+      viewers: {
         ...response.users,
         ...users
       }
@@ -505,8 +488,7 @@ module.exports.followingChannels = async ({ userId }) => {
     });
 
     let response = {
-      channels,
-      users: {}
+      channels
     };
 
     const channelIds = Object.keys(response.channels);
@@ -533,8 +515,9 @@ module.exports.followingChannels = async ({ userId }) => {
     });
 
     response = {
-      ...response,
-      users: {
+      channelIds,
+      channels: response.channels,
+      viewers: {
         ...response.users,
         ...users
       }
