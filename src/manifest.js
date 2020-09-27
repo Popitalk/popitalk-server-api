@@ -42,7 +42,7 @@ const manifest = {
         options: { abortEarly: false },
         failAction: validationFailAction
       },
-      response: { sample: config.mode === "development" ? 100 : 25 }
+      response: { sample: config.mode === "production" ? 25 : 100 }
     }
   },
   register: {
@@ -51,7 +51,7 @@ const manifest = {
         plugin: require("@hapi/yar"),
         options: {
           name: config.sessionName || "S3SS10N",
-          maxCookieSize: 0,
+          maxCookieSize: config.mode === "testing" ? 1024 : 0,
           cache: { cache: "redisCache", expiresIn: 604800000 },
           cookieOptions: {
             isSecure: config.mode === "production",

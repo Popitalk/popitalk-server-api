@@ -15,6 +15,7 @@ promise.config({ longStackTraces: true });
 
 const initOptions = {
   promiseLib: promise,
+  // eslint-disable-next-line no-unused-vars
   extend(obj, dc) {
     obj.SessionRepository = new SessionRepository(obj);
     obj.UserRepository = new UserRepository(obj);

@@ -57,7 +57,8 @@ module.exports = {
 
         write(log);
       });
-    } else {
+    } else if (config.mode === "development") {
+      // } else {
       server.events.on("response", req => {
         const log = {
           id: req.info.id,
