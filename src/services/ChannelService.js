@@ -5,7 +5,6 @@ const redis = require("../config/redis");
 const { uploadFile } = require("../config/aws");
 const db = require("../config/database");
 const { getQueue } = require("./VideoService");
-
 const {
   calculatePlayerStatus,
   BUFFER_TIME
@@ -401,25 +400,6 @@ module.exports.discoverChannels = async ({ userId }) => {
     };
 
     const channelIds = Object.keys(response.channels);
-
-    const allChannelInfoPromises = channelIds.map((channel, index) => {
-      return this.getChannel({
-        channelId: channelIds[index],
-        userId
-      });
-    });
-    const allChannelInfo = await Promise.all(allChannelInfoPromises);
-
-    let channelsObject = {};
-
-    allChannelInfo.forEach(async channel => {
-      const queue = await getQueue({ channelId: channel.channel.id });
-      channelsObject = {
-        ...channelsObject,
-        [channel.channel.id]: { ...channel.channel, queue }
-      };
-    });
-
     const allViewersIds = new Set();
 
     for await (const cid of channelIds) {
@@ -444,7 +424,7 @@ module.exports.discoverChannels = async ({ userId }) => {
 
     response = {
       channelIds,
-      channels: channelsObject,
+      channels: response.channels,
       viewers: {
         ...response.users,
         ...users
@@ -466,30 +446,6 @@ module.exports.trendingChannels = async ({ userId }) => {
     };
 
     const channelIds = Object.keys(response.channels);
-
-    const allChannelInfoPromises = channelIds.map((channel, index) => {
-      return this.getChannel({
-        channelId: channelIds[index],
-        userId
-      });
-    });
-    const allChannelInfo = await Promise.all(allChannelInfoPromises);
-
-    let channelsObject = {};
-
-    allChannelInfo.forEach(async channel => {
-      const queue = await getQueue({ channelId: channel.channel.id });
-      channelsObject = {
-        ...channelsObject,
-        [channel.channel.id]: { ...channel.channel, queue }
-      };
-    });
-
-    // const allChannelInfo = channelIds.map(channelId => {
-    //   const channelInfo = this.getChannel({ channelId, userId });
-    //   return channelInfo;
-    // });
-
     const allViewersIds = new Set();
 
     for await (const cid of channelIds) {
@@ -514,7 +470,7 @@ module.exports.trendingChannels = async ({ userId }) => {
 
     response = {
       channelIds,
-      channels: channelsObject,
+      channels: response.channels,
       viewers: {
         ...response.users,
         ...users
