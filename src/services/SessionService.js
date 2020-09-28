@@ -2,8 +2,6 @@ const bcrypt = require("bcryptjs");
 const db = require("../config/database");
 const redis = require("../config/redis");
 // const CircDepRes = require("../ranking/cir_dep_resolver");
-const { discoverChannels } = require("../services/ChannelService");
-const { trendingChannels } = require("../services/ChannelService");
 
 module.exports.login = async ({ usernameOrEmail, password }) => {
   return db.task(async t => {
@@ -39,15 +37,6 @@ module.exports.login = async ({ usernameOrEmail, password }) => {
     const { users } = await t.UserRepository.getUsers({
       userIds: [...allViewersIds]
     });
-
-    const discoverChannelsData = await discoverChannels({ userId: user.id });
-    const trendingChannelsData = await trendingChannels({ userId: user.id });
-
-    loginData.channels = {
-      channels: loginData.channels,
-      discoverChannels: discoverChannelsData,
-      trendingChannels: trendingChannelsData
-    };
 
     loginData = {
       ...loginData,
@@ -86,15 +75,6 @@ module.exports.getLoginData = async ({ userId }) => {
     const { users } = await t.UserRepository.getUsers({
       userIds: [...allViewersIds]
     });
-
-    const discoverChannelsData = await discoverChannels(userId);
-    const trendingChannelsData = await trendingChannels(userId);
-
-    loginData.channels = {
-      channels: loginData.channels,
-      discoverChannels: discoverChannelsData,
-      trendingChannels: trendingChannelsData
-    };
 
     loginData = {
       ...loginData,
