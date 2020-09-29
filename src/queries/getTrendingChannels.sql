@@ -16,7 +16,7 @@ WITH chans AS (
   ORDER BY
     COUNT(*) DESC, channels.created_at DESC
   LIMIT
-    5
+    30
 )
 SELECT
   COALESCE(JSON_OBJECT_AGG(

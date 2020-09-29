@@ -384,7 +384,7 @@ module.exports.discoverChannels = async ({ userId }) => {
         .channelIds;
       await redis.setex(
         "discoverChannels",
-        5,
+        86400,
         JSON.stringify(discoverChannels)
       );
     } else {

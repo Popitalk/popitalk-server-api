@@ -9,5 +9,5 @@ FROM (
     channels.type = 'channel'
     AND channels.public
   ORDER BY
-    random() FETCH FIRST 5 ROWS ONLY
+    random() FETCH FIRST 30 ROWS ONLY
 ) AS chans
