@@ -362,9 +362,10 @@ module.exports.searchChannels = async ({ channelName, page, userId }) => {
     });
 
     response = {
-      channelIds,
+      channelName,
+      page,
       channels: response.channels,
-      viewers: {
+      users: {
         ...response.users,
         ...users
       }
@@ -423,9 +424,8 @@ module.exports.discoverChannels = async ({ userId }) => {
     });
 
     response = {
-      channelIds,
       channels: response.channels,
-      viewers: {
+      users: {
         ...response.users,
         ...users
       }
@@ -469,9 +469,8 @@ module.exports.trendingChannels = async ({ userId }) => {
     });
 
     response = {
-      channelIds,
       channels: response.channels,
-      viewers: {
+      users: {
         ...response.users,
         ...users
       }
@@ -515,9 +514,8 @@ module.exports.followingChannels = async ({ userId }) => {
     });
 
     response = {
-      channelIds,
       channels: response.channels,
-      viewers: {
+      users: {
         ...response.users,
         ...users
       }

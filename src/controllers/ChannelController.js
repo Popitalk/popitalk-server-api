@@ -226,16 +226,19 @@ const controllers = [
   },
   {
     method: "GET",
-    path: "/{channelId}",
+    path: "/channel",
     options: {
       description: "Gets channel",
       tags: ["api"],
       validate: {
-        params: Joi.object()
+        query: Joi.object()
           .keys({
             channelId: Joi.string()
               .uuid()
-              .required()
+              .required(),
+            leave: Joi.string()
+              .uuid()
+              .optional()
           })
           .required()
       }
@@ -244,7 +247,7 @@ const controllers = [
     // multiple response schemas
     async handler(req, res) {
       const { id: userId } = req.auth.credentials;
-      const { channelId } = req.params;
+      const { channelId, leave } = req.query;
       const channelInfo = await ChannelService.getChannel({
         userId,
         channelId
@@ -269,44 +272,94 @@ const controllers = [
         payload: { userId, channelId, user, type: channelInfo.type }
       });
 
+      if (leave) {
+        const chanInfo = await ChannelService.getChannel({
+          userId,
+          channelId: leave
+        });
+
+        await redis.srem(`viewers:${leave}`, userId);
+
+        publisher({
+          type: WS_EVENTS.USER_CHANNEL.LEAVE_CHANNEL,
+          userId,
+          channelId: leave,
+          initiator: userId,
+          payload: { userId, channelId: leave, type: chanInfo.type }
+        });
+      }
+
       return { channelId, ...channelInfo };
     }
   },
   {
     method: "POST",
-    path: "/{channelId}/leave",
+    path: "/visitAndLeave",
     options: {
-      description: "Leaves channel",
+      description: "Visits and leaves channel",
       tags: ["api"],
       validate: {
-        params: Joi.object()
+        payload: Joi.object()
           .keys({
-            channelId: Joi.string()
+            visit: Joi.string()
               .uuid()
-              .required()
+              .optional(),
+            leave: Joi.string()
+              .uuid()
+              .optional()
           })
+          .or("visit", "leave")
           .required()
       }
     },
     async handler(req, res) {
       const { id: userId } = req.auth.credentials;
-      const { channelId } = req.params;
-      const channelInfo = await ChannelService.getChannel({
-        userId,
-        channelId
-      });
+      const { visit, leave } = req.payload;
 
-      await redis.srem(`viewers:${channelId}`, userId);
+      if (visit) {
+        const channelInfo = await ChannelService.getChannel({
+          userId,
+          channelId: visit
+        });
 
-      publisher({
-        type: WS_EVENTS.USER_CHANNEL.LEAVE_CHANNEL,
-        userId,
-        channelId,
-        initiator: userId,
-        payload: { userId, channelId, type: channelInfo.type }
-      });
+        await redis.sadd(`viewers:${visit}`, userId);
 
-      return { channelId };
+        let user = await UserService.getUser({ userId });
+
+        user = {
+          username: user.username,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          avatar: user.avatar
+        };
+
+        publisher({
+          type: WS_EVENTS.USER_CHANNEL.JOIN_CHANNEL,
+          userId,
+          channelId: visit,
+          initiator: userId,
+          payload: { userId, channelId: visit, user, type: channelInfo.type }
+        });
+      }
+
+      if (leave) {
+        const channelInfo = await ChannelService.getChannel({
+          userId,
+          channelId: leave
+        });
+
+        await redis.srem(`viewers:${leave}`, userId);
+
+        publisher({
+          type: WS_EVENTS.USER_CHANNEL.LEAVE_CHANNEL,
+          userId,
+          channelId: leave,
+          initiator: userId,
+          payload: { userId, channelId: leave, type: channelInfo.type }
+        });
+      }
+
+      return {};
     }
   },
   {
