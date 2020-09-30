@@ -105,24 +105,6 @@ class ChannelRepository {
     return this.db.one(queries.getPlayerStatus, { channelId });
   }
 
-  async getPostLikesInLast50Hrs({ channelId }) {
-    return this.db.manyOrNone(queries.getPostLikesInLast50Hrs, [channelId]);
-  }
-
-  async getCommentIdsInLast50Hrs({ channelId }) {
-    return this.db.manyOrNone(queries.getCommentIdsInLast50Hrs, [channelId]);
-  }
-
-  async getCountFollowRequestsInLast50Hrs({ channelId }) {
-    return this.db.manyOrNone(queries.getCountFollowRequestsInLast50Hrs, [
-      channelId
-    ]);
-  }
-
-  async getNewChannels() {
-    return this.db.manyOrNone(queries.getNewChannels);
-  }
-
   async searchChannels({ channelName, page, userId }) {
     return this.db.one(queries.searchChannels, [channelName, page, userId]);
   }

@@ -1,40 +1,6 @@
 const Joi = require("@hapi/joi");
+const axios = require("axios");
 const config = require("../config");
-const fetch = require("node-fetch");
-
-// const messageSchema = Joi.object().keys({
-//   id: Joi.string()
-//     .uuid()
-//     .required(),
-//   channelId: Joi.string()
-//     .uuid()
-//     .required(),
-//   userId: Joi.string()
-//     .uuid()
-//     .required(),
-//   content: Joi.string()
-//     .min(1)
-//     .max(2000)
-//     .required(),
-//   upload: Joi.string()
-//     .allow(null)
-//     .required(),
-//   createdAt: Joi.date()
-//     .iso()
-//     .required(),
-//   author: Joi.object()
-//     .keys({
-//       id: Joi.string()
-//         .uuid()
-//         .required(),
-//       username: Joi.string().required(),
-//       avatar: Joi.string()
-//         .uri()
-//         .allow(null)
-//         .required()
-//     })
-//     .required()
-// });
 
 const controllers = [
   {
@@ -46,7 +12,10 @@ const controllers = [
       validate: {
         params: Joi.object()
           .keys({
-            offset: Joi.number().required()
+            offset: Joi.number()
+              .integer()
+              .min(0)
+              .required()
           })
           .required()
       },
@@ -59,31 +28,33 @@ const controllers = [
       }
     },
     async handler(req, res) {
-      const response = await fetch(
-        `https://api.giphy.com/v1/gifs/trending?api_key=${config.giphyApiKey}&limit=10&offset=${req.params.offset}&rating=pg-13`
+      const { offset } = req.params;
+      const response = await axios.get(
+        `https://api.giphy.com/v1/gifs/trending?api_key=${config.giphyApiKey}&limit=10&offset=${offset}&rating=pg-13`
       );
-      const trendingGifs = await response.json();
-      return trendingGifs.data;
-      //   return [{ success: "success" }];
+      return response.data.data.map(gif => ({
+        id: gif.id,
+        title: gif.title,
+        image: gif.images.fixed_height_downsampled.url
+      }));
     }
   },
   {
     method: "GET",
-    path: "/search/{offset}",
+    path: "/search",
     options: {
       description: "Search for gifs",
       tags: ["api"],
       validate: {
-        params: Joi.object()
-          .keys({
-            offset: Joi.number().required()
-          })
-          .required(),
         query: Joi.object()
           .keys({
             // Matches alphanumeric, space, underscore and hyphen.
             searchTerm: Joi.string()
               .pattern(new RegExp("^[A-Za-z0-9? ,_-]+$"))
+              .required(),
+            offset: Joi.number()
+              .integer()
+              .min(0)
               .required()
           })
           .optional()
@@ -97,12 +68,15 @@ const controllers = [
       }
     },
     async handler(req, res) {
-      const response = await fetch(
-        `https://api.giphy.com/v1/gifs/search?api_key=${config.giphyApiKey}&q=${req.query.searchTerm}&limit=10&offset=${req.params.offset}&rating=pg-13&lang=en`
+      const { searchTerm, offset } = req.query;
+      const response = await axios.get(
+        `https://api.giphy.com/v1/gifs/search?api_key=${config.giphyApiKey}&q=${searchTerm}&limit=10&offset=${offset}&rating=pg-13&lang=en`
       );
-      const searchResult = await response.json();
-      return searchResult.data;
-      //   return [{ success: "success" }];
+      return response.data.data.map(gif => ({
+        id: gif.id,
+        title: gif.title,
+        image: gif.images.fixed_height_downsampled.url
+      }));
     }
   }
 ];

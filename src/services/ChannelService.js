@@ -206,81 +206,6 @@ module.exports.deleteChannel = async ({ channelId, userId }) => {
   return db.ChannelRepository.deleteChannel({ channelId, userId });
 };
 
-module.exports.searchUsers = async ({ username }) => {
-  return db.UserRepository.searchUsers({ username });
-};
-
-module.exports.addFriendRequest = async ({ fromUser, toUser }) => {
-  return db.t(async t => {
-    await t.UserRepository.addFriendRequest({ fromUser, toUser });
-    const user = await t.UserRepository.getUser({ userId: fromUser });
-    return {
-      id: user.id,
-      username: user.username,
-      firstName: user.firstName,
-      lastName: user.lastName,
-      avatar: user.avatar
-    };
-  });
-};
-
-module.exports.deleteFriendRequest = async ({ userId1, userId2 }) => {
-  return db.UserRepository.deleteFriendRequest({ userId1, userId2 });
-};
-
-module.exports.addFriend = async ({ userId1, userId2 }) => {
-  return db.tx(async tx => {
-    await tx.UserRepository.addFriend({ userId1, userId2 });
-    const newChannel = await tx.ChannelRepository.addFriendRoom();
-    await tx.MemberRepository.addMembers({
-      channelId: newChannel.id,
-      userIds: [userId1, userId2]
-    });
-    const channelInfo = await tx.ChannelRepository.getRoom({
-      channelId: newChannel.id,
-      userId: userId1
-    });
-    return channelInfo;
-  });
-};
-
-module.exports.deleteFriend = async ({ userId1, userId2 }) => {
-  return db.tx(async tx => {
-    await tx.UserRepository.deleteFriend({ userId1, userId2 });
-    const deletedChannel = await tx.ChannelRepository.deleteFriendRoom({
-      userId1,
-      userId2
-    });
-    return deletedChannel;
-  });
-};
-
-module.exports.deleteBlock = async ({ fromUser, toUser }) => {
-  return db.t(async t => {
-    const userRelationship = await t.UserRepository.getUserRelationship({
-      userId1: fromUser,
-      userId2: toUser
-    });
-
-    if (
-      (userRelationship.type === "block_first_second" &&
-        fromUser === userRelationship.firstUserId) ||
-      (userRelationship.type === "block_second_first" &&
-        fromUser === userRelationship.secondUserId)
-    ) {
-      await t.UserRepository.unblockStranger({
-        userId1: fromUser,
-        userId2: toUser
-      });
-    } else if (userRelationship.type === "block_both") {
-      await t.ChannelRepository.unblockBlocker({
-        fromUser,
-        toUser
-      });
-    }
-  });
-};
-
 module.exports.getPlayerStatus = async ({ userId, channelId }) => {
   const playerStatus = await db.ChannelRepository.getPlayerStatus({
     userId,
@@ -288,42 +213,6 @@ module.exports.getPlayerStatus = async ({ userId, channelId }) => {
   });
 
   return playerStatus;
-};
-
-module.exports.getAvgPostLikesInLast50Hrs = async ({ channelId }) => {
-  const repeatPostIds = await db.ChannelRepository.getPostLikesInLast50Hrs({
-    channelId
-  });
-  const avgLikes = repeatPostIds.length / [...new Set(repeatPostIds)].length;
-  return avgLikes || 0;
-};
-
-module.exports.getAvgCommentInLast50Hrs = async ({ channelId }) => {
-  const response = await db.ChannelRepository.getCommentIdsInLast50Hrs({
-    channelId
-  });
-  const repeatPostIds = response.map(response.post_id);
-  const avgComments = response.length / [...new Set(repeatPostIds)].length;
-  return avgComments || 0;
-};
-
-module.exports.getAvgCommentInLast50Hrs = async ({ channelId }) => {
-  const response = await db.ChannelRepository.getCountFollowRequestsInLast50Hrs(
-    { channelId }
-  );
-  return response.count || 0;
-};
-
-module.exports.getCountFollowRequestsInLast50Hrs = async ({ channelId }) => {
-  const response = db.ChannelRepository.getCountFollowRequestsInLast50Hrs({
-    channelId
-  });
-  return response.count || 0;
-};
-
-module.exports.getNewChannels = async () => {
-  const response = await db.ChannelRepository.getNewChannels();
-  return response;
 };
 
 module.exports.searchChannels = async ({ channelName, page, userId }) => {

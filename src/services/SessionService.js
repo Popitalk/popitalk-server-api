@@ -1,7 +1,6 @@
 const bcrypt = require("bcryptjs");
 const db = require("../config/database");
 const redis = require("../config/redis");
-// const CircDepRes = require("../ranking/cir_dep_resolver");
 
 module.exports.login = async ({ usernameOrEmail, password }) => {
   return db.task(async t => {
