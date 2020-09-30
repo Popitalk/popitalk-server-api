@@ -1,70 +1,170 @@
-WITH chan AS (
+WITH chnl AS (
   SELECT
     channels.id,
     channels.type,
     channels.name,
     channels.public,
     channels.status,
-    channels.queue_start_position AS "queueStartPosition",
-    channels.video_start_time AS "videoStartTime",
-    channels.clock_start_time AS "clockStartTime",
-    channels.created_at AS "createdAt",
-    fm.id AS "firstMessageId",
-    lm.id AS "lastMessageId",
-    lm.created_at AS "lastMessageAt",
-    members.ids AS "members"
+    channels.queue_start_position,
+    channels.video_start_time,
+    channels.clock_start_time,
+    channels.created_at,
+    fm.id AS "fmid",
+    lm.id AS "lmid",
+    lm.created_at AS "lmdate",
+    mems.member_ids AS "members",
+    mems.admin_ids AS "admins",
+    mems.banned_ids AS "banned",
+    que.queue
   FROM
     channels
   LEFT JOIN LATERAL (
+    SELECT
+      messages.id
+    FROM
+      messages
+    WHERE
+      messages.channel_id = channels.id
+    ORDER BY
+      messages.created_at ASC
+    LIMIT
+      1
+  ) fm ON TRUE
+  LEFT JOIN LATERAL (
+    SELECT
+      messages.id,
+      messages.created_at
+    FROM
+      messages
+    WHERE
+      messages.channel_id = channels.id
+    ORDER BY
+      messages.created_at DESC
+    LIMIT
+      1
+  ) lm ON TRUE
+  LEFT JOIN LATERAL (
+    SELECT
+      COALESCE(ARRAY_AGG(members.user_id), ARRAY[]::UUID[]) AS member_ids
+    FROM
+      members
+    WHERE
+      members.channel_id = channels.id
+  ) mems ON TRUE
+  LEFT JOIN LATERAL (
+    SELECT
+      JSON_AGG(
+        JSON_BUILD_OBJECT(
+          'id',
+          q.id,
+          'channelId',
+          q.channel_id,
+          'videoId',
+          q.video_id,
+          'length',
+          q.length,
+          'videoInfo',
+          q.video_info
+        )
+      ) AS "queue"
+    FROM (
       SELECT
-        messages.id AS id
+        channel_videos.id,
+        channel_videos.channel_id,
+        channel_videos.video_id,
+        videos.length,
+        videos.video_info
       FROM
-        messages
+        channel_videos
+      JOIN
+        videos
+      ON
+        videos.id = channel_videos.video_id
       WHERE
-        messages.channel_id = channels.id
+        channel_videos.channel_id = channels.id
       ORDER BY
-        messages.created_at ASC
-      LIMIT
-        1
-    ) fm ON TRUE
-  LEFT JOIN LATERAL (
-      SELECT
-        messages.id AS id,
-        messages.created_at AS created_at
-      FROM
-        messages
-      WHERE
-        messages.channel_id = channels.id
-      ORDER BY
-        messages.created_at DESC
-      LIMIT
-        1
-    ) lm ON TRUE
-  LEFT JOIN LATERAL (
-      SELECT
-        COALESCE(ARRAY_AGG(members.user_id), ARRAY[]::UUID[]) AS ids
-      FROM
-        members
-      WHERE
-        members.channel_id = channels.id
-        AND NOT members.banned
-    ) members ON TRUE
-  LEFT JOIN LATERAL (
-      SELECT
-        COALESCE(ARRAY_AGG(chat_notifications.user_id), ARRAY[]::UUID[]) AS ids
-      FROM
-        chat_notifications
-      WHERE
-        chat_notifications.channel_id = channels.id
-    ) seen ON TRUE
+        channel_videos.queue_position ASC
+    ) AS q
+  ) que ON TRUE
   WHERE
     channels.id = $1
-), chan_obj AS (
+), msgs AS (
   SELECT
-    ROW_TO_JSON(chan) AS channel
+    *
+  FROM (
+    SELECT
+      messages.*,
+      (
+        SELECT
+          JSON_BUILD_OBJECT(
+            'id',
+            users.id,
+            'username',
+            users.username,
+            'avatar',
+            users.avatar
+          )
+        FROM
+          users
+        WHERE
+          users.id = messages.user_id
+      ) AS author
+    FROM
+      messages, chnl
+    WHERE
+      messages.channel_id = chnl.id
+    ORDER BY
+      messages.created_at DESC
+    LIMIT
+      50
+  )  AS m
+  ORDER BY
+    m.created_at ASC
+), chnl_obj AS (
+  SELECT
+    JSON_OBJECT_AGG(
+      chnl.id,
+      JSON_BUILD_OBJECT(
+        'type',
+        chnl.type,
+        'name',
+        chnl.name,
+        'public',
+        chnl.public,
+        'createdAt',
+        chnl.created_at,
+        'firstMessageId',
+        chnl.fmid,
+        'lastMessageId',
+        chnl.lmid,
+        'lastMessageAt',
+        chnl.lmdate,
+        'status',
+        chnl.status,
+        'queueStartPosition',
+        chnl.queue_start_position,
+        'videoStartTime',
+        chnl.video_start_time,
+        'clockStartPosition',
+        chnl.clock_start_time,
+        'members',
+        chnl.members,
+        'messages',
+        (
+          SELECT
+            JSON_AGG(msgs.id)
+          FROM
+            msgs
+          WHERE
+            msgs.channel_id = chnl.id
+        ),
+        'queue',
+        chnl.queue
+      )
+    ) AS channels
   FROM
-    chan
-), usrs AS (
+    chnl
+), usrs_obj AS (
   SELECT
     JSON_OBJECT_AGG(
       users.id,
@@ -80,72 +180,34 @@ WITH chan AS (
       )
     ) AS users
   FROM
-    users, chan
+    users, chnl
   WHERE
-    users.id = ANY (chan.members)
-), msgs AS (
+    users.id = ANY (chnl.members)
+), msgs_obj AS (
   SELECT
-    COALESCE(
-      ARRAY_AGG(
-        JSON_BUILD_OBJECT(
-          'id',
-          m.id,
-          'userId',
-          m.user_id,
-          'channelId',
-          m.channel_id,
-          'content',
-          m.content,
-          'upload',
-          m.upload,
-          'createdAt',
-          m.created_at,
-          'author',
-          m.author
-        )
-      ), ARRAY[]::JSON[]) AS "messages"
-  FROM (
-    SELECT
-      *
-    FROM (
-      SELECT
-        messages.id,
-        messages.user_id,
-        messages.channel_id,
-        messages.content,
-        messages.upload,
-        messages.created_at,
-        (
-          SELECT
-            JSON_BUILD_OBJECT(
-              'id',
-              users.id,
-              'username',
-              users.username,
-              'avatar',
-              users.avatar
-            )
-          FROM
-            users
-          WHERE
-            users.id = messages.user_id
-        ) AS author
-      FROM
-        messages, chan
-      WHERE
-        messages.channel_id = chan.id
-      ORDER BY
-        messages.created_at DESC
-      LIMIT
-        50
-    ) AS o
-    ORDER BY
-      o.created_at ASC
-  ) AS m
+    JSON_OBJECT_AGG(
+      msgs.id,
+      JSON_BUILD_OBJECT(
+        'userId',
+        msgs.user_id,
+        'channelId',
+        msgs.channel_id,
+        'content',
+        msgs.content,
+        'upload',
+        msgs.upload,
+        'createdAt',
+        msgs.created_at,
+        'author',
+        msgs.author
+      )
+    ) AS messages
+  FROM
+    msgs
 )
 SELECT
-  chan_obj.channel AS channel,
-  usrs.users AS users,
-  msgs.messages AS messages
+  chnl_obj.channels,
+  usrs_obj.users,
+  msgs_obj.messages
 FROM
-  chan_obj, usrs, msgs
+  chnl_obj, usrs_obj, msgs_obj

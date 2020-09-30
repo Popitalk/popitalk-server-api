@@ -1,4 +1,4 @@
-WITH chan AS (
+WITH chnl AS (
   SELECT
     channels.id,
     channels.type,
@@ -7,13 +7,11 @@ WITH chan AS (
     channels.icon,
     channels.public,
     channels.status,
-    channels.queue_start_position AS "queueStartPosition",
-    channels.video_start_time AS "videoStartTime",
-    channels.clock_start_time AS "clockStartTime",
-    channels.owner_id AS "ownerId",
+    channels.owner_id,
     channels.created_at,
-    mems.admin_ids AS admins,
-    mems.admin_ids AS "memberCount"
+    mems.admin_ids AS "admins",
+    mems.member_count AS "member_count",
+    que.queue
   FROM
     channels
   LEFT JOIN LATERAL (
@@ -27,12 +25,34 @@ WITH chan AS (
   ) mems ON TRUE
   WHERE
     channels.id = $1
-), chan_obj AS (
+), chnl_obj AS (
   SELECT
-    ROW_TO_JSON(chan) AS channel
+    JSON_OBJECT_AGG(
+      chnl.id,
+      JSON_BUILD_OBJECT(
+        'type',
+        chnl.type,
+        'name',
+        chnl.name,
+        'description',
+        chnl.description,
+        'icon',
+        chnl.icon,
+        'public',
+        chnl.public,
+        'ownerId',
+        chnl.owner_id,
+        'createdAt',
+        chnl.created_at,
+        'admins',
+        chnl.admins,
+        'memberCount',
+        chnl.member_count
+      )
+    ) AS channels
   FROM
-    chan
-), usrs AS (
+    chnl
+), usrs_obj AS (
   SELECT
     JSON_OBJECT_AGG(
       users.id,
@@ -48,22 +68,12 @@ WITH chan AS (
       )
     ) AS users
   FROM
-    users
+    users, chnl
   WHERE
-    users.id = ANY (chan.admins)
+    users.id = ANY (chnl.admins)
 )
 SELECT
-  JSON_BUILD_OBJECT(
-    'channel',
-    chan_obj.channel,
-    'users',
-    usrs.users,
-    'messages',
-    msgs.messages,
-    'posts',
-    psts.posts,
-    'comments',
-    cmnts.comments,
-  )
+  chnl_obj.channels,
+  usrs_obj.users
 FROM
-  chan_obj, usrs, msgs, psts, cmnts
+  chnl_obj, usrs_obj

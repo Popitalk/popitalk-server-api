@@ -64,7 +64,7 @@ module.exports = {
   addChannelVideo: sql("./addChannelVideo.sql"),
   deleteChannelVideo: require("./deleteChannelVideo"),
   getHasPermission: require("./getHasPermission.js"),
-  getChannelQueue: require("./getChannelQueue.js"),
+  getChannelQueue: sql("./getChannelQueue.sql"),
   updateQueuePosition: require("./updateQueuePosition.js"),
   updateQueuePositionsAfterDelete: require("./updateQueuePositionsAfterDelete"),
   updateQueuePositionsAfterHighToLowSwap: require("./updateQueuePositionsAfterHighToLowSwap.js"),

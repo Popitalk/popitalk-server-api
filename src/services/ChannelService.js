@@ -4,7 +4,8 @@ const moment = require("moment");
 const redis = require("../config/redis");
 const { uploadFile } = require("../config/aws");
 const db = require("../config/database");
-const { getQueue } = require("./VideoService");
+const addViewers = require("../helpers/addViewers");
+
 const {
   calculatePlayerStatus,
   BUFFER_TIME
@@ -105,30 +106,11 @@ module.exports.getChannel = async ({ channelId, userId }) => {
         });
       }
 
-      const queue = await getQueue({ channelId });
+      const channelWithViewers = await addViewers(t, channelInfo);
 
-      const viewerIds = await redis.smembers(`viewers:${channelId}`);
-      const { users: viewersUsers } = await t.UserRepository.getUsers({
-        userIds: viewerIds
-      });
-      channelInfo = {
-        ...channelInfo,
-        channel: {
-          ...channelInfo.channel,
-          viewers: viewerIds
-        },
-        users: {
-          ...channelInfo.users,
-          ...viewersUsers
-        }
-      };
-
-      return {
-        ...channelInfo,
-        ...chMemInfo,
-        queue
-      };
+      return channelWithViewers;
     }
+
     return {};
   });
 };
