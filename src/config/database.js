@@ -10,6 +10,7 @@ const MessageRepository = require("../repositories/MessageRepository");
 const PostRepository = require("../repositories/PostRepository");
 const CommentRepository = require("../repositories/CommentRepository");
 const VideoRepository = require("../repositories/VideoRepository");
+const NotificationRepository = require("../repositories/NotificationRepository");
 
 promise.config({ longStackTraces: true });
 
@@ -25,6 +26,7 @@ const initOptions = {
     obj.PostRepository = new PostRepository(obj);
     obj.CommentRepository = new CommentRepository(obj);
     obj.VideoRepository = new VideoRepository(obj);
+    obj.NotificationRepository = new NotificationRepository(obj);
   }
 };
 

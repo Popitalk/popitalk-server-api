@@ -46,17 +46,15 @@ module.exports.deleteMember = async ({ channelId, userId }) => {
 module.exports.addAdmin = async ({ channelId, fromUser, toUser }) => {
   return db.MemberRepository.addAdmin({ channelId, fromUser, toUser });
 };
+
 module.exports.deleteAdmin = async ({ channelId, fromUser, toUser }) => {
   return db.MemberRepository.deleteAdmin({ channelId, fromUser, toUser });
 };
+
 module.exports.addBan = async ({ channelId, fromUser, toUser }) => {
   return db.MemberRepository.addBan({ channelId, fromUser, toUser });
 };
+
 module.exports.deleteBan = async ({ channelId, fromUser, toUser }) => {
   return db.MemberRepository.deleteBan({ channelId, fromUser, toUser });
-};
-module.exports.getAllMembersFromChannel = async ({ channelId }) => {
-  return db.MemberRepository.getAllMembersFromChannel({
-    channelId
-  });
 };

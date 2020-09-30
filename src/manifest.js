@@ -114,6 +114,10 @@ const manifest = {
       {
         plugin: require("./controllers/VideoController"),
         routes: { prefix: `/videos` }
+      },
+      {
+        plugin: require("./controllers/NotificationController"),
+        routes: { prefix: `/notifications` }
       }
     ]
   }

@@ -37,33 +37,3 @@ module.exports.deleteMessage = async ({ userId, messageId }) => {
     return { ...deletedMessage, ...channelLastMessageInfo };
   });
 };
-
-// Chat notificaitons
-
-module.exports.addChatNotification = async ({ userId, channelId }) => {
-  return db.MessageRepository.addChatNotification({
-    userId,
-    channelId
-  });
-};
-
-// module.exports.getMessages = async ({
-//   userId,
-//   channelId,
-//   afterMessageId,
-//   beforeMessageId
-// }) => {
-//   return db.MessageRepository.getMessages({
-//     userId,
-//     channelId,
-//     afterMessageId,
-//     beforeMessageId
-//   });
-// };
-
-module.exports.deleteChatNotification = async ({ userId, channelId }) => {
-  return db.MessageRepository.deleteChatNotification({
-    userId,
-    channelId
-  });
-};

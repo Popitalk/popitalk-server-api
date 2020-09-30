@@ -52,10 +52,6 @@ class MemberRepository {
   async deleteBan({ channelId, fromUser, toUser }) {
     return this.db.one(queries.deleteBan, [channelId, fromUser, toUser]);
   }
-
-  async getAllMembersFromChannel({ channelId }) {
-    return this.db.any(queries.getAllMembersFromChannel, [channelId]);
-  }
 }
 
 module.exports = MemberRepository;
