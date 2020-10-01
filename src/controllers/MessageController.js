@@ -116,24 +116,28 @@ const controllers = [
               .optional()
           })
           .optional()
-      },
-      response: {
-        status: {
-          200: Joi.array()
-            .items(messageSchema)
-            .required()
-            .label("getMessagesResponse")
-        }
       }
+      // response: {
+      //   status: {
+      //     200: Joi.array()
+      //       .items(messageSchema)
+      //       .required()
+      //       .label("getMessagesResponse")
+      //   }
+      // }
     },
     async handler(req, res) {
       const { id: userId } = req.auth.credentials;
+      const { channelId } = req.params;
+      const { afterMessageId, beforeMessageId } = req.query;
       const messages = await MessageService.getMessages({
         userId,
-        ...req.params,
-        ...req.query
+        channelId,
+        afterMessageId,
+        beforeMessageId
       });
-      return messages;
+
+      return { ...messages, channelId, afterMessageId, beforeMessageId };
     }
   },
   {

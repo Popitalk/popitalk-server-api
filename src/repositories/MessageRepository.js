@@ -16,12 +16,12 @@ class MessageRepository {
   }
 
   async getMessages({ channelId, userId, afterMessageId, beforeMessageId }) {
-    return this.db.any(queries.getMessages, {
+    return this.db.one(queries.getMessages, [
       channelId,
       userId,
       afterMessageId,
       beforeMessageId
-    });
+    ]);
   }
 
   async deleteMessage({ messageId, userId }) {

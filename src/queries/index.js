@@ -93,7 +93,8 @@ module.exports = {
 
   addMessage: sql("./addMessage.sql"),
   deleteMessage: sql("./deleteMessage.sql"),
-  getMessages: require("./getMessages.js"),
+  getMessages: sql("./getMessages.sql"),
+  // getMessages: require("./getMessages.js"),
 
   /* -------------------------------------------------------------------------- */
   /*                                    POSTS                                   */
