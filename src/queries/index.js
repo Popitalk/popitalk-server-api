@@ -43,7 +43,6 @@ module.exports = {
   getPrivateChannel: sql("./getPrivateChannel.sql"),
   getRoomChannel: sql("./getRoomChannel.sql"),
   getChannelAndMemberInfo: sql("./getChannelAndMemberInfo.sql"),
-  getChannelLastMessageInfo: sql("./getChannelLastMessageInfo.sql"),
   getChannelLastPostInfo: sql("./getChannelLastPostInfo.sql"),
   updateChannel: require("./updateChannel.js"),
   updatePlayerStatus: require("./updatePlayerStatus.js"),

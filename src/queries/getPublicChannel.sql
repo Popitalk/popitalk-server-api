@@ -84,7 +84,8 @@ WITH chnl AS (
   ) mems ON TRUE
   LEFT JOIN LATERAL (
     SELECT
-      JSON_AGG(
+      COALESCE(
+        JSON_AGG(
         JSON_BUILD_OBJECT(
           'id',
           q.id,
@@ -96,8 +97,7 @@ WITH chnl AS (
           q.length,
           'videoInfo',
           q.video_info
-        )
-      ) AS "queue"
+        )), '[]'::JSON) AS "queue"
     FROM (
       SELECT
         channel_videos.id,
@@ -350,7 +350,7 @@ WITH chnl AS (
         'messages',
         (
           SELECT
-            JSON_AGG(msgs.id)
+            COALESCE(JSON_AGG(msgs.id), '[]'::JSON)
           FROM
             msgs
           WHERE
@@ -359,7 +359,7 @@ WITH chnl AS (
         'posts',
         (
           SELECT
-            JSON_AGG(psts.id)
+            COALESCE(JSON_AGG(psts.id), '[]'::JSON)
           FROM
             psts
           WHERE
@@ -395,6 +395,8 @@ WITH chnl AS (
     JSON_OBJECT_AGG(
       msgs.id,
       JSON_BUILD_OBJECT(
+        'id',
+        msgs.id,
         'userId',
         msgs.user_id,
         'channelId',
@@ -441,7 +443,7 @@ WITH chnl AS (
         'comments',
         (
           SELECT
-            JSON_AGG(cmnts.id)
+            COALESCE(JSON_AGG(cmnts.id), '[]'::JSON)
           FROM
             cmnts
           WHERE

@@ -108,7 +108,7 @@ module.exports.getChannel = async ({ channelId, userId }) => {
 
       const channelWithViewers = await addViewers(t, channelInfo);
 
-      return channelWithViewers;
+      return { ...channelWithViewers, ...chMemInfo };
     }
 
     return {};
