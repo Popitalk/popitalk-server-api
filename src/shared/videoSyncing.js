@@ -11,10 +11,13 @@ module.exports.defaultPlayerStatus = () => {
   };
 };
 
+// If the playlist is very near the end of the current video,
+// begin playback at the next video or end the stream
 const checkNewPlayerStatus = (
   { queueStartPosition, clockStartTime, videoStartTime },
   playlist,
-  newPlayerStatus
+  newPlayerStatus,
+  loop
 ) => {
   if (newPlayerStatus.queueStartPosition >= playlist.length) {
     return this.defaultPlayerStatus();
@@ -26,7 +29,12 @@ const checkNewPlayerStatus = (
     5
   ) {
     // The current video is very near to the end
-    const nextPosition = newPlayerStatus.queueStartPosition + 1;
+    let nextPosition = newPlayerStatus.queueStartPosition + 1;
+    if (nextPosition === playlist.length && loop) {
+      // If channel loops and the end of the playlist has been reached, 
+      // return to the first video in the playlist
+      nextPosition = 0;
+    }
 
     if (nextPosition < playlist.length) {
       // Skip to the next video
@@ -75,7 +83,8 @@ module.exports.calculatePlayerStatus = (
   { queueStartPosition, clockStartTime, videoStartTime, status },
   playlist,
   getCurrentOnly,
-  currTime = moment()
+  currTime = moment(),
+  loop = true
 ) => {
   if (playlist.length === 0 || status === "Ended") {
     return this.defaultPlayerStatus();
@@ -92,8 +101,8 @@ module.exports.calculatePlayerStatus = (
 
   if (status === "Paused") return newPlayerStatus;
 
-  if (getCurrentOnly) { }
-  else if (currTime - momentStartTime >= 0) {
+  if (getCurrentOnly) {
+  } else if (currTime - momentStartTime >= 0) {
     // The user has joined an active channel
     // They will begin buffering at a bufferTime seconds into the future
     currTime.add(this.BUFFER_TIME, "seconds");
@@ -102,7 +111,8 @@ module.exports.calculatePlayerStatus = (
     return checkNewPlayerStatus(
       { queueStartPosition, clockStartTime, videoStartTime },
       playlist,
-      newPlayerStatus
+      newPlayerStatus,
+      loop
     );
   }
 
@@ -116,8 +126,13 @@ module.exports.calculatePlayerStatus = (
       newPlayerStatus.queueStartPosition++;
 
       if (newPlayerStatus.queueStartPosition === playlist.length) {
-        // The stream has ended
-        return this.defaultPlayerStatus();
+        if (loop) {
+          // Return to the first video in the playlist
+          newPlayerStatus.queueStartPosition = 0;
+        } else {
+          // The stream has ended
+          return this.defaultPlayerStatus();
+        }
       }
 
       // Subtract the video length from the elapsed time
@@ -140,13 +155,14 @@ module.exports.calculatePlayerStatus = (
     if (newPlayerStatus.queueStartPosition >= playlist.length) {
       return this.defaultPlayerStatus();
     }
-    
+
     return newPlayerStatus;
   }
-  
+
   return checkNewPlayerStatus(
     { queueStartPosition, clockStartTime, videoStartTime },
     playlist,
-    newPlayerStatus
+    newPlayerStatus,
+    loop
   );
 };
