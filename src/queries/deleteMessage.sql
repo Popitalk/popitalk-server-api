@@ -13,7 +13,7 @@ WITH dm AS (
     WHERE
       members.channel_id = messages.channel_id
       AND members.user_id = $2
-      AND members.admin = TRUE
+      AND members.admin
     )
   )
   RETURNING

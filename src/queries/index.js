@@ -43,7 +43,6 @@ module.exports = {
   getPrivateChannel: sql("./getPrivateChannel.sql"),
   getRoomChannel: sql("./getRoomChannel.sql"),
   getChannelAndMemberInfo: sql("./getChannelAndMemberInfo.sql"),
-  getChannelLastPostInfo: sql("./getChannelLastPostInfo.sql"),
   updateChannel: require("./updateChannel.js"),
   updatePlayerStatus: require("./updatePlayerStatus.js"),
   getPlayerStatus: require("./getPlayerStatus.js"),
@@ -94,7 +93,6 @@ module.exports = {
   addMessage: sql("./addMessage.sql"),
   deleteMessage: sql("./deleteMessage.sql"),
   getMessages: sql("./getMessages.sql"),
-  // getMessages: require("./getMessages.js"),
 
   /* -------------------------------------------------------------------------- */
   /*                                    POSTS                                   */
@@ -103,10 +101,8 @@ module.exports = {
   addPost: sql("./addPost.sql"),
   deletePost: sql("./deletePost.sql"),
   getPosts: sql("./getPosts.sql"),
-  getPostsBefore: sql("./getPostsBefore.sql"),
   addPostLike: sql("./addPostLike.sql"),
   deletePostLike: sql("./deletePostLike.sql"),
-  getPostLastCommentInfo: sql("./getPostLastCommentInfo.sql"),
 
   /* -------------------------------------------------------------------------- */
   /*                                  COMMENTS                                  */

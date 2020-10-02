@@ -10,8 +10,13 @@ class CommentRepository {
     return this.db.one(queries.addComment, [postId, userId, content]);
   }
 
-  async getComments({ postId, userId, limit = 3 }) {
-    return this.db.any(queries.getComments, [postId, userId, limit]);
+  async getComments({ postId, userId, afterCommentId, beforeCommentId }) {
+    return this.db.one(queries.getComments, [
+      postId,
+      userId,
+      afterCommentId,
+      beforeCommentId
+    ]);
   }
 
   async deleteComment({ commentId, userId }) {

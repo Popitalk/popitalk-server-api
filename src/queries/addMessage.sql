@@ -53,24 +53,3 @@ RETURNING
         users.id = user_id
     )
   ) AS "message"
-  -- id AS "id",
-  -- channel_id AS "channelId",
-  -- user_id AS "userId",
-  -- content AS "content",
-  -- upload AS "upload",
-  -- created_at AS "createdAt",
-  -- (
-  --   SELECT
-  --     JSON_BUILD_OBJECT(
-  --       'id',
-  --       users.id,
-  --       'username',
-  --       users.username,
-  --       'avatar',
-  --       users.avatar
-  --     )
-  --   FROM
-  --     users
-  --   WHERE
-  --     users.id = user_id
-  -- ) AS author

@@ -422,6 +422,8 @@ WITH chnl AS (
     JSON_OBJECT_AGG(
       psts.id,
       JSON_BUILD_OBJECT(
+        'id',
+        psts.id,
         'channelId',
         psts.channel_id,
         'userId',
@@ -432,6 +434,8 @@ WITH chnl AS (
         psts.upload,
         'author',
         psts.author,
+        'createdAt',
+        psts.created_at,
         'liked',
         psts.liked,
         'likeCount',
@@ -462,6 +466,8 @@ WITH chnl AS (
     JSON_OBJECT_AGG(
       cmnts.id,
       JSON_BUILD_OBJECT(
+        'id',
+        cmnts.id,
         'postId',
         cmnts.post_id,
         'userId',

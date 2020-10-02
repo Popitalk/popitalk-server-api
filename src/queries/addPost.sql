@@ -1,42 +1,67 @@
 INSERT INTO
   posts (channel_id, user_id, content, upload)
 SELECT
-  members.channel_id AS "channel_id",
-  members.user_id AS "user_id",
+  id as "channel_id",
+  $2 as "user_id",
   $3 AS "content",
   $4 AS "upload"
 FROM
-  members
+  channels
 WHERE
-  members.channel_id = $1
-  AND members.user_id = $2
-  AND members.admin = TRUE
-RETURNING
-  id AS "id",
-  channel_id AS "channelId",
-  user_id AS "userId",
-  content AS "content",
-  upload AS "upload",
-  created_at AS "createdAt",
-  (
+  channels.id = $1
+  AND channels.type = 'channel'
+  AND EXISTS (
     SELECT
-      JSON_BUILD_OBJECT(
-        'id',
-        users.id,
-        'username',
-        users.username,
-        'avatar',
-        users.avatar
-      )
+      1
     FROM
-      users
+      members
     WHERE
-      users.id = user_id
-  ) AS author,
-  0 AS "commentCount",
-  0 AS "likeCount",
-  FALSE AS "liked",
-  0 AS "selfCommentCount",
-  NULL AS "firstCommentId",
-  NULL AS "lastCommentId",
-  NULL AS "lastCommentAt"
+      members.channel_id = $1
+      AND members.user_id = $2
+      AND members.admin
+  )
+RETURNING
+  JSON_BUILD_OBJECT(
+    'id',
+    id,
+    'channelId',
+    channel_id,
+    'userId',
+    user_id,
+    'content',
+    content,
+    'upload',
+    upload,
+    'createdAt',
+    created_at,
+    'author',
+    (
+      SELECT
+        JSON_BUILD_OBJECT(
+          'id',
+          users.id,
+          'username',
+          users.username,
+          'avatar',
+          users.avatar
+        )
+      FROM
+        users
+      WHERE
+        users.id = user_id
+    ),
+    'liked',
+    FALSE,
+    'likeCount',
+    0,
+    'commentCount',
+    0,
+    'selfCommentCount',
+    0,
+    'firstCommentId',
+    NULL,
+    'lastCommentId',
+    NULL,
+    'comments',
+    '[]'::JSON
+  ) AS "post"

@@ -57,10 +57,6 @@ class ChannelRepository {
     ]);
   }
 
-  async getChannelLastPostInfo({ channelId }) {
-    return this.db.one(queries.getChannelLastPostInfo, [channelId]);
-  }
-
   async updateChannel({
     channelId,
     userId,
