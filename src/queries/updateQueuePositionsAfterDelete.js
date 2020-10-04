@@ -5,7 +5,7 @@ module.exports = ({ channelId, queuePosition }) => {
     .where("channel_id", channelId)
     .andWhere("queue_position", ">", queuePosition)
     .decrement("queue_position", 1)
-    .returning("id");
+    .returning("queue_position AS queuePosition");
 
   return query.toString();
 };

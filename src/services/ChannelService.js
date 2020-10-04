@@ -105,7 +105,7 @@ module.exports.getChannel = async ({ channelId, userId }) => {
         });
       }
 
-      const queue = await getQueue({ channelId });
+      const queue = await getQueue({ db: t, channelId });
 
       const viewerIds = await redis.smembers(`viewers:${channelId}`);
       const { users: viewersUsers } = await t.UserRepository.getUsers({
@@ -173,13 +173,10 @@ module.exports.updatePlayerStatus = async newPlayerStatus => {
       channelId: newPlayerStatus.channelId
     });
 
-    const storedPlayerStatus = await tx.ChannelRepository.getPlayerStatus({
-      channelId: newPlayerStatus.channelId
+    let playerStatus = await this.getCurrentPlayerStatus({ 
+      db: tx,
+      channelId: newPlayerStatus.channelId 
     });
-    const queue = await tx.VideoRepository.getChannelQueue({
-      channelId: newPlayerStatus.channelId
-    });
-    let playerStatus = calculatePlayerStatus(storedPlayerStatus, queue);
 
     if (!newPlayerStatus.status) {
       newPlayerStatus.status = playerStatus.status;
@@ -202,17 +199,25 @@ module.exports.updatePlayerStatus = async newPlayerStatus => {
   });
 };
 
-module.exports.deleteChannel = async ({ channelId, userId }) => {
-  return db.ChannelRepository.deleteChannel({ channelId, userId });
-};
-
-module.exports.getPlayerStatus = async ({ userId, channelId }) => {
-  const playerStatus = await db.ChannelRepository.getPlayerStatus({
-    userId,
+module.exports.getCurrentPlayerStatus = async ({ db, channelId }) => {
+  const storedPlayerStatus = await db.ChannelRepository.getPlayerStatus({
     channelId
   });
+  const queue = await getQueue({ db, channelId });
+  const currTime = moment();
+  let playerStatus = calculatePlayerStatus(
+    storedPlayerStatus,
+    queue,
+    true,
+    currTime
+  );
+  playerStatus.clockStartTime = currTime.format();
 
   return playerStatus;
+};
+
+module.exports.deleteChannel = async ({ channelId, userId }) => {
+  return db.ChannelRepository.deleteChannel({ channelId, userId });
 };
 
 module.exports.searchChannels = async ({ channelName, page, userId }) => {

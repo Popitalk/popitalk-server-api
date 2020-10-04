@@ -1,6 +1,7 @@
 const moment = require("moment");
 
 module.exports.BUFFER_TIME = 3;
+module.exports.LOOP = true;
 
 module.exports.defaultPlayerStatus = () => {
   return {
@@ -153,7 +154,12 @@ module.exports.calculatePlayerStatus = (
 
   if (getCurrentOnly) {
     if (newPlayerStatus.queueStartPosition >= playlist.length) {
-      return this.defaultPlayerStatus();
+      if (loop) {
+        newPlayerStatus.queueStartPosition = 0;
+        newPlayerStatus.videoStartTime = 0;
+      } else {
+        return this.defaultPlayerStatus();
+      }
     }
 
     return newPlayerStatus;

@@ -1,8 +1,10 @@
 const moment = require("moment");
 const db = require("../config/database");
+const ChannelService = require("./ChannelService");
 const {
-  calculatePlayerStatus,
-  BUFFER_TIME
+  BUFFER_TIME,
+  LOOP,
+  defaultPlayerStatus
 } = require("../shared/videoSyncing");
 
 module.exports.addVideo = async ({
@@ -15,6 +17,17 @@ module.exports.addVideo = async ({
 }) => {
   return db.tx(async tx => {
     await tx.VideoRepository.getHasPermission({ userId, channelId });
+
+    // Save the current playback status before updating playlist
+    let playerStatus = await ChannelService.getCurrentPlayerStatus({ 
+      db: tx,
+      channelId 
+    });
+    playerStatus = await tx.ChannelRepository.updatePlayerStatus({
+      ...playerStatus,
+      channelId
+    });
+
     const videoId = `${source} ${sourceId}`;
     const video = await tx.VideoRepository.addVideo({
       videoId,
@@ -32,7 +45,8 @@ module.exports.addVideo = async ({
     return {
       ...channelVideo,
       ...dbVideoInfo,
-      ...minVideo
+      ...minVideo,
+      playerStatus
     };
   });
 };
@@ -40,54 +54,54 @@ module.exports.addVideo = async ({
 module.exports.deleteVideo = async ({ userId, channelId, channelVideoId }) => {
   return db.tx(async tx => {
     await tx.VideoRepository.getHasPermission({ userId, channelId });
+    
+    let playerStatus = await ChannelService.getCurrentPlayerStatus({ 
+      db: tx,
+      channelId 
+    });
+
     const deletedChannelVideo = await tx.VideoRepository.deleteChannelVideo({
       channelVideoId
     });
-    await tx.VideoRepository.updateQueuePositionsAfterDelete({
+    const returning = await tx.VideoRepository.updateQueuePositionsAfterDelete({
       ...deletedChannelVideo
     });
 
-    const storedPlayerStatus = await tx.ChannelRepository.getPlayerStatus({
-      channelId
-    });
-    const queue = await this.getQueue({ channelId });
-    const currTime = moment();
-    let playerStatus = calculatePlayerStatus(
-      storedPlayerStatus,
-      queue,
-      true,
-      currTime
-    );
+    // Find largest queue position
+    const max = returning.reduce(
+      (max, pos) => pos.queuePosition > max ? pos.queuePosition : max, 
+      0);
 
     if (deletedChannelVideo.queuePosition < playerStatus.queueStartPosition) {
-      playerStatus = await tx.ChannelRepository.updatePlayerStatus({
-        channelId,
-        queueStartPosition: playerStatus.queueStartPosition - 1,
-        videoStartTime: playerStatus.videoStartTime,
-        clockStartTime: currTime.format(),
-        status: playerStatus.status
-      });
+      playerStatus.queueStartPosition = playerStatus.queueStartPosition - 1;
     } else if (
       deletedChannelVideo.queuePosition === playerStatus.queueStartPosition
     ) {
-      playerStatus = await tx.ChannelRepository.updatePlayerStatus({
-        channelId,
-        queueStartPosition: playerStatus.queueStartPosition,
-        videoStartTime: 0,
-        clockStartTime: moment()
-          .add(BUFFER_TIME, "seconds")
-          .format(),
-        status: playerStatus.status
-      });
-    } else {
-      playerStatus = null;
+      // If the current video is removed, play the next video or end the stream
+      playerStatus.clockStartTime = moment()
+        .add(BUFFER_TIME, "seconds")
+        .format();
+
+      if (playerStatus.queueStartPosition > max) {
+        if (LOOP) {
+          playerStatus.queueStartPosition = 0;
+          playerStatus.videoStartTime = 0;
+        } else {
+          playerStatus = defaultPlayerStatus();
+        }
+      }
     }
+
+    playerStatus = await tx.ChannelRepository.updatePlayerStatus({
+      ...playerStatus,
+      channelId
+    });
 
     return { deletedVideo: deletedChannelVideo, playerStatus };
   });
 };
 
-module.exports.getQueue = async ({ channelId }) => {
+module.exports.getQueue = async ({ db, channelId }) => {
   const queue = await db.VideoRepository.getChannelQueue({ channelId });
   const transformedQueue = queue.map(v => {
     const { videoInfo, ...minVideo } = v;
@@ -134,17 +148,10 @@ module.exports.updateQueue = async ({
       });
     }
 
-    const storedPlayerStatus = await tx.ChannelRepository.getPlayerStatus({
-      channelId
+    let playerStatus = await ChannelService.getCurrentPlayerStatus({ 
+      db: tx,
+      channelId 
     });
-    const queue = await this.getQueue({ channelId });
-    const currTime = moment();
-    let playerStatus = calculatePlayerStatus(
-      storedPlayerStatus,
-      queue,
-      true,
-      currTime
-    );
 
     const queueStartPosition = playerStatus.queueStartPosition;
     let newQueueStartPosition = -1;
@@ -167,11 +174,9 @@ module.exports.updateQueue = async ({
 
     if (newQueueStartPosition !== -1) {
       playerStatus = await tx.ChannelRepository.updatePlayerStatus({
+        ...playerStatus,
         channelId,
-        queueStartPosition: newQueueStartPosition,
-        videoStartTime: playerStatus.videoStartTime,
-        clockStartTime: currTime.format(),
-        status: playerStatus.status
+        queueStartPosition: newQueueStartPosition
       });
     } else {
       playerStatus = null;
