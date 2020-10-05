@@ -16,6 +16,7 @@ ON
 WHERE
   comments.id = $1
   AND members.user_id = $2
+  AND NOT members.banned
 RETURNING
   comment_id AS "commentId",
   user_id AS "userId",
@@ -25,7 +26,7 @@ RETURNING
     FROM
       comments
     WHERE
-      comments.id = $1
+      comments.id = comment_id
   ) AS "postId",
   (
     SELECT
@@ -37,5 +38,5 @@ RETURNING
     ON
       posts.id = comments.post_id
     WHERE
-      comments.id = $1
+      comments.id = comment_id
   ) AS "channelId"

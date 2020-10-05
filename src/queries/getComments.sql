@@ -1,71 +1,142 @@
-SELECT
-  *
-FROM
+WITH cmnts AS (
+  SELECT
+    *,
+    (
+      SELECT
+        JSON_BUILD_OBJECT(
+          'id',
+          users.id,
+          'username',
+          users.username,
+          'avatar',
+          users.avatar
+        )
+      FROM
+        users
+      WHERE
+        users.id = c.user_id
+    ) AS author,
+  (
+    CASE
+      WHEN
+        EXISTS (
+          SELECT
+            1
+          FROM
+            comment_likes
+          WHERE
+            comment_likes.comment_id = c.id
+            AND comment_likes.user_id = $2
+        )
+      THEN
+        TRUE
+      ELSE
+        FALSE
+    END
+  ) AS "liked",
   (
     SELECT
-      comments.id,
-      comments.post_id AS "postId",
-      comments.user_id AS "userId",
-      comments.content,
-      comments.created_at AS "createdAt",
-      (
-        SELECT
-          JSON_BUILD_OBJECT(
-            'id',
-            users.id,
-            'username',
-            users.username,
-            'avatar',
-            users.avatar
-          )
-        FROM
-          users
-        WHERE
-          users.id = comments.user_id
-      ) AS "author",
-      (
-        CASE
-          WHEN
-            EXISTS (
-              SELECT
-                1
-              FROM
-                comment_likes
-              WHERE
-                comment_likes.comment_id = comments.id
-                AND comment_likes.user_id = members.user_id
-            )
-          THEN
-            TRUE
-          ELSE
-            FALSE
-        END
-      ) AS "liked",
-      (
-        SELECT
-          COUNT(*)
-        FROM
-          comment_likes
-        WHERE
-          comment_likes.comment_id = comments.id
-      ) AS "likeCount"
+      COUNT(*)::SMALLINT
     FROM
-      comments
-    JOIN
-      posts
-    ON
-      posts.id = comments.post_id
-    JOIN
-      members
-    ON
-      members.channel_id = posts.channel_id
+      comment_likes
     WHERE
-      comments.post_id = $1
-      AND members.user_id = $2
+      comment_likes.comment_id = c.id
+  ) AS "like_count"
+  FROM (
+    SELECT
+      *
+    FROM (
+      SELECT
+        comments.*
+      FROM
+        comments
+      WHERE
+        comments.post_id = $1
+        AND (
+          CASE
+            WHEN
+              $3 IS NOT NULL AND $4 IS NOT NULL
+            THEN
+              (
+                comments.created_at > (
+                  SELECT
+                    c.created_at
+                  FROM
+                    comments AS c
+                  WHERE
+                    c.id = $3
+                )
+                AND
+                comments.created_at < (
+                  SELECT
+                    c.created_at
+                  FROM
+                    comments AS c
+                  WHERE
+                    c.id = $4
+                )
+              )
+            WHEN
+              $3 IS NOT NULL
+            THEN
+              comments.created_at > (
+                SELECT
+                  c.created_at
+                FROM
+                  comments AS c
+                WHERE
+                  c.id = $3
+              )
+            WHEN
+              $4 IS NOT NULL
+            THEN
+              comments.created_at < (
+                SELECT
+                  c.created_at
+                FROM
+                  comments AS c
+                WHERE
+                  c.id = $4
+              )
+            ELSE
+              TRUE
+          END
+        )
+      ORDER BY
+        comments.created_at DESC
+      LIMIT
+        3
+    ) AS co
     ORDER BY
-      comments.created_at DESC
-    LIMIT
-      $3
-  ) AS c
-ORDER BY
-  "createdAt" ASC
+      co.created_at ASC
+  ) c
+), cmnts_obj AS (
+  SELECT
+    JSON_OBJECT_AGG(
+      cmnts.id,
+      JSON_BUILD_OBJECT(
+        'id',
+        cmnts.id,
+        'postId',
+        cmnts.post_id,
+        'userId',
+        cmnts.user_id,
+        'content',
+        cmnts.content,
+        'createdAt',
+        cmnts.created_at,
+        'author',
+        cmnts.author,
+        'liked',
+        cmnts.liked,
+        'likeCount',
+        cmnts.like_count
+      )
+    ) AS comments
+  FROM
+    cmnts
+)
+SELECT
+  cmnts_obj.comments
+FROM
+  cmnts_obj

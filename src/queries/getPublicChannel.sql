@@ -1,4 +1,4 @@
-WITH chan AS (
+WITH chnl AS (
   SELECT
     channels.id,
     channels.type,
@@ -7,19 +7,20 @@ WITH chan AS (
     channels.icon,
     channels.public,
     channels.status,
-    channels.queue_start_position AS "queueStartPosition",
-    channels.video_start_time AS "videoStartTime",
-    channels.clock_start_time AS "clockStartTime",
-    channels.owner_id AS "ownerId",
+    channels.queue_start_position,
+    channels.video_start_time,
+    channels.clock_start_time,
+    channels.owner_id,
     channels.created_at,
-    fm.id AS "firstMessageId",
-    lm.id AS "lastMessageId",
-    lm.created_at AS "lastMessageAt",
-    fp.id AS "firstPostId",
-    lp.id AS "lastPostId",
-    lp.created_at AS "lastPostAt",
+    fm.id AS "fmid",
+    lm.id AS "lmid",
+    lm.created_at AS "lmdate",
+    fp.id AS "fpid",
+    lp.id AS "lpid",
+    lp.created_at AS "lpdate",
     mems.member_ids AS "members",
-    mems.admin_ids AS "admins"
+    mems.admin_ids AS "admins",
+    que.queue
   FROM
     channels
   LEFT JOIN LATERAL (
@@ -81,14 +82,302 @@ WITH chan AS (
     WHERE
       members.channel_id = channels.id
   ) mems ON TRUE
+  LEFT JOIN LATERAL (
+    SELECT
+      COALESCE(
+        JSON_AGG(
+        JSON_BUILD_OBJECT(
+          'id',
+          q.id,
+          'channelId',
+          q.channel_id,
+          'videoId',
+          q.video_id,
+          'length',
+          q.length,
+          'videoInfo',
+          q.video_info
+        )), '[]'::JSON) AS "queue"
+    FROM (
+      SELECT
+        channel_videos.id,
+        channel_videos.channel_id,
+        channel_videos.video_id,
+        videos.length,
+        videos.video_info
+      FROM
+        channel_videos
+      JOIN
+        videos
+      ON
+        videos.id = channel_videos.video_id
+      WHERE
+        channel_videos.channel_id = channels.id
+      ORDER BY
+        channel_videos.queue_position ASC
+    ) AS q
+  ) que ON TRUE
   WHERE
     channels.id = $1
-), chan_obj AS (
+), msgs AS (
   SELECT
-    ROW_TO_JSON(chan) AS channel
+    *
+  FROM (
+    SELECT
+      messages.*,
+      (
+        SELECT
+          JSON_BUILD_OBJECT(
+            'id',
+            users.id,
+            'username',
+            users.username,
+            'avatar',
+            users.avatar
+          )
+        FROM
+          users
+        WHERE
+          users.id = messages.user_id
+      ) AS author
+    FROM
+      messages, chnl
+    WHERE
+      messages.channel_id = chnl.id
+    ORDER BY
+      messages.created_at DESC
+    LIMIT
+      50
+  )  AS m
+  ORDER BY
+    m.created_at ASC
+), psts AS (
+  SELECT
+    *,
+    (
+      SELECT
+        JSON_BUILD_OBJECT(
+          'id',
+          users.id,
+          'username',
+          users.username,
+          'avatar',
+          users.avatar
+        )
+      FROM
+        users
+      WHERE
+        users.id = p.user_id
+    ) AS "author",
+    (
+      CASE
+        WHEN
+          EXISTS (
+            SELECT
+              1
+            FROM
+              post_likes
+            WHERE
+              post_likes.post_id = p.id
+              AND post_likes.user_id = $2
+          )
+        THEN
+          TRUE
+        ELSE
+          FALSE
+      END
+    ) AS "liked",
+    (
+      SELECT
+        COUNT(*)::SMALLINT
+      FROM
+        post_likes
+      WHERE
+        post_likes.post_id = p.id
+    ) AS "like_count",
+    (
+      SELECT
+        COUNT(*)::SMALLINT
+      FROM
+        comments
+      WHERE
+        comments.post_id = p.id
+    ) AS "comment_count",
+    (
+      SELECT
+        COUNT(*)::SMALLINT
+      FROM
+        comments
+      WHERE
+        comments.post_id = p.id
+        AND comments.user_id = $2
+    ) AS "self_comment_count",
+    (
+      SELECT
+        comments.id
+      FROM
+        comments
+      WHERE
+        comments.post_id = p.id
+      ORDER BY
+        comments.created_at ASC
+      LIMIT
+        1
+    ) AS "first_comment_id",
+    (
+      SELECT
+        comments.id
+      FROM
+        comments
+      WHERE
+        comments.post_id = p.id
+      ORDER BY
+        comments.created_at DESC
+      LIMIT
+        1
+    ) AS "last_comment_id"
+  FROM (
+    SELECT
+      posts.*
+    FROM
+      posts, chnl
+    WHERE
+      posts.channel_id = chnl.id
+    ORDER BY
+      posts.created_at DESC
+    LIMIT
+      7
+  ) AS p
+), cmnts AS (
+  SELECT
+    *,
+    (
+      SELECT
+        JSON_BUILD_OBJECT(
+          'id',
+          users.id,
+          'username',
+          users.username,
+          'avatar',
+          users.avatar
+        )
+      FROM
+        users
+      WHERE
+        users.id = c.user_id
+    ) AS author,
+  (
+    CASE
+      WHEN
+        EXISTS (
+          SELECT
+            1
+          FROM
+            comment_likes
+          WHERE
+            comment_likes.comment_id = c.id
+            AND comment_likes.user_id = $2
+        )
+      THEN
+        TRUE
+      ELSE
+        FALSE
+    END
+  ) AS "liked",
+  (
+    SELECT
+      COUNT(*)::SMALLINT
+    FROM
+      comment_likes
+    WHERE
+      comment_likes.comment_id = c.id
+  ) AS "like_count"
+  FROM (
+    SELECT
+      *
+    FROM (
+      SELECT
+        comments.*
+      FROM
+        comments, psts
+      WHERE
+        comments.post_id = psts.id
+      ORDER BY
+        comments.created_at DESC
+      LIMIT
+        3
+    ) AS co
+    ORDER BY
+      co.created_at ASC
+  ) AS c
+), chnl_obj AS (
+  SELECT
+    JSON_OBJECT_AGG(
+      chnl.id,
+      JSON_BUILD_OBJECT(
+        'type',
+        chnl.type,
+        'name',
+        chnl.name,
+        'description',
+        chnl.description,
+        'icon',
+        chnl.icon,
+        'public',
+        chnl.public,
+        'ownerId',
+        chnl.owner_id,
+        'createdAt',
+        chnl.created_at,
+        'firstMessageId',
+        chnl.fmid,
+        'lastMessageId',
+        chnl.lmid,
+        'lastMessageAt',
+        chnl.lmdate,
+        'firstPostId',
+        chnl.fpid,
+        'lastPostId',
+        chnl.lpid,
+        'lastPostAt',
+        chnl.lpdate,
+        'status',
+        chnl.status,
+        'queueStartPosition',
+        chnl.queue_start_position,
+        'videoStartTime',
+        chnl.video_start_time,
+        'clockStartPosition',
+        chnl.clock_start_time,
+        'members',
+        chnl.members,
+        'admins',
+        chnl.admins,
+        'messages',
+        (
+          SELECT
+            COALESCE(JSON_AGG(msgs.id), '[]'::JSON)
+          FROM
+            msgs
+          WHERE
+            msgs.channel_id = chnl.id
+        ),
+        'posts',
+        (
+          SELECT
+            COALESCE(JSON_AGG(psts.id), '[]'::JSON)
+          FROM
+            psts
+          WHERE
+            psts.channel_id = chnl.id
+        ),
+        'queue',
+        chnl.queue
+      )
+    ) AS channels
   FROM
-    chan
-), usrs AS (
+    chnl
+), usrs_obj AS (
   SELECT
     JSON_OBJECT_AGG(
       users.id,
@@ -104,94 +393,39 @@ WITH chan AS (
       )
     ) AS users
   FROM
-    users, chan
+    users, chnl
   WHERE
-    users.id = ANY (chan.members)
-), msgs AS (
+    users.id = ANY (chnl.members)
+), msgs_obj AS (
   SELECT
-    COALESCE(
-      ARRAY_AGG(
-        JSON_BUILD_OBJECT(
-          'id',
-          m.id,
-          'userId',
-          m.user_id,
-          'channelId',
-          m.channel_id,
-          'content',
-          m.content,
-          'upload',
-          m.upload,
-          'createdAt',
-          m.created_at,
-          'author',
-          m.author
-        )
-      ), ARRAY[]::JSON[]) AS "messages"
-  FROM (
-    SELECT
-      *
-    FROM (
-      SELECT
-        messages.id,
-        messages.user_id,
-        messages.channel_id,
-        messages.content,
-        messages.upload,
-        messages.created_at,
-        (
-          SELECT
-            JSON_BUILD_OBJECT(
-              'id',
-              users.id,
-              'username',
-              users.username,
-              'avatar',
-              users.avatar
-            )
-          FROM
-            users
-          WHERE
-            users.id = messages.user_id
-        ) AS author
-      FROM
-        messages, chan
-      WHERE
-        messages.channel_id = chan.id
-      ORDER BY
-        messages.created_at DESC
-      LIMIT
-        50
-    ) AS o
-    ORDER BY
-      o.created_at ASC
-  ) AS m
-  -- psts_obj like chan_obj
-), psts AS (
-  SELECT
-    posts.id AS pid,
-    posts.created_at AS pcreated_at,
-    *
-  FROM
-    posts, chan
-  WHERE
-    posts.channel_id = chan.id
-  ORDER BY
-    posts.created_at DESC
-  LIMIT
-    7
-), psts_arr AS (
-  SELECT
-    COALESCE(ARRAY_AGG(psts.pid), ARRAY[]::UUID[]) AS ids
-  FROM
-    psts
-), psts_obj AS (
-  SELECT
-    COALESCE(
-    ARRAY_AGG(
+    JSON_OBJECT_AGG(
+      msgs.id,
       JSON_BUILD_OBJECT(
         'id',
-        psts.pid,
+        msgs.id,
+        'userId',
+        msgs.user_id,
+        'channelId',
+        msgs.channel_id,
+        'content',
+        msgs.content,
+        'upload',
+        msgs.upload,
+        'createdAt',
+        msgs.created_at,
+        'author',
+        msgs.author
+      )
+    ) AS messages
+  FROM
+    msgs
+), psts_obj AS (
+  SELECT
+    JSON_OBJECT_AGG(
+      psts.id,
+      JSON_BUILD_OBJECT(
+        'id',
+        psts.id,
         'channelId',
         psts.channel_id,
         'userId',
@@ -200,178 +434,66 @@ WITH chan AS (
         psts.content,
         'upload',
         psts.upload,
-        'createdAt',
-        psts.pcreated_at,
         'author',
-        (
-          SELECT
-            JSON_BUILD_OBJECT(
-              'id',
-              users.id,
-              'username',
-              users.username,
-              'avatar',
-              users.avatar
-            )
-          FROM
-            users
-          WHERE
-            users.id = psts.user_id
-        ),
+        psts.author,
+        'createdAt',
+        psts.created_at,
         'liked',
-        (
-          CASE
-            WHEN
-              EXISTS (
-                SELECT
-                  1
-                FROM
-                  post_likes
-                WHERE
-                  post_likes.post_id = psts.pid
-                  AND post_likes.user_id = $2
-              )
-            THEN
-              TRUE
-            ELSE
-              FALSE
-          END
-        ),
+        psts.liked,
         'likeCount',
-        (
-          SELECT
-            COUNT(*)::SMALLINT
-          FROM
-            post_likes
-          WHERE
-            post_likes.post_id = psts.pid
-        ),
+        psts.like_count,
         'commentCount',
-        (
-          SELECT
-            COUNT(*)::SMALLINT
-          FROM
-            comments
-          WHERE
-            comments.post_id = psts.pid
-        ),
+        psts.comment_count,
         'selfCommentCount',
-        (
-          SELECT
-            COUNT(*)::SMALLINT
-          FROM
-            comments
-          WHERE
-            comments.post_id = psts.pid
-            AND comments.user_id = $2
-        ),
+        psts.self_comment_count,
         'firstCommentId',
+        psts.first_comment_id,
+        'lastCommentId',
+        psts.last_comment_id,
+        'comments',
         (
           SELECT
-            comments.id
+            COALESCE(JSON_AGG(cmnts.id), '[]'::JSON)
           FROM
-            comments
+            cmnts
           WHERE
-            comments.post_id = psts.pid
-          ORDER BY
-            comments.created_at ASC
-          LIMIT
-            1
-        ),
-        'lastCommentId',
-        (
-        SELECT
-          comments.id
-        FROM
-          comments
-        WHERE
-          comments.post_id = psts.pid
-        ORDER BY
-          comments.created_at DESC
-        LIMIT
-          1
+            cmnts.post_id = psts.id
         )
       )
-    ), ARRAY[]::JSON[]) AS "posts"
+    ) AS posts
   FROM
     psts
-), cmnts AS (
+), cmnts_obj AS (
   SELECT
     JSON_OBJECT_AGG(
-      c2.pid,
-      c2.comments
+      cmnts.id,
+      JSON_BUILD_OBJECT(
+        'id',
+        cmnts.id,
+        'postId',
+        cmnts.post_id,
+        'userId',
+        cmnts.user_id,
+        'content',
+        cmnts.content,
+        'createdAt',
+        cmnts.created_at,
+        'author',
+        cmnts.author,
+        'liked',
+        cmnts.liked,
+        'likeCount',
+        cmnts.like_count
+      )
     ) AS comments
-  FROM (
-    SELECT
-      psts.pid,
-      JSON_AGG(c ORDER BY "createdAt" DESC) AS comments
-    FROM
-      psts
-    JOIN LATERAL (
-      SELECT
-        comments.id,
-        comments.post_id AS "postId",
-        comments.user_id AS "userId",
-        comments.content,
-        comments.created_at AS "createdAt",
-        (
-          SELECT
-            JSON_BUILD_OBJECT(
-              'id',
-              users.id,
-              'username',
-              users.username,
-              'avatar',
-              users.avatar
-            )
-          FROM
-            users
-          WHERE
-            users.id = comments.user_id
-        ) AS author,
-        (
-          CASE
-            WHEN
-              EXISTS (
-                SELECT
-                  1
-                FROM
-                  comment_likes
-                WHERE
-                  comment_likes.comment_id = comments.id
-                  AND comment_likes.user_id = $2
-              )
-            THEN
-              TRUE
-            ELSE
-              FALSE
-          END
-        ) AS liked,
-        (
-          SELECT
-            COUNT(*)::SMALLINT
-          FROM
-            comment_likes
-          WHERE
-            comment_likes.comment_id = comments.id
-        ) AS "likeCount"
-      FROM
-        comments
-      WHERE
-        comments.post_id = psts.pid
-      ORDER BY
-        comments.created_at DESC
-      LIMIT
-        3
-    ) AS c ON TRUE
-    GROUP BY psts.pid
-  ) c2
+  FROM
+    cmnts
 )
 SELECT
-  chan_obj.channel AS channel,
-  usrs.users AS users,
-  msgs.messages AS messages,
-  psts_obj.posts AS posts,
-  COALESCE(cmnts.comments, '{}'::JSON) AS comments
+  chnl_obj.channels,
+  usrs_obj.users,
+  msgs_obj.messages,
+  psts_obj.posts,
+  cmnts_obj.comments
 FROM
-  chan_obj, usrs, msgs, psts_obj, cmnts
+  chnl_obj, usrs_obj, msgs_obj, psts_obj, cmnts_obj

@@ -8,35 +8,48 @@ SELECT
 FROM
   channels
 WHERE
-  (id = $1 AND public = true)
-  OR $1 IN
-  (
-  SELECT
-    id
-  FROM
-    members
-  WHERE
-    channel_id = $1 AND members.user_id = $2
+  channels.id = $1
+  AND (
+    channels.public = true
+    OR EXISTS (
+      SELECT
+        1
+      FROM
+        members
+      WHERE
+        members.channel_id = $1
+        AND members.user_id = $2
+        AND NOT members.banned
+    )
   )
 RETURNING
-  id AS "id",
-  channel_id AS "channelId",
-  user_id AS "userId",
-  content AS "content",
-  upload AS "upload",
-  created_at AS "createdAt",
-  (
-    SELECT
-      JSON_BUILD_OBJECT(
-        'id',
-        users.id,
-        'username',
-        users.username,
-        'avatar',
-        users.avatar
-      )
-    FROM
-      users
-    WHERE
-      users.id = user_id
-  ) AS author
+  JSON_BUILD_OBJECT(
+    'id',
+    id,
+    'channelId',
+    channel_id,
+    'userId',
+    user_id,
+    'content',
+    content,
+    'upload',
+    upload,
+    'createdAt',
+    created_at,
+    'author',
+    (
+      SELECT
+        JSON_BUILD_OBJECT(
+          'id',
+          users.id,
+          'username',
+          users.username,
+          'avatar',
+          users.avatar
+        )
+      FROM
+        users
+      WHERE
+        users.id = user_id
+    )
+  ) AS "message"

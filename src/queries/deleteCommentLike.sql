@@ -12,7 +12,7 @@ RETURNING
     FROM
       comments
     WHERE
-      comments.id = $1
+      comments.id = comment_id
   ) AS "postId",
   (
     SELECT
@@ -24,5 +24,5 @@ RETURNING
     ON
       posts.id = comments.post_id
     WHERE
-      comments.id = $1
+      comments.id = comment_id
   ) AS "channelId"

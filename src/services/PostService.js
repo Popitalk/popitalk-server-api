@@ -1,27 +1,27 @@
 const db = require("../config/database");
 
-module.exports.addPost = async ({ userId, channelId, content }) => {
-  return db.PostRepository.addPost({ userId, channelId, content });
+module.exports.addPost = async ({ userId, channelId, content, upload }) => {
+  return db.PostRepository.addPost({ userId, channelId, content, upload });
 };
 
-module.exports.getPosts = async ({ channelId, userId, beforePostId }) => {
+module.exports.getPosts = async ({
+  userId,
+  channelId,
+  afterPostId,
+  beforePostId
+}) => {
   return db.PostRepository.getPosts({
-    channelId,
     userId,
+    channelId,
+    afterPostId,
     beforePostId
   });
 };
 
 module.exports.deletePost = async ({ postId, userId }) => {
-  return db.task(async t => {
-    const deletedPost = await t.PostRepository.deletePost({
-      postId,
-      userId
-    });
-    const channelLastPostInfo = await t.ChannelRepository.getChannelLastPostInfo(
-      { channelId: deletedPost.channelId }
-    );
-    return { ...deletedPost, ...channelLastPostInfo };
+  return db.PostRepository.deletePost({
+    userId,
+    postId
   });
 };
 

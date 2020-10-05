@@ -12,6 +12,7 @@ ON
 WHERE
   posts.id = $1
   AND members.user_id = $2
+  AND NOT members.banned
 RETURNING
   post_id AS "postId",
   user_id AS "userId",

@@ -1,8 +1,8 @@
 INSERT INTO
   comments (post_id, user_id, content)
 SELECT
-  posts.id AS "post_id",
-  members.user_id AS "user_id",
+  id as "post_id",
+  $2 as "user_id",
   $3 AS "content"
 FROM
   posts
@@ -13,10 +13,11 @@ ON
 WHERE
   posts.id = $1
   AND members.user_id = $2
+  AND NOT members.banned
   AND (
     CASE
       WHEN
-        members.admin = TRUE
+        members.admin
       THEN
         TRUE
       ELSE
@@ -24,81 +25,60 @@ WHERE
           SELECT
             COUNT(*)
           FROM
-            (
-              SELECT
-                comments.user_id
-              FROM
-                comments
-              WHERE
-                comments.post_id = $1
-              ORDER BY
-                comments.created_at DESC
-              LIMIT
-                5
-            ) AS cuid
+            comments
           WHERE
-            cuid.user_id = $2
+            comments.post_id = posts.id
+            AND comments.user_id = members.user_id
         ) < 5
     END
   )
 RETURNING
-  id AS "id",
-  post_id AS "postId",
-  user_id AS "userId",
-  content AS "content",
-  created_at AS "createdAt",
-  (
-    SELECT
-      posts.channel_id
-    FROM
-      posts
-    WHERE
-      posts.id = post_id
-  ) AS "channelId",
-  (
-    SELECT
-      JSON_BUILD_OBJECT(
-        'id',
-        users.id,
-        'username',
-        users.username,
-        'avatar',
-        users.avatar
-      )
-    FROM
-      users
-    WHERE
-      users.id = user_id
-  ) AS author,
-  0 AS "likeCount",
-  FALSE AS "liked",
-  (
-    CASE
-      WHEN
-        EXISTS (
-          SELECT
-            1
-          FROM
-            posts
-          JOIN
-            members
-          ON
-            members.channel_id = posts.channel_id
-          WHERE
-            posts.id = $1
-            AND members.user_id = $2
-            AND members.admin
+  JSON_BUILD_OBJECT(
+    'id',
+    id,
+    'channelId',
+    (
+      SELECT
+        posts.channel_id
+      FROM
+        posts
+      WHERE
+        posts.id = post_id
+     ),
+    'postId',
+    post_id,
+    'userId',
+    user_id,
+    'content',
+    content,
+    'createdAt',
+    created_at,
+    'author',
+    (
+      SELECT
+        JSON_BUILD_OBJECT(
+          'id',
+          users.id,
+          'username',
+          users.username,
+          'avatar',
+          users.avatar
         )
-      THEN
-        0
-      ELSE (
-        SELECT
-          COUNT(*)::SMALLINT + 1
-        FROM
-          comments
-        WHERE
-          comments.post_id = $1
-          AND comments.user_id = $2
-      )
-    END
-  ) AS "selfCommentCount"
+      FROM
+        users
+      WHERE
+        users.id = user_id
+    ),
+    'liked',
+    FALSE,
+    'likeCount',
+    0
+  ) AS "comment",
+  (
+  SELECT
+    posts.channel_id
+  FROM
+    posts
+  WHERE
+    posts.id = post_id
+  ) AS "channelId"

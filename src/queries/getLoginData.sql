@@ -77,7 +77,8 @@ WITH self AS (
     members.admin
   FROM
     members, self
-  WHERE members.user_id = self.id
+  WHERE
+    members.user_id = self.id
   UNION
   SELECT
     follow_requests.channel_id,
@@ -107,7 +108,7 @@ WITH self AS (
       FROM
         members
       WHERE
-        members.channel_id = channels.id      
+        members.channel_id = channels.id
     ) AS members,
     (
       CASE

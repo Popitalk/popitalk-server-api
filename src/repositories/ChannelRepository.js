@@ -57,14 +57,6 @@ class ChannelRepository {
     ]);
   }
 
-  async getChannelLastMessageInfo({ channelId }) {
-    return this.db.oneOrNone(queries.getChannelLastMessageInfo, [channelId]);
-  }
-
-  async getChannelLastPostInfo({ channelId }) {
-    return this.db.one(queries.getChannelLastPostInfo, [channelId]);
-  }
-
   async updateChannel({
     channelId,
     userId,

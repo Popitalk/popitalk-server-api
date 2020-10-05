@@ -56,15 +56,16 @@ const controllers = [
               .max(2000),
             upload: Joi.string()
               .allow(null)
-              .required()
+              .default(null)
+              .optional()
           })
           .required()
-      },
-      response: {
-        status: {
-          201: messageSchema.label("addMessageResponse")
-        }
       }
+      // response: {
+      //   status: {
+      //     201: messageSchema.label("addMessageResponse")
+      //   }
+      // }
     },
     async handler(req, res) {
       const { id: userId } = req.auth.credentials;
@@ -79,18 +80,16 @@ const controllers = [
         channelId
       });
 
+      const response = { ...newMessage, channelId, userId };
+
       publisher({
         type: WS_EVENTS.CHANNEL.ADD_MESSAGE,
         channelId,
         initiator: userId,
-        payload: {
-          userId,
-          channelId,
-          message: newMessage
-        }
+        payload: response
       });
 
-      return res.response(newMessage).code(201);
+      return res.response(response).code(201);
     }
   },
   {
@@ -117,24 +116,28 @@ const controllers = [
               .optional()
           })
           .optional()
-      },
-      response: {
-        status: {
-          200: Joi.array()
-            .items(messageSchema)
-            .required()
-            .label("getMessagesResponse")
-        }
       }
+      // response: {
+      //   status: {
+      //     200: Joi.array()
+      //       .items(messageSchema)
+      //       .required()
+      //       .label("getMessagesResponse")
+      //   }
+      // }
     },
     async handler(req, res) {
       const { id: userId } = req.auth.credentials;
+      const { channelId } = req.params;
+      const { afterMessageId, beforeMessageId } = req.query;
       const messages = await MessageService.getMessages({
         userId,
-        ...req.params,
-        ...req.query
+        channelId,
+        afterMessageId,
+        beforeMessageId
       });
-      return messages;
+
+      return { ...messages, channelId, afterMessageId, beforeMessageId };
     }
   },
   {
@@ -151,34 +154,34 @@ const controllers = [
               .required()
           })
           .required()
-      },
-      response: {
-        status: {
-          200: Joi.object()
-            .keys({
-              id: Joi.string()
-                .uuid()
-                .required(),
-              channelId: Joi.string()
-                .uuid()
-                .required(),
-              firstMessageId: Joi.string()
-                .uuid()
-                .allow(null)
-                .required(),
-              lastMessageId: Joi.string()
-                .uuid()
-                .allow(null)
-                .required(),
-              lastMessageAt: Joi.date()
-                .iso()
-                .allow(null)
-                .required()
-            })
-            .required()
-            .label("deleteMessageResponse")
-        }
       }
+      // response: {
+      //   status: {
+      //     200: Joi.object()
+      //       .keys({
+      //         id: Joi.string()
+      //           .uuid()
+      //           .required(),
+      //         channelId: Joi.string()
+      //           .uuid()
+      //           .required(),
+      //         firstMessageId: Joi.string()
+      //           .uuid()
+      //           .allow(null)
+      //           .required(),
+      //         lastMessageId: Joi.string()
+      //           .uuid()
+      //           .allow(null)
+      //           .required(),
+      //         lastMessageAt: Joi.date()
+      //           .iso()
+      //           .allow(null)
+      //           .required()
+      //       })
+      //       .required()
+      //       .label("deleteMessageResponse")
+      //   }
+      // }
     },
     async handler(req, res) {
       const { id: userId } = req.auth.credentials;
@@ -187,17 +190,17 @@ const controllers = [
         userId,
         messageId
       });
+
+      const response = deletedMessage;
+
       publisher({
         type: WS_EVENTS.CHANNEL.DELETE_MESSAGE,
         channelId: deletedMessage.channelId,
         initiator: userId,
-        payload: {
-          userId,
-          channelId: deletedMessage.channelId,
-          ...deletedMessage
-        }
+        payload: response
       });
-      return deletedMessage;
+
+      return response;
     }
   }
 ];

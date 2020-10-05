@@ -4,24 +4,24 @@ module.exports.addComment = async ({ postId, userId, content }) => {
   return db.CommentRepository.addComment({ postId, userId, content });
 };
 
-module.exports.getComments = async ({ postId, userId, limit }) => {
+module.exports.getComments = async ({
+  userId,
+  postId,
+  afterCommentId,
+  beforeCommentId
+}) => {
   return db.CommentRepository.getComments({
-    postId,
     userId,
-    limit
+    postId,
+    afterCommentId,
+    beforeCommentId
   });
 };
 
 module.exports.deleteComment = async ({ commentId, userId }) => {
-  return db.task(async t => {
-    const deletedComment = await t.CommentRepository.deleteComment({
-      commentId,
-      userId
-    });
-    const postLastCommentInfo = await t.PostRepository.getPostLastCommentInfo({
-      postId: deletedComment.postId
-    });
-    return { ...deletedComment, ...postLastCommentInfo };
+  return db.CommentRepository.deleteComment({
+    commentId,
+    userId
   });
 };
 

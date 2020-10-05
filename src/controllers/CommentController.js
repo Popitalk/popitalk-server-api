@@ -102,33 +102,39 @@ const controllers = [
               .max(2000)
           })
           .required()
-      },
-      response: {
-        status: {
-          201: commentSchema.required().label("addCommentResponse")
-        }
       }
+      // response: {
+      //   status: {
+      //     201: commentSchema.required().label("addCommentResponse")
+      //   }
+      // }
     },
     async handler(req, res) {
       const { id: userId } = req.auth.credentials;
-      const addedComment = await CommentService.addComment({
+      const { postId, content } = req.payload;
+      const newComment = await CommentService.addComment({
         userId,
-        ...req.payload
+        postId,
+        content
       });
+
+      const response = { ...newComment, postId };
+
       publisher({
         type: WS_EVENTS.CHANNEL.ADD_COMMENT,
-        channelId: addedComment.channelId,
+        channelId: newComment.channelId,
         initiator: userId,
-        payload: addedComment
+        payload: response
       });
-      return res.response(addedComment).code(201);
+
+      return res.response(response).code(201);
     }
   },
   {
     method: "GET",
     path: "/{postId}",
     options: {
-      description: "Gets comments",
+      description: "Gets post comments",
       tags: ["api"],
       validate: {
         params: Joi.object()
@@ -140,32 +146,54 @@ const controllers = [
           .required(),
         query: Joi.object()
           .keys({
-            limit: Joi.number()
-              .integer()
-              .positive()
-              .multiple(3)
+            afterCommentId: Joi.string()
+              .uuid()
+              .optional(),
+            beforeCommentId: Joi.string()
+              .uuid()
               .optional()
           })
           .optional()
-      },
-      response: {
-        status: {
-          200: Joi.array()
-            .items(commentSchemaGet)
-            .required()
-            .label("getCommentsResponse")
-        }
       }
+      // validate: {
+      //   params: Joi.object()
+      //     .keys({
+      //       postId: Joi.string()
+      //         .uuid()
+      //         .required()
+      //     })
+      //     .required(),
+      //   query: Joi.object()
+      //     .keys({
+      //       limit: Joi.number()
+      //         .integer()
+      //         .positive()
+      //         .multiple(3)
+      //         .optional()
+      //     })
+      //     .optional()
+      // }
+      // response: {
+      //   status: {
+      //     200: Joi.array()
+      //       .items(commentSchemaGet)
+      //       .required()
+      //       .label("getCommentsResponse")
+      //   }
+      // }
     },
     async handler(req, res) {
       const { id: userId } = req.auth.credentials;
+      const { postId } = req.params;
+      const { afterCommentId, beforeCommentId } = req.query;
       const comments = await CommentService.getComments({
         userId,
-        ...req.params,
-        ...req.query
+        postId,
+        afterCommentId,
+        beforeCommentId
       });
 
-      return comments;
+      return { ...comments, postId, afterCommentId, beforeCommentId };
     }
   },
   {
@@ -182,34 +210,34 @@ const controllers = [
               .required()
           })
           .required()
-      },
-      response: {
-        status: {
-          200: Joi.object()
-            .keys({
-              id: Joi.string()
-                .uuid()
-                .required(),
-              postId: Joi.string()
-                .uuid()
-                .required(),
-              channelId: Joi.string()
-                .uuid()
-                .required(),
-              firstCommentId: Joi.string()
-                .uuid()
-                .required(),
-              lastCommentId: Joi.string()
-                .uuid()
-                .required(),
-              lastCommentAt: Joi.date()
-                .iso()
-                .required()
-            })
-            .required()
-            .label("deleteCommentResponse")
-        }
       }
+      // response: {
+      //   status: {
+      //     200: Joi.object()
+      //       .keys({
+      //         id: Joi.string()
+      //           .uuid()
+      //           .required(),
+      //         postId: Joi.string()
+      //           .uuid()
+      //           .required(),
+      //         channelId: Joi.string()
+      //           .uuid()
+      //           .required(),
+      //         firstCommentId: Joi.string()
+      //           .uuid()
+      //           .required(),
+      //         lastCommentId: Joi.string()
+      //           .uuid()
+      //           .required(),
+      //         lastCommentAt: Joi.date()
+      //           .iso()
+      //           .required()
+      //       })
+      //       .required()
+      //       .label("deleteCommentResponse")
+      //   }
+      // }
     },
     async handler(req, res) {
       const { id: userId } = req.auth.credentials;
@@ -218,17 +246,17 @@ const controllers = [
         userId,
         commentId
       });
-      // publisher({
-      //   type: CHANNEL_EVENTS.WS_DELETE_COMMENT,
-      //   channelId: deletedComment.channelId,
-      //   initiator: userId,
-      //   payload: {
-      //     userId,
-      //     channelId: deletedComment.channelId,
-      //     ...deletedComment
-      //   }
-      // });
-      return deletedComment;
+
+      const response = deletedComment;
+
+      publisher({
+        type: WS_EVENTS.CHANNEL.DELETE_COMMENT,
+        channelId: deletedComment.channelId,
+        initiator: userId,
+        payload: response
+      });
+
+      return response;
     }
   },
   {
@@ -245,12 +273,12 @@ const controllers = [
               .required()
           })
           .required()
-      },
-      response: {
-        status: {
-          201: likeSchema.label("addCommentLikeResponse")
-        }
       }
+      // response: {
+      //   status: {
+      //     201: likeSchema.label("addCommentLikeResponse")
+      //   }
+      // }
     },
     async handler(req, res) {
       const { id: userId } = req.auth.credentials;
@@ -259,13 +287,17 @@ const controllers = [
         userId,
         commentId
       });
-      // publisher({
-      //   type: CHANNEL_EVENTS.WS_ADD_COMMENT_LIKE,
-      //   channelId: newLike.channelId,
-      //   initiator: userId,
-      //   payload: newLike
-      // });
-      return res.response(newLike).code(201);
+
+      const response = newLike;
+
+      publisher({
+        type: WS_EVENTS.CHANNEL.ADD_COMMENT_LIKE,
+        channelId: newLike.channelId,
+        initiator: userId,
+        payload: response
+      });
+
+      return res.response(response).code(201);
     }
   },
   {
@@ -282,12 +314,12 @@ const controllers = [
               .required()
           })
           .required()
-      },
-      response: {
-        status: {
-          200: likeSchema.label("deleteCommentLikeResponse")
-        }
       }
+      // response: {
+      //   status: {
+      //     200: likeSchema.label("deleteCommentLikeResponse")
+      //   }
+      // }
     },
     async handler(req, res) {
       const { id: userId } = req.auth.credentials;
@@ -296,13 +328,17 @@ const controllers = [
         userId,
         commentId
       });
-      // publisher({
-      //   type: CHANNEL_EVENTS.WS_DELETE_COMMENT_LIKE,
-      //   channelId: deletedLike.channelId,
-      //   initiator: userId,
-      //   payload: deletedLike
-      // });
-      return deletedLike;
+
+      const response = deletedLike;
+
+      publisher({
+        type: WS_EVENTS.CHANNEL.DELETE_COMMENT_LIKE,
+        channelId: deletedLike.channelId,
+        initiator: userId,
+        payload: response
+      });
+
+      return response;
     }
   }
 ];
