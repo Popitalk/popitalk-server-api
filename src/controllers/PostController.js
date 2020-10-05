@@ -1,5 +1,5 @@
 const Joi = require("@hapi/joi");
-// const { WS_EVENTS } = require("../config/constants");
+const { WS_EVENTS } = require("../config/constants");
 const publisher = require("../config/publisher");
 const PostService = require("../services/PostService");
 
@@ -97,12 +97,12 @@ const controllers = [
       const { id: userId } = req.auth.credentials;
       const { channelId } = req.payload;
       const newPost = await PostService.addPost({ userId, ...req.payload });
-      // publisher({
-      //   type: CHANNEL_EVENTS.WS_ADD_POST,
-      //   channelId,
-      //   initiator: userId,
-      //   payload: newPost
-      // });
+      publisher({
+        type: WS_EVENTS.CHANNEL.ADD_POST,
+        channelId,
+        initiator: userId,
+        payload: newPost
+      });
       return res.response(newPost).code(201);
     }
   },
@@ -205,16 +205,16 @@ const controllers = [
       const { id: userId } = req.auth.credentials;
       const { postId } = req.params;
       const deletedPost = await PostService.deletePost({ userId, postId });
-      // publisher({
-      //   type: CHANNEL_EVENTS.WS_DELETE_POST,
-      //   channelId: deletedPost.channelId,
-      //   initiator: userId,
-      //   payload: {
-      //     userId,
-      //     channelId: deletedPost.channelId,
-      //     ...deletedPost
-      //   }
-      // });
+      publisher({
+        type: WS_EVENTS.CHANNEL.DELETE_POST,
+        channelId: deletedPost.channelId,
+        initiator: userId,
+        payload: {
+          userId,
+          channelId: deletedPost.channelId,
+          ...deletedPost
+        }
+      });
       return deletedPost;
     }
   },
