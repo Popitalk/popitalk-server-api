@@ -138,13 +138,13 @@ const controllers = [
         const length = response.data.items[0].contentDetails.duration;
         videoInfo.length = moment.duration(length).asSeconds();
 
-        const video = await VideoService.addVideo({
+        const { playerStatus, ...video} = await VideoService.addVideo({
           userId,
           channelId,
           ...videoInfo
         });
 
-        const payload = { channelId, video };
+        const payload = { channelId, video, updatedChannel: playerStatus };
 
         publisher({
           type: WS_EVENTS.VIDEO_CONTROL.ADD_VIDEO,
