@@ -44,17 +44,41 @@ WITH cmnts AS (
   ) AS "like_count"
   FROM (
     SELECT
-      comments.*
-    FROM
-      comments
-    WHERE
-      comments.post_id = $1
-      AND (
-        CASE
-          WHEN
-            $3 IS NOT NULL AND $4 IS NOT NULL
-          THEN
-            (
+      *
+    FROM (
+      SELECT
+        comments.*
+      FROM
+        comments
+      WHERE
+        comments.post_id = $1
+        AND (
+          CASE
+            WHEN
+              $3 IS NOT NULL AND $4 IS NOT NULL
+            THEN
+              (
+                comments.created_at > (
+                  SELECT
+                    c.created_at
+                  FROM
+                    comments AS c
+                  WHERE
+                    c.id = $3
+                )
+                AND
+                comments.created_at < (
+                  SELECT
+                    c.created_at
+                  FROM
+                    comments AS c
+                  WHERE
+                    c.id = $4
+                )
+              )
+            WHEN
+              $3 IS NOT NULL
+            THEN
               comments.created_at > (
                 SELECT
                   c.created_at
@@ -63,7 +87,9 @@ WITH cmnts AS (
                 WHERE
                   c.id = $3
               )
-              AND
+            WHEN
+              $4 IS NOT NULL
+            THEN
               comments.created_at < (
                 SELECT
                   c.created_at
@@ -72,38 +98,18 @@ WITH cmnts AS (
                 WHERE
                   c.id = $4
               )
-            )
-          WHEN
-            $3 IS NOT NULL
-          THEN
-            comments.created_at > (
-              SELECT
-                c.created_at
-              FROM
-                comments AS c
-              WHERE
-                c.id = $3
-            )
-          WHEN
-            $4 IS NOT NULL
-          THEN
-            comments.created_at < (
-              SELECT
-                c.created_at
-              FROM
-                comments AS c
-              WHERE
-                c.id = $4
-            )
-          ELSE
-            TRUE
-        END
-      )
+            ELSE
+              TRUE
+          END
+        )
+      ORDER BY
+        comments.created_at DESC
+      LIMIT
+        3
+    ) AS co
     ORDER BY
-      comments.created_at DESC
-    LIMIT
-      5
-  ) AS c
+      co.created_at ASC
+  ) c
 ), cmnts_obj AS (
   SELECT
     JSON_OBJECT_AGG(

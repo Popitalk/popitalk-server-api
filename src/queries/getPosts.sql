@@ -191,15 +191,21 @@ WITH psts AS (
   ) AS "like_count"
   FROM (
     SELECT
-      comments.*
-    FROM
-      comments, psts
-    WHERE
-      comments.post_id = psts.id
+      *
+    FROM (
+      SELECT
+        comments.*
+      FROM
+        comments, psts
+      WHERE
+        comments.post_id = psts.id
+      ORDER BY
+        comments.created_at DESC
+      LIMIT
+        3
+    ) AS co
     ORDER BY
-      comments.created_at DESC
-    LIMIT
-      3
+      co.created_at ASC
   ) AS c
 ), psts_obj AS (
   SELECT

@@ -73,4 +73,12 @@ RETURNING
     FALSE,
     'likeCount',
     0
-  ) AS "comment"
+  ) AS "comment",
+  (
+  SELECT
+    posts.channel_id
+  FROM
+    posts
+  WHERE
+    posts.id = post_id
+  ) AS "channelId"
