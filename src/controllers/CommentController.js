@@ -1,5 +1,5 @@
 const Joi = require("@hapi/joi");
-// const { WS_EVENTS } = require("../config/constants");
+const { WS_EVENTS } = require("../config/constants");
 const publisher = require("../config/publisher");
 const CommentService = require("../services/CommentService");
 
@@ -115,12 +115,12 @@ const controllers = [
         userId,
         ...req.payload
       });
-      // publisher({
-      //   type: CHANNEL_EVENTS.WS_ADD_COMMENT,
-      //   channelId: addedComment.channelId,
-      //   initiator: userId,
-      //   payload: addedComment
-      // });
+      publisher({
+        type: WS_EVENTS.CHANNEL.ADD_COMMENT,
+        channelId: addedComment.channelId,
+        initiator: userId,
+        payload: addedComment
+      });
       return res.response(addedComment).code(201);
     }
   },
