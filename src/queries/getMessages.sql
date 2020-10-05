@@ -99,7 +99,10 @@ FROM (
         END
       )
     ORDER BY
-      messages.created_at DESC
+      CASE WHEN $3 IS NOT NULL AND $4 IS NOT NULL THEN messages.created_at END DESC,
+      CASE WHEN $3 IS NOT NULL THEN messages.created_at END ASC,
+      CASE WHEN $4 IS NOT NULL THEN messages.created_at END DESC,
+      CASE WHEN $3 IS NULL AND $4 IS NULL THEN messages.created_at END DESC
     LIMIT
       50
   ) AS msgs
