@@ -103,7 +103,7 @@ module.exports.deleteVideo = async ({ userId, channelId, channelVideoId }) => {
 };
 
 module.exports.getQueue = async ({ db, channelId }) => {
-  const queue = await db.VideoRepository.getChannelQueue({ channelId });
+  const { queue } = await db.VideoRepository.getChannelQueue({ channelId });
   const transformedQueue = queue.map(v => {
     const { videoInfo, ...minVideo } = v;
 

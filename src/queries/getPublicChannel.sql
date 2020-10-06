@@ -96,7 +96,15 @@ WITH chnl AS (
           'length',
           q.length,
           'videoInfo',
-          q.video_info
+          q.video_info,
+          'title',
+          q.video_info->>'title',
+          'publishedAt',
+          q.video_info->>'publishedAt',
+          'thumbnail',
+          q.video_info->>'thumbnail',
+          'url',
+          q.video_info->>'url'
         )), '[]'::JSON) AS "queue"
     FROM (
       SELECT

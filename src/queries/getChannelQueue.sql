@@ -1,5 +1,5 @@
 SELECT
-  JSON_AGG(
+  COALESCE(JSON_AGG(
     JSON_BUILD_OBJECT(
       'id',
       channel_videos.id,
@@ -10,9 +10,17 @@ SELECT
       'length',
       videos.length,
       'videoInfo',
-      videos.video_info
+      videos.video_info,
+      'title',
+      q.video_info->>'title',
+      'publishedAt',
+      q.video_info->>'publishedAt',
+      'thumbnail',
+      q.video_info->>'thumbnail',
+      'url',
+      q.video_info->>'url'
     )
-  ) AS "queue"
+  ), '[]'::JSON) AS "queue"
 FROM
   channel_videos
 JOIN
