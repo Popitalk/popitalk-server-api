@@ -355,7 +355,7 @@ WITH chnl AS (
       chnl.queue_start_position,
       'videoStartTime',
       chnl.video_start_time,
-      'clockStartPosition',
+      'clockStartTime',
       chnl.clock_start_time,
       'members',
       chnl.members,
