@@ -188,7 +188,7 @@ module.exports.getCurrentPlayerStatus = async ({ db, channelId }) => {
   });
   const queue = await getQueue({ db, channelId });
   const currTime = moment();
-  let playerStatus = calculatePlayerStatus(
+  const playerStatus = calculatePlayerStatus(
     storedPlayerStatus,
     queue,
     true,

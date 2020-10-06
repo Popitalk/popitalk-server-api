@@ -12,6 +12,6 @@ module.exports = ({ channelId }) => {
     )
     .from("channels")
     .where("id", channelId);
-  
+
   return query.toString();
 };

@@ -8,7 +8,7 @@ module.exports = ({
   clockStartTime,
   status = null
 }) => {
-  let playerStatus = {
+  const playerStatus = {
     updated_at: knex.raw("NOW()"),
     queue_start_position: queueStartPosition,
     video_start_time: videoStartTime,

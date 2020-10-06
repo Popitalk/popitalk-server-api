@@ -32,7 +32,7 @@ const checkNewPlayerStatus = (
     // The current video is very near to the end
     let nextPosition = newPlayerStatus.queueStartPosition + 1;
     if (nextPosition === playlist.length && loop) {
-      // If channel loops and the end of the playlist has been reached, 
+      // If channel loops and the end of the playlist has been reached,
       // return to the first video in the playlist
       nextPosition = 0;
     }
@@ -44,10 +44,9 @@ const checkNewPlayerStatus = (
         playlist,
         nextPosition
       );
-    } else {
-      // Consider the stream ended
-      return this.defaultPlayerStatus();
     }
+    // Consider the stream ended
+    return this.defaultPlayerStatus();
   }
 
   return newPlayerStatus;
@@ -95,7 +94,7 @@ module.exports.calculatePlayerStatus = (
 
   const newPlayerStatus = {
     queueStartPosition,
-    videoStartTime: videoStartTime,
+    videoStartTime,
     clockStartTime: momentStartTime,
     status
   };
@@ -118,11 +117,11 @@ module.exports.calculatePlayerStatus = (
   }
 
   const msToS = 1 / 1000;
-  let elapsedTime = (currTime - momentStartTime) * msToS;
+  const elapsedTime = (currTime - momentStartTime) * msToS;
 
   newPlayerStatus.videoStartTime += elapsedTime;
   while (newPlayerStatus.queueStartPosition < playlist.length) {
-    let currVideoTime = playlist[newPlayerStatus.queueStartPosition].length;
+    const currVideoTime = playlist[newPlayerStatus.queueStartPosition].length;
     if (newPlayerStatus.videoStartTime > currVideoTime) {
       newPlayerStatus.queueStartPosition++;
 

@@ -74,7 +74,7 @@ module.exports.deleteVideo = async ({ userId, channelId, channelVideoId }) => {
     );
 
     if (deletedChannelVideo.queuePosition < playerStatus.queueStartPosition) {
-      playerStatus.queueStartPosition = playerStatus.queueStartPosition - 1;
+      playerStatus.queueStartPosition -= 1;
     } else if (
       deletedChannelVideo.queuePosition === playerStatus.queueStartPosition
     ) {
@@ -154,7 +154,7 @@ module.exports.updateQueue = async ({
       channelId
     });
 
-    const queueStartPosition = playerStatus.queueStartPosition;
+    const { queueStartPosition } = playerStatus;
     let newQueueStartPosition = -1;
 
     if (playerStatus.status === "Ended") {
