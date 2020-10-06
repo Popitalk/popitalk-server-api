@@ -27,29 +27,28 @@ WITH chnl AS (
     channels.id = $1
 ), chnl_obj AS (
   SELECT
-    JSON_OBJECT_AGG(
+    JSON_BUILD_OBJECT(
+      'id',
       chnl.id,
-      JSON_BUILD_OBJECT(
-        'type',
-        chnl.type,
-        'name',
-        chnl.name,
-        'description',
-        chnl.description,
-        'icon',
-        chnl.icon,
-        'public',
-        chnl.public,
-        'ownerId',
-        chnl.owner_id,
-        'createdAt',
-        chnl.created_at,
-        'admins',
-        chnl.admins,
-        'memberCount',
-        chnl.member_count
-      )
-    ) AS channels
+      'type',
+      chnl.type,
+      'name',
+      chnl.name,
+      'description',
+      chnl.description,
+      'icon',
+      chnl.icon,
+      'public',
+      chnl.public,
+      'ownerId',
+      chnl.owner_id,
+      'createdAt',
+      chnl.created_at,
+      'admins',
+      chnl.admins,
+      'memberCount',
+      chnl.member_count
+  ) AS channel
   FROM
     chnl
 ), usrs_obj AS (
@@ -73,7 +72,7 @@ WITH chnl AS (
     users.id = ANY (chnl.admins)
 )
 SELECT
-  chnl_obj.channels,
+  chnl_obj.channel,
   usrs_obj.users
 FROM
   chnl_obj, usrs_obj

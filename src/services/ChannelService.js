@@ -6,10 +6,7 @@ const { uploadFile } = require("../config/aws");
 const db = require("../config/database");
 const addViewers = require("../helpers/addViewers");
 
-const {
-  calculatePlayerStatus,
-  BUFFER_TIME
-} = require("../shared/videoSyncing");
+const { BUFFER_TIME } = require("../shared/videoSyncing");
 const getCurrentPlayerStatus = require("../helpers/getCurrentPlayerStatus");
 
 module.exports.addChannel = async ({
@@ -77,42 +74,34 @@ module.exports.getChannel = async ({ channelId, userId }) => {
       channelId,
       userId
     });
-    if (chMemInfo) {
-      const {
-        type,
-        isPublic,
-        isOwner,
-        isAdmin,
-        isMember,
-        isBanned
-      } = chMemInfo;
 
-      if (isBanned) throw Boom.unauthorized("You're banned from this channel");
+    if (!chMemInfo) throw Boom.notFound("Channel doesn't exist");
 
-      if (type !== "channel" && isMember) {
-        channelInfo = await t.ChannelRepository.getRoomChannel({ channelId });
-      } else if (isAdmin) {
-        channelInfo = await t.ChannelRepository.getAdminChannel({
-          channelId,
-          userId
-        });
-      } else if (isMember || isPublic) {
-        channelInfo = await t.ChannelRepository.getPublicChannel({
-          channelId,
-          userId
-        });
-      } else if (!isMember && !isPublic) {
-        channelInfo = await t.ChannelRepository.getPrivateChannel({
-          channelId
-        });
-      }
+    const { type, isPublic, isOwner, isAdmin, isMember, isBanned } = chMemInfo;
 
-      const channelWithViewers = await addViewers(t, channelInfo);
+    if (isBanned) throw Boom.unauthorized("You're banned from this channel");
 
-      return { ...channelWithViewers, ...chMemInfo };
+    if (type !== "channel" && isMember) {
+      channelInfo = await t.ChannelRepository.getRoomChannel({ channelId });
+    } else if (isAdmin) {
+      channelInfo = await t.ChannelRepository.getAdminChannel({
+        channelId,
+        userId
+      });
+    } else if (isMember || isPublic) {
+      channelInfo = await t.ChannelRepository.getPublicChannel({
+        channelId,
+        userId
+      });
+    } else if (!isMember && !isPublic) {
+      channelInfo = await t.ChannelRepository.getPrivateChannel({
+        channelId
+      });
     }
 
-    return {};
+    const channelWithViewers = await addViewers(t, channelInfo);
+
+    return { ...channelWithViewers, ...chMemInfo };
   });
 };
 

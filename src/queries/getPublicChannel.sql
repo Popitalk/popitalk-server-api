@@ -320,69 +320,68 @@ WITH chnl AS (
   ) AS c
 ), chnl_obj AS (
   SELECT
-    JSON_OBJECT_AGG(
+    JSON_BUILD_OBJECT(
+      'id',
       chnl.id,
-      JSON_BUILD_OBJECT(
-        'type',
-        chnl.type,
-        'name',
-        chnl.name,
-        'description',
-        chnl.description,
-        'icon',
-        chnl.icon,
-        'public',
-        chnl.public,
-        'ownerId',
-        chnl.owner_id,
-        'createdAt',
-        chnl.created_at,
-        'firstMessageId',
-        chnl.fmid,
-        'lastMessageId',
-        chnl.lmid,
-        'lastMessageAt',
-        chnl.lmdate,
-        'firstPostId',
-        chnl.fpid,
-        'lastPostId',
-        chnl.lpid,
-        'lastPostAt',
-        chnl.lpdate,
-        'status',
-        chnl.status,
-        'queueStartPosition',
-        chnl.queue_start_position,
-        'videoStartTime',
-        chnl.video_start_time,
-        'clockStartPosition',
-        chnl.clock_start_time,
-        'members',
-        chnl.members,
-        'admins',
-        chnl.admins,
-        'messages',
-        (
-          SELECT
-            COALESCE(JSON_AGG(msgs.id), '[]'::JSON)
-          FROM
-            msgs
-          WHERE
-            msgs.channel_id = chnl.id
-        ),
-        'posts',
-        (
-          SELECT
-            COALESCE(JSON_AGG(psts.id), '[]'::JSON)
-          FROM
-            psts
-          WHERE
-            psts.channel_id = chnl.id
-        ),
-        'queue',
-        chnl.queue
-      )
-    ) AS channels
+      'type',
+      chnl.type,
+      'name',
+      chnl.name,
+      'description',
+      chnl.description,
+      'icon',
+      chnl.icon,
+      'public',
+      chnl.public,
+      'ownerId',
+      chnl.owner_id,
+      'createdAt',
+      chnl.created_at,
+      'firstMessageId',
+      chnl.fmid,
+      'lastMessageId',
+      chnl.lmid,
+      'lastMessageAt',
+      chnl.lmdate,
+      'firstPostId',
+      chnl.fpid,
+      'lastPostId',
+      chnl.lpid,
+      'lastPostAt',
+      chnl.lpdate,
+      'status',
+      chnl.status,
+      'queueStartPosition',
+      chnl.queue_start_position,
+      'videoStartTime',
+      chnl.video_start_time,
+      'clockStartPosition',
+      chnl.clock_start_time,
+      'members',
+      chnl.members,
+      'admins',
+      chnl.admins,
+      'messages',
+      (
+        SELECT
+          COALESCE(JSON_AGG(msgs.id), '[]'::JSON)
+        FROM
+          msgs
+        WHERE
+          msgs.channel_id = chnl.id
+      ),
+      'posts',
+      (
+        SELECT
+          COALESCE(JSON_AGG(psts.id), '[]'::JSON)
+        FROM
+          psts
+        WHERE
+          psts.channel_id = chnl.id
+      ),
+      'queue',
+      chnl.queue
+  ) AS channel
   FROM
     chnl
 ), usrs_obj AS (
@@ -498,7 +497,7 @@ WITH chnl AS (
     cmnts
 )
 SELECT
-  chnl_obj.channels,
+  chnl_obj.channel,
   usrs_obj.users,
   msgs_obj.messages,
   psts_obj.posts,

@@ -172,6 +172,8 @@ WITH self AS (
     JSON_OBJECT_AGG(
       channels_cte.id,
       JSON_BUILD_OBJECT(
+        'id',
+        channels_cte.id,
         'type',
         channels_cte.type,
         'name',

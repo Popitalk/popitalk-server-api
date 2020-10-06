@@ -60,90 +60,91 @@ const controllers = [
             public: Joi.boolean().required()
           })
           .required()
-      },
-      response: {
-        status: {
-          201: Joi.object()
-            .keys({
-              channelId: Joi.string()
-                .uuid()
-                .required(),
-              channel: Joi.object().keys({
-                id: Joi.string()
-                  .uuid()
-                  .required(),
-                type: Joi.string()
-                  .valid("channel")
-                  .required(),
-                name: Joi.string().required(),
-                description: Joi.string().required(),
-                icon: Joi.string()
-                  .uri()
-                  .allow(null)
-                  .required(),
-                public: Joi.boolean()
-                  .valid()
-                  .required(),
-                ownerId: Joi.string()
-                  .uuid()
-                  .required(),
-                ...playerStatusJoi,
-                created_at: Joi.date()
-                  .iso()
-                  .required(),
-                firstMessageId: Joi.string()
-                  .uuid()
-                  .valid(null)
-                  .required(),
-                lastMessageId: Joi.string()
-                  .uuid()
-                  .valid(null)
-                  .required(),
-                lastMessageAt: Joi.string()
-                  .uuid()
-                  .valid(null)
-                  .required(),
-                firstPostId: Joi.string()
-                  .uuid()
-                  .valid(null)
-                  .required(),
-                lastPostId: Joi.string()
-                  .uuid()
-                  .valid(null)
-                  .required(),
-                lastPostAt: Joi.date()
-                  .iso()
-                  .valid(null)
-                  .required(),
-                members: Joi.array()
-                  .items(Joi.string().uuid())
-                  .length(1)
-                  .required(),
-                admins: Joi.array()
-                  .length(1)
-                  .required(),
-                banned: Joi.array()
-                  .length(0)
-                  .required()
-              }),
-              users: Joi.object()
-                .length(1)
-                .required(),
-              messages: Joi.array()
-                .length(0)
-                .required(),
-              posts: Joi.array()
-                .length(0)
-                .required(),
-              comments: Joi.object().required()
-            })
-            .required()
-            .label("addChannelResponse")
-        }
       }
+      // response: {
+      //   status: {
+      //     201: Joi.object()
+      //       .keys({
+      //         channelId: Joi.string()
+      //           .uuid()
+      //           .required(),
+      //         channel: Joi.object().keys({
+      //           id: Joi.string()
+      //             .uuid()
+      //             .required(),
+      //           type: Joi.string()
+      //             .valid("channel")
+      //             .required(),
+      //           name: Joi.string().required(),
+      //           description: Joi.string().required(),
+      //           icon: Joi.string()
+      //             .uri()
+      //             .allow(null)
+      //             .required(),
+      //           public: Joi.boolean()
+      //             .valid()
+      //             .required(),
+      //           ownerId: Joi.string()
+      //             .uuid()
+      //             .required(),
+      //           ...playerStatusJoi,
+      //           created_at: Joi.date()
+      //             .iso()
+      //             .required(),
+      //           firstMessageId: Joi.string()
+      //             .uuid()
+      //             .valid(null)
+      //             .required(),
+      //           lastMessageId: Joi.string()
+      //             .uuid()
+      //             .valid(null)
+      //             .required(),
+      //           lastMessageAt: Joi.string()
+      //             .uuid()
+      //             .valid(null)
+      //             .required(),
+      //           firstPostId: Joi.string()
+      //             .uuid()
+      //             .valid(null)
+      //             .required(),
+      //           lastPostId: Joi.string()
+      //             .uuid()
+      //             .valid(null)
+      //             .required(),
+      //           lastPostAt: Joi.date()
+      //             .iso()
+      //             .valid(null)
+      //             .required(),
+      //           members: Joi.array()
+      //             .items(Joi.string().uuid())
+      //             .length(1)
+      //             .required(),
+      //           admins: Joi.array()
+      //             .length(1)
+      //             .required(),
+      //           banned: Joi.array()
+      //             .length(0)
+      //             .required()
+      //         }),
+      //         users: Joi.object()
+      //           .length(1)
+      //           .required(),
+      //         messages: Joi.array()
+      //           .length(0)
+      //           .required(),
+      //         posts: Joi.array()
+      //           .length(0)
+      //           .required(),
+      //         comments: Joi.object().required()
+      //       })
+      //       .required()
+      //       .label("addChannelResponse")
+      //   }
+      // }
     },
     async handler(req, res) {
       const { id: userId } = req.auth.credentials;
+      const { name, description, icon, public } = req.payload;
       const {
         channel,
         users,
@@ -151,8 +152,11 @@ const controllers = [
         posts,
         comments
       } = await ChannelService.addChannel({
-        ...req.payload,
-        userId
+        userId,
+        name,
+        description,
+        public,
+        icon
       });
 
       publisher({
