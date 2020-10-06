@@ -1,11 +1,11 @@
 const moment = require("moment");
 const db = require("../config/database");
-const ChannelService = require("./ChannelService");
 const {
   BUFFER_TIME,
   LOOP,
   defaultPlayerStatus
 } = require("../shared/videoSyncing");
+const getCurrentPlayerStatus = require("../helpers/getCurrentPlayerStatus");
 
 module.exports.addVideo = async ({
   userId,
@@ -19,7 +19,7 @@ module.exports.addVideo = async ({
     await tx.VideoRepository.getHasPermission({ userId, channelId });
 
     // Save the current playback status before updating playlist
-    let playerStatus = await ChannelService.getCurrentPlayerStatus({
+    let playerStatus = await getCurrentPlayerStatus({
       db: tx,
       channelId
     });
@@ -55,7 +55,7 @@ module.exports.deleteVideo = async ({ userId, channelId, channelVideoId }) => {
   return db.tx(async tx => {
     await tx.VideoRepository.getHasPermission({ userId, channelId });
 
-    let playerStatus = await ChannelService.getCurrentPlayerStatus({
+    let playerStatus = await getCurrentPlayerStatus({
       db: tx,
       channelId
     });
@@ -102,18 +102,8 @@ module.exports.deleteVideo = async ({ userId, channelId, channelVideoId }) => {
   });
 };
 
-module.exports.getQueue = async ({ db, channelId }) => {
-  const { queue } = await db.VideoRepository.getChannelQueue({ channelId });
-  const transformedQueue = queue.map(v => {
-    const { videoInfo, ...minVideo } = v;
-
-    return {
-      ...videoInfo,
-      ...minVideo
-    };
-  });
-
-  return transformedQueue;
+module.exports.getQueue = async ({ channelId }) => {
+  return db.VideoRepository.getChannelQueue({ channelId });
 };
 
 module.exports.updateQueue = async ({
@@ -149,7 +139,7 @@ module.exports.updateQueue = async ({
       });
     }
 
-    let playerStatus = await ChannelService.getCurrentPlayerStatus({
+    let playerStatus = await getCurrentPlayerStatus({
       db: tx,
       channelId
     });

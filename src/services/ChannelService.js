@@ -5,12 +5,12 @@ const redis = require("../config/redis");
 const { uploadFile } = require("../config/aws");
 const db = require("../config/database");
 const addViewers = require("../helpers/addViewers");
-const { getQueue } = require("./VideoService");
 
 const {
   calculatePlayerStatus,
   BUFFER_TIME
 } = require("../shared/videoSyncing");
+const getCurrentPlayerStatus = require("../helpers/getCurrentPlayerStatus");
 
 module.exports.addChannel = async ({
   userId,
@@ -156,7 +156,7 @@ module.exports.updatePlayerStatus = async newPlayerStatus => {
       channelId: newPlayerStatus.channelId
     });
 
-    let playerStatus = await this.getCurrentPlayerStatus({
+    let playerStatus = await getCurrentPlayerStatus({
       db: tx,
       channelId: newPlayerStatus.channelId
     });
@@ -180,23 +180,6 @@ module.exports.updatePlayerStatus = async newPlayerStatus => {
 
     return playerStatus;
   });
-};
-
-module.exports.getCurrentPlayerStatus = async ({ db, channelId }) => {
-  const storedPlayerStatus = await db.ChannelRepository.getPlayerStatus({
-    channelId
-  });
-  const queue = await getQueue({ db, channelId });
-  const currTime = moment();
-  const playerStatus = calculatePlayerStatus(
-    storedPlayerStatus,
-    queue,
-    true,
-    currTime
-  );
-  playerStatus.clockStartTime = currTime.format();
-
-  return playerStatus;
 };
 
 module.exports.deleteChannel = async ({ channelId, userId }) => {
