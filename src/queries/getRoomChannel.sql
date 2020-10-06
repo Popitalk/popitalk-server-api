@@ -13,8 +13,6 @@ WITH chnl AS (
     lm.id AS "lmid",
     lm.created_at AS "lmdate",
     mems.member_ids AS "members",
-    mems.admin_ids AS "admins",
-    mems.banned_ids AS "banned",
     que.queue
   FROM
     channels
