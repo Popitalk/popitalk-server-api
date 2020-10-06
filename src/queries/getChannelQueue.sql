@@ -20,6 +20,6 @@ JOIN
 ON
   videos.id = channel_videos.video_id
 WHERE
-  channel_videos.channel_id = channels.id
+  channel_videos.channel_id = $1
 -- ORDER BY
 --   channel_videos.queue_position ASC

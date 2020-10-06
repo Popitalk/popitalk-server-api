@@ -19,9 +19,9 @@ module.exports.addVideo = async ({
     await tx.VideoRepository.getHasPermission({ userId, channelId });
 
     // Save the current playback status before updating playlist
-    let playerStatus = await ChannelService.getCurrentPlayerStatus({ 
+    let playerStatus = await ChannelService.getCurrentPlayerStatus({
       db: tx,
-      channelId 
+      channelId
     });
     playerStatus = await tx.ChannelRepository.updatePlayerStatus({
       ...playerStatus,
@@ -54,10 +54,10 @@ module.exports.addVideo = async ({
 module.exports.deleteVideo = async ({ userId, channelId, channelVideoId }) => {
   return db.tx(async tx => {
     await tx.VideoRepository.getHasPermission({ userId, channelId });
-    
-    let playerStatus = await ChannelService.getCurrentPlayerStatus({ 
+
+    let playerStatus = await ChannelService.getCurrentPlayerStatus({
       db: tx,
-      channelId 
+      channelId
     });
 
     const deletedChannelVideo = await tx.VideoRepository.deleteChannelVideo({
@@ -69,8 +69,9 @@ module.exports.deleteVideo = async ({ userId, channelId, channelVideoId }) => {
 
     // Find largest queue position
     const max = returning.reduce(
-      (max, pos) => pos.queuePosition > max ? pos.queuePosition : max, 
-      0);
+      (max, pos) => (pos.queuePosition > max ? pos.queuePosition : max),
+      0
+    );
 
     if (deletedChannelVideo.queuePosition < playerStatus.queueStartPosition) {
       playerStatus.queueStartPosition = playerStatus.queueStartPosition - 1;
@@ -148,9 +149,9 @@ module.exports.updateQueue = async ({
       });
     }
 
-    let playerStatus = await ChannelService.getCurrentPlayerStatus({ 
+    let playerStatus = await ChannelService.getCurrentPlayerStatus({
       db: tx,
-      channelId 
+      channelId
     });
 
     const queueStartPosition = playerStatus.queueStartPosition;

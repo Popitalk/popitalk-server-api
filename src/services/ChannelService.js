@@ -5,6 +5,7 @@ const redis = require("../config/redis");
 const { uploadFile } = require("../config/aws");
 const db = require("../config/database");
 const addViewers = require("../helpers/addViewers");
+const { getQueue } = require("./VideoService");
 
 const {
   calculatePlayerStatus,

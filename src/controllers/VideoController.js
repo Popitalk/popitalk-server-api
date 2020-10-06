@@ -138,7 +138,7 @@ const controllers = [
         const length = response.data.items[0].contentDetails.duration;
         videoInfo.length = moment.duration(length).asSeconds();
 
-        const { playerStatus, ...video} = await VideoService.addVideo({
+        const { playerStatus, ...video } = await VideoService.addVideo({
           userId,
           channelId,
           ...videoInfo
