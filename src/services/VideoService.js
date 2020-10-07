@@ -40,6 +40,16 @@ module.exports.addVideo = async ({
       videoId
     });
 
+    if (channelVideo.queuePosition === 0) {
+      // Auto play playlist when the first video in the queue is added
+      playerStatus = await tx.ChannelRepository.updatePlayerStatus({
+        ...playerStatus,
+        clockStartTime: moment().add(BUFFER_TIME, "seconds").format(),
+        status: "Playing",
+        channelId
+      });
+    }
+
     const { videoInfo: dbVideoInfo, ...minVideo } = video;
 
     return {
