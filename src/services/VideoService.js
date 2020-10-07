@@ -18,15 +18,17 @@ module.exports.addVideo = async ({
   return db.tx(async tx => {
     await tx.VideoRepository.getHasPermission({ userId, channelId });
 
-    // Save the current playback status before updating playlist
     let playerStatus = await getCurrentPlayerStatus({
       db: tx,
       channelId
     });
-    playerStatus = await tx.ChannelRepository.updatePlayerStatus({
-      ...playerStatus,
-      channelId
-    });
+    if (playerStatus.status === "Playing") {
+      // Save the current playback status before updating playlist
+      playerStatus = await tx.ChannelRepository.updatePlayerStatus({
+        ...playerStatus,
+        channelId
+      });
+    }
 
     const videoId = `${source} ${sourceId}`;
     const video = await tx.VideoRepository.addVideo({
