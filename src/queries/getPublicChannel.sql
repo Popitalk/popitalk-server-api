@@ -305,7 +305,7 @@ WITH chnl AS (
       co.*
     FROM
       psts
-    LEFT JOIN LATERAL (
+    JOIN LATERAL (
       SELECT
         comments.*
       FROM
