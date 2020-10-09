@@ -302,19 +302,21 @@ WITH chnl AS (
   ) AS "like_count"
   FROM (
     SELECT
-      *
-    FROM (
+      co.*
+    FROM
+      psts
+    LEFT JOIN LATERAL (
       SELECT
         comments.*
       FROM
-        comments, psts
+        comments
       WHERE
         comments.post_id = psts.id
       ORDER BY
         comments.created_at DESC
       LIMIT
         3
-    ) AS co
+    ) co ON TRUE
     ORDER BY
       co.created_at ASC
   ) AS c
