@@ -2,7 +2,7 @@ const Joi = require("@hapi/joi");
 const { WS_EVENTS } = require("../config/constants");
 const publisher = require("../config/publisher");
 const MemberService = require("../services/MemberService");
-const ChannelService = require("../services/ChannelService");
+// const ChannelService = require("../services/ChannelService");
 
 // TODO: Different endpoint for leaving channels and leaving rooms
 

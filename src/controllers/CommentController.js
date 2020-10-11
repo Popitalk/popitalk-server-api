@@ -1,88 +1,7 @@
-const Joi = require("@hapi/joi");
 const { WS_EVENTS } = require("../config/constants");
 const publisher = require("../config/publisher");
 const CommentService = require("../services/CommentService");
-
-const commentSchema = Joi.object().keys({
-  id: Joi.string()
-    .uuid()
-    .required(),
-  postId: Joi.string()
-    .uuid()
-    .required(),
-  userId: Joi.string()
-    .uuid()
-    .required(),
-  content: Joi.string()
-    .min(1)
-    .max(2000)
-    .required(),
-  createdAt: Joi.date()
-    .iso()
-    .required(),
-  channelId: Joi.string()
-    .uuid()
-    .required(),
-  author: {
-    id: Joi.string()
-      .uuid()
-      .required(),
-    username: Joi.string().required(),
-    avatar: Joi.string()
-      .allow(null)
-      .required()
-  },
-  likeCount: Joi.number().required(),
-  liked: Joi.boolean().required(),
-  selfCommentCount: Joi.number().required()
-});
-
-const commentSchemaGet = Joi.object().keys({
-  id: Joi.string()
-    .uuid()
-    .required(),
-  postId: Joi.string()
-    .uuid()
-    .required(),
-  userId: Joi.string()
-    .uuid()
-    .required(),
-  content: Joi.string()
-    .min(1)
-    .max(2000)
-    .required(),
-  createdAt: Joi.date()
-    .iso()
-    .required(),
-  author: {
-    id: Joi.string()
-      .uuid()
-      .required(),
-    username: Joi.string().required(),
-    avatar: Joi.string()
-      .allow(null)
-      .required()
-  },
-  likeCount: Joi.number().required(),
-  liked: Joi.boolean().required()
-});
-
-const likeSchema = Joi.object()
-  .keys({
-    commentId: Joi.string()
-      .uuid()
-      .required(),
-    postId: Joi.string()
-      .uuid()
-      .required(),
-    userId: Joi.string()
-      .uuid()
-      .required(),
-    channelId: Joi.string()
-      .uuid()
-      .required()
-  })
-  .required();
+const validators = require("../helpers/validators");
 
 const controllers = [
   {
@@ -91,23 +10,12 @@ const controllers = [
     options: {
       description: "Adds comment",
       tags: ["api"],
-      validate: {
-        payload: Joi.object()
-          .keys({
-            postId: Joi.string()
-              .uuid()
-              .required(),
-            content: Joi.string()
-              .min(1)
-              .max(2000)
-          })
-          .required()
+      validate: validators.comments["POST /"].req,
+      response: {
+        status: {
+          201: validators.comments["POST /"].res
+        }
       }
-      // response: {
-      //   status: {
-      //     201: commentSchema.required().label("addCommentResponse")
-      //   }
-      // }
     },
     async handler(req, res) {
       const { id: userId } = req.auth.credentials;
@@ -136,51 +44,12 @@ const controllers = [
     options: {
       description: "Gets post comments",
       tags: ["api"],
-      validate: {
-        params: Joi.object()
-          .keys({
-            postId: Joi.string()
-              .uuid()
-              .required()
-          })
-          .required(),
-        query: Joi.object()
-          .keys({
-            afterCommentId: Joi.string()
-              .uuid()
-              .optional(),
-            beforeCommentId: Joi.string()
-              .uuid()
-              .optional()
-          })
-          .optional()
+      validate: validators.comments["GET /{postId}"].req,
+      response: {
+        status: {
+          200: validators.comments["GET /{postId}"].res
+        }
       }
-      // validate: {
-      //   params: Joi.object()
-      //     .keys({
-      //       postId: Joi.string()
-      //         .uuid()
-      //         .required()
-      //     })
-      //     .required(),
-      //   query: Joi.object()
-      //     .keys({
-      //       limit: Joi.number()
-      //         .integer()
-      //         .positive()
-      //         .multiple(3)
-      //         .optional()
-      //     })
-      //     .optional()
-      // }
-      // response: {
-      //   status: {
-      //     200: Joi.array()
-      //       .items(commentSchemaGet)
-      //       .required()
-      //       .label("getCommentsResponse")
-      //   }
-      // }
     },
     async handler(req, res) {
       const { id: userId } = req.auth.credentials;
@@ -202,42 +71,12 @@ const controllers = [
     options: {
       description: "Deletes comment",
       tags: ["api"],
-      validate: {
-        params: Joi.object()
-          .keys({
-            commentId: Joi.string()
-              .uuid()
-              .required()
-          })
-          .required()
+      validate: validators.comments["DELETE /{commentId}"].req,
+      response: {
+        status: {
+          200: validators.comments["DELETE /{commentId}"].res
+        }
       }
-      // response: {
-      //   status: {
-      //     200: Joi.object()
-      //       .keys({
-      //         id: Joi.string()
-      //           .uuid()
-      //           .required(),
-      //         postId: Joi.string()
-      //           .uuid()
-      //           .required(),
-      //         channelId: Joi.string()
-      //           .uuid()
-      //           .required(),
-      //         firstCommentId: Joi.string()
-      //           .uuid()
-      //           .required(),
-      //         lastCommentId: Joi.string()
-      //           .uuid()
-      //           .required(),
-      //         lastCommentAt: Joi.date()
-      //           .iso()
-      //           .required()
-      //       })
-      //       .required()
-      //       .label("deleteCommentResponse")
-      //   }
-      // }
     },
     async handler(req, res) {
       const { id: userId } = req.auth.credentials;
@@ -265,20 +104,12 @@ const controllers = [
     options: {
       description: "Adds comment like",
       tags: ["api"],
-      validate: {
-        params: Joi.object()
-          .keys({
-            commentId: Joi.string()
-              .uuid()
-              .required()
-          })
-          .required()
+      validate: validators.comments["POST /{commentId}/likes"].req,
+      response: {
+        status: {
+          201: validators.comments["POST /{commentId}/likes"].res
+        }
       }
-      // response: {
-      //   status: {
-      //     201: likeSchema.label("addCommentLikeResponse")
-      //   }
-      // }
     },
     async handler(req, res) {
       const { id: userId } = req.auth.credentials;
@@ -306,20 +137,12 @@ const controllers = [
     options: {
       description: "Deletes comment like",
       tags: ["api"],
-      validate: {
-        params: Joi.object()
-          .keys({
-            commentId: Joi.string()
-              .uuid()
-              .required()
-          })
-          .required()
+      validate: validators.comments["DELETE /{commentId}/likes"].req,
+      response: {
+        status: {
+          200: validators.comments["DELETE /{commentId}/likes"].res
+        }
       }
-      // response: {
-      //   status: {
-      //     200: likeSchema.label("deleteCommentLikeResponse")
-      //   }
-      // }
     },
     async handler(req, res) {
       const { id: userId } = req.auth.credentials;

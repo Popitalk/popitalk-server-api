@@ -3,6 +3,7 @@ const { WS_EVENTS } = require("../config/constants");
 const publisher = require("../config/publisher");
 const MessageService = require("../services/MessageService");
 const NotificationService = require("../services/NotificationService");
+const validators = require("../helpers/validators");
 
 const messageSchema = Joi.object().keys({
   id: Joi.string()
@@ -45,27 +46,12 @@ const controllers = [
     options: {
       description: "Adds message",
       tags: ["api"],
-      validate: {
-        payload: Joi.object()
-          .keys({
-            channelId: Joi.string()
-              .uuid()
-              .required(),
-            content: Joi.string()
-              .min(1)
-              .max(2000),
-            upload: Joi.string()
-              .allow(null)
-              .default(null)
-              .optional()
-          })
-          .required()
+      validate: validators.messages["POST /"].req,
+      response: {
+        status: {
+          201: validators.messages["POST /"].res
+        }
       }
-      // response: {
-      //   status: {
-      //     201: messageSchema.label("addMessageResponse")
-      //   }
-      // }
     },
     async handler(req, res) {
       const { id: userId } = req.auth.credentials;
@@ -98,33 +84,12 @@ const controllers = [
     options: {
       description: "Gets channel messages",
       tags: ["api"],
-      validate: {
-        params: Joi.object()
-          .keys({
-            channelId: Joi.string()
-              .uuid()
-              .required()
-          })
-          .required(),
-        query: Joi.object()
-          .keys({
-            afterMessageId: Joi.string()
-              .uuid()
-              .optional(),
-            beforeMessageId: Joi.string()
-              .uuid()
-              .optional()
-          })
-          .optional()
+      validate: validators.messages["GET /{channelId}"].req,
+      response: {
+        status: {
+          200: validators.messages["GET /{channelId}"].res
+        }
       }
-      // response: {
-      //   status: {
-      //     200: Joi.array()
-      //       .items(messageSchema)
-      //       .required()
-      //       .label("getMessagesResponse")
-      //   }
-      // }
     },
     async handler(req, res) {
       const { id: userId } = req.auth.credentials;
@@ -146,42 +111,12 @@ const controllers = [
     options: {
       description: "Deletes message",
       tags: ["api"],
-      validate: {
-        params: Joi.object()
-          .keys({
-            messageId: Joi.string()
-              .uuid()
-              .required()
-          })
-          .required()
+      validate: validators.messages["/{messageId}"].req,
+      response: {
+        status: {
+          200: validators.messages["/{messageId}"].res
+        }
       }
-      // response: {
-      //   status: {
-      //     200: Joi.object()
-      //       .keys({
-      //         id: Joi.string()
-      //           .uuid()
-      //           .required(),
-      //         channelId: Joi.string()
-      //           .uuid()
-      //           .required(),
-      //         firstMessageId: Joi.string()
-      //           .uuid()
-      //           .allow(null)
-      //           .required(),
-      //         lastMessageId: Joi.string()
-      //           .uuid()
-      //           .allow(null)
-      //           .required(),
-      //         lastMessageAt: Joi.date()
-      //           .iso()
-      //           .allow(null)
-      //           .required()
-      //       })
-      //       .required()
-      //       .label("deleteMessageResponse")
-      //   }
-      // }
     },
     async handler(req, res) {
       const { id: userId } = req.auth.credentials;
