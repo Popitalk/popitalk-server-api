@@ -8,7 +8,15 @@ const JoiIdArray = Joi.array()
 
 Joi.string().uuid();
 
+const JoiFirstOrLastName = Joi.string();
 const JoiUsername = Joi.string();
+const JoiChannelName = Joi.string()
+  .min(3)
+  .max(20);
+const JoiChannelDescription = Joi.string()
+  .min(1)
+  .max(150);
+const JoiChannelType = Joi.string().valid("self", "friend", "group", "channel");
 
 const JoiAvatar = Joi.string()
   .uri()
@@ -37,6 +45,19 @@ const JoiAuthor = Joi.object().keys({
   username: JoiUsername.required(),
   avatar: JoiAvatar.required()
 });
+
+const JoiUserObject = Joi.object().keys({
+  id: JoiId.required(),
+  firstName: JoiFirstOrLastName.required(),
+  lastName: JoiFirstOrLastName.required(),
+  username: JoiUsername.required(),
+  avatar: JoiAvatar.required()
+});
+
+const JoiUsersObject = Joi.object().pattern(
+  JoiId.required(),
+  JoiUserObject.required()
+);
 
 const JoiMessageObject = Joi.object().keys({
   id: JoiId.required(),
@@ -117,7 +138,96 @@ const JoiCommentLikeObject = Joi.object().keys({
   userId: JoiId.required()
 });
 
+const JoiChannelObject = Joi.object().keys({
+  id: JoiId.required(),
+  type: JoiChannelType.required(),
+  name: JoiChannelName.required(),
+  description: JoiChannelDescription.required(),
+  icon: JoiAvatar.required(),
+  public: Joi.boolean().required(),
+  ownerId: JoiId.required(),
+  createdAt: JoiDate.required(),
+  firstMessageId: JoiId.allow(null).required(),
+  lastMessageId: JoiId.allow(null).required(),
+  lastMessageAt: JoiDate.allow(null).required(),
+  firstPostId: JoiId.allow(null).required(),
+  lastPostId: JoiId.allow(null).required(),
+  lastPostAt: JoiDate.allow(null).required(),
+  status: Joi.string().required(),
+  queueStartPosition: Joi.number().required(),
+  videoStartTime: Joi.number().required(),
+  clockStartTime: JoiDate.required(),
+  members: JoiIdArray.required(),
+  admins: JoiIdArray.required(),
+  banned: JoiIdArray.required(),
+  messages: JoiIdArray.required(),
+  posts: JoiIdArray.required(),
+  queue: Joi.array().required()
+  // queue: JoiIdArray.required()
+});
+
+const JoiChannelsObject = Joi.object().pattern(
+  JoiId.required(),
+  JoiChannelObject.required()
+);
+
 module.exports = {
+  channels: {
+    "POST /": {
+      req: {
+        payload: Joi.object()
+          .keys({
+            name: JoiChannelName.required(),
+            description: JoiChannelDescription.required(),
+            icon: Joi.optional().meta({ swaggerType: "file" }),
+            public: Joi.boolean()
+              .default(true)
+              .required()
+          })
+          .required()
+      },
+      res: Joi.object()
+        .keys({
+          channelId: JoiId.required(),
+          channel: JoiChannelObject.required(),
+          users: JoiId.required(),
+          messages: JoiMessagesObject.allow(null).required(),
+          posts: JoiPostsObject.allow(null).required(),
+          comments: JoiCommentsObject.allow(null).required()
+        })
+        .required()
+    },
+    "GET /channel": {
+      req: {
+        query: Joi.object()
+          .keys({
+            channelId: Joi.string()
+              .uuid()
+              .required(),
+            leave: Joi.string()
+              .uuid()
+              .optional()
+          })
+          .required()
+      },
+      res: Joi.object()
+        .keys({
+          channelId: JoiId.required(),
+          // JoiChannelAdminObject, JoiChannelPublicObject, ...etc
+          channel: JoiChannelObject.required(),
+          messages: JoiChannelObject.required(),
+          posts: JoiChannelObject.required(),
+          comments: JoiChannelObject.required(),
+          type: JoiChannelType.required(),
+          isPublic: Joi.boolean().required(),
+          isOwner: Joi.boolean().required(),
+          isAdmin: Joi.boolean().required(),
+          isMember: Joi.boolean().required(),
+          isBanned: Joi.boolean().required()
+        })
+        .required()
+    }
+  },
   messages: {
     "POST /": {
       req: {
@@ -341,6 +451,19 @@ module.exports = {
           .required()
       },
       res: JoiCommentLikeObject.required()
+    }
+  },
+  notifications: {
+    "DELETE /{channelId}": {
+      req: {
+        params: Joi.object().keys({
+          channelId: JoiId.required()
+        })
+      },
+      res: Joi.object({
+        channelId: JoiId.required(),
+        userId: JoiId.required()
+      }).required()
     }
   }
 };

@@ -142,11 +142,7 @@ const controllers = [
       description: "Updates user",
       tags: ["api"],
       payload: { multipart: { output: "annotated" } },
-      plugins: {
-        "hapi-swagger": {
-          payloadType: "form"
-        }
-      },
+      plugins: { "hapi-swagger": { payloadType: "form" } },
       validate: {
         payload: Joi.object()
           .keys({

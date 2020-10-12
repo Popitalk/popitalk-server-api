@@ -391,6 +391,8 @@ WITH chnl AS (
     JSON_OBJECT_AGG(
       users.id,
       JSON_BUILD_OBJECT(
+        'id',
+        users.id,
         'firstName',
         users.first_name,
         'lastName',

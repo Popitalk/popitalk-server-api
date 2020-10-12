@@ -1,5 +1,5 @@
-const Joi = require("@hapi/joi");
 const NotificationService = require("../services/NotificationService");
+const validators = require("../helpers/validators");
 
 const controllers = [
   {
@@ -8,25 +8,10 @@ const controllers = [
     options: {
       description: "Deletes chat notification",
       tags: ["api"],
-      validate: {
-        params: Joi.object().keys({
-          channelId: Joi.string()
-            .uuid()
-            .required()
-        })
-      },
+      validate: validators.notifications["DELETE /{channelId}"].req,
       response: {
         status: {
-          200: Joi.object({
-            channelId: Joi.string()
-              .uuid()
-              .optional(),
-            userId: Joi.string()
-              .uuid()
-              .optional()
-          })
-            .required()
-            .label("deleteChatNotificationResponse")
+          200: validators.notifications["DELETE /{channelId}"].res
         }
       }
     },

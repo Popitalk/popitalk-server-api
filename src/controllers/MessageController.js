@@ -1,43 +1,8 @@
-const Joi = require("@hapi/joi");
 const { WS_EVENTS } = require("../config/constants");
 const publisher = require("../config/publisher");
 const MessageService = require("../services/MessageService");
 const NotificationService = require("../services/NotificationService");
 const validators = require("../helpers/validators");
-
-const messageSchema = Joi.object().keys({
-  id: Joi.string()
-    .uuid()
-    .required(),
-  channelId: Joi.string()
-    .uuid()
-    .required(),
-  userId: Joi.string()
-    .uuid()
-    .required(),
-  content: Joi.string()
-    .min(1)
-    .max(2000)
-    .required(),
-  upload: Joi.string()
-    .allow(null)
-    .required(),
-  createdAt: Joi.date()
-    .iso()
-    .required(),
-  author: Joi.object()
-    .keys({
-      id: Joi.string()
-        .uuid()
-        .required(),
-      username: Joi.string().required(),
-      avatar: Joi.string()
-        .uri()
-        .allow(null)
-        .required()
-    })
-    .required()
-});
 
 const controllers = [
   {

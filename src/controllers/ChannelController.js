@@ -40,11 +40,7 @@ const controllers = [
       description: "Adds channel",
       tags: ["api"],
       payload: { multipart: { output: "annotated" } },
-      plugins: {
-        "hapi-swagger": {
-          payloadType: "form"
-        }
-      },
+      plugins: { "hapi-swagger": { payloadType: "form" } },
       validate: {
         payload: Joi.object()
           .keys({
@@ -595,11 +591,7 @@ const controllers = [
       description: "Skips video player to new location",
       tags: ["api"],
       payload: { multipart: { output: "annotated" } },
-      plugins: {
-        "hapi-swagger": {
-          payloadType: "form"
-        }
-      },
+      plugins: { "hapi-swagger": { payloadType: "form" } },
       validate: playerValidation,
       response: {
         status: {
