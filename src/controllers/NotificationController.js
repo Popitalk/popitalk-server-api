@@ -26,7 +26,12 @@ const controllers = [
         }
       );
 
-      return deletedNotification || {};
+      return (
+        deletedNotification || {
+          userId,
+          channelId
+        }
+      );
     }
   }
 ];
