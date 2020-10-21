@@ -26,5 +26,8 @@ module.exports = {
   cseApiKey: process.env.CSE_API_KEY,
   cseCxYoutube: process.env.CSE_CX_YOUTUBE,
   youtubeApiKey: process.env.YOUTUBE_API_KEY,
-  giphyApiKey: process.env.GIPHY_API_KEY
+  giphyApiKey: process.env.GIPHY_API_KEY,
+  vimeoClientId:process.env.VIMEO_CLIENT_ID,
+  vimeoClientSecret:process.env.VIMEO_CLIENT_SECRET,
+  vimeoAccessToken:process.env.VIMEO_ACCESS_TOKEN
 };
