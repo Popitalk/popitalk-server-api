@@ -71,7 +71,7 @@ SELECT
                     AND chans.queue_start_position <= channel_videos.queue_position
                   ORDER BY
                     channel_videos.queue_position
-                )
+                ) AS x
               ) AS vids
               WHERE
                 vids.cumlen - chans.video_start_time >
