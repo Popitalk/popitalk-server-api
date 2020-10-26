@@ -68,7 +68,7 @@ SELECT
                     channel_videos.video_id = videos.id
                   WHERE
                     channel_videos.channel_id = chans.id
-                    AND chans.queue_start_position <= channel_videos.queue_position
+                    -- AND chans.queue_start_position <= channel_videos.queue_position
                   ORDER BY
                     channel_videos.queue_position
                 ) AS x
