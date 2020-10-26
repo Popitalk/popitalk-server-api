@@ -58,12 +58,14 @@ SELECT
               FROM (
                 SELECT
                   x.*,
-                  SUM(x.length) OVER () AS totlen
+                  SUM(x.length) OVER () AS quelen,
+                  SUM(x.cumlen) FILTER (WHERE queue_position = chans.queue_start_position) OVER () AS startlen
                 FROM (
                   SELECT
                     videos.length,
                     videos.video_info,
-                    SUM(videos.length) OVER (ORDER BY channel_videos.queue_position) AS cumlen
+                    SUM(videos.length) OVER (ORDER BY channel_videos.queue_position) AS cumlen,
+                    channel_videos.queue_position
                   FROM
                     videos
                   JOIN
@@ -72,14 +74,13 @@ SELECT
                     channel_videos.video_id = videos.id
                   WHERE
                     channel_videos.channel_id = chans.id
-                    -- AND chans.queue_start_position <= channel_videos.queue_position
                   ORDER BY
                     channel_videos.queue_position
                 ) AS x
               ) AS vids
               WHERE
                 vids.cumlen - chans.video_start_time >
-                (EXTRACT(epoch from (NOW() - chans.clock_start_time))::BIGINT % vids.totlen)
+                ((EXTRACT(epoch FROM (NOW() - chans.clock_start_time))::BIGINT % vids.quelen) + vids.startlen)
               LIMIT
                 1
             )
