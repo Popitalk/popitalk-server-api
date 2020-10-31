@@ -60,7 +60,7 @@ SELECT
               ) AS vids
               WHERE
                 vids.cumlen - chans.video_start_time >
-                ((EXTRACT(epoch FROM (NOW() - chans.clock_start_time))::BIGINT % vids.quelen) + vids.startlen)
+                ((EXTRACT(epoch FROM (NOW() - chans.clock_start_time))::BIGINT % (vids.quelen + 1)) + vids.startlen)
               LIMIT
                 1
             )
