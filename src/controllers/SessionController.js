@@ -65,6 +65,60 @@ const loginResponseSchema = Joi.object()
   .label("loginResponse");
 
 const controllers = [
+  /* ================== Google Auth ================== */
+  {
+    method: "*",
+    path: "/google-auth",
+    options: {
+      strategy: "google",
+      mode: "try",
+      // auth: false,
+      description: "Authenticate Google user",
+      tags: ["api"],
+      validate: {
+        payload: Joi.object()
+          .keys({
+            usernameOrEmail: Joi.string()
+              .required()
+              .example("user123"),
+            password: Joi.string()
+              .required()
+              .example("PassW0rd")
+          })
+          .required()
+          .label("loginRequest")
+      },
+      response: {
+        status: {
+          200: loginResponseSchema
+        }
+      }
+    },
+    async handler(req, res) {
+      if (!req.auth.isAuthenticated) {
+        return `Authentication failed due to: ${req.auth.error.message}`;
+      }
+
+      return `<pre>${JSON.stringify(req.auth.credentials, null, 4)}</pre>`;
+      // const loginData = await SessionService.login(req.payload);
+
+      // if (!loginData)
+      //   throw Boom.unauthorized("Incorrect username or password.");
+
+      // const credentials = { id: loginData.id };
+
+      // req.yar.set("auth", {
+      //   ...req.auth,
+      //   isAuthenticated: true,
+      //   credentials
+      // });
+
+      // const wsTicket = await wsBooth(loginData);
+
+      // return { ...loginData, wsTicket };
+    }
+  },
+  /* ================== Google Auth ================== */
   {
     method: "POST",
     path: "/login",
