@@ -62,6 +62,7 @@ const manifest = {
         }
       },
       { plugin: require("@hapi/inert") },
+      { plugin: require("@hapi/bell") },
       { plugin: require("@hapi/vision") },
       { plugin: require("./plugins/auth") },
       { plugin: require("./plugins/centralLogger") },
