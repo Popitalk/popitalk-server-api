@@ -70,9 +70,6 @@ const controllers = [
     method: "*",
     path: "/google-auth",
     options: {
-      strategy: "google",
-      mode: "try",
-      // auth: false,
       description: "Authenticate Google user",
       tags: ["api"]
       // validate: {
