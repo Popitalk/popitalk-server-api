@@ -36,7 +36,9 @@ const manifest = {
             }
           : false,
       timeout: { server: 10000 },
-      auth: { strategies: ["simple"] },
+      /* ================== Google Auth ================== */
+      auth: { strategies: ["simple", "google"] },
+      /* ================== Google Auth ================== */
       log: { collect: true },
       validate: {
         options: { abortEarly: false },
