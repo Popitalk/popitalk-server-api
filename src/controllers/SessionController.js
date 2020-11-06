@@ -75,19 +75,19 @@ const controllers = [
       // auth: false,
       description: "Authenticate Google user",
       tags: ["api"],
-      validate: {
-        payload: Joi.object()
-          .keys({
-            usernameOrEmail: Joi.string()
-              .required()
-              .example("user123"),
-            password: Joi.string()
-              .required()
-              .example("PassW0rd")
-          })
-          .required()
-          .label("loginRequest")
-      },
+      // validate: {
+      //   payload: Joi.object()
+      //     .keys({
+      //       usernameOrEmail: Joi.string()
+      //         .required()
+      //         .example("user123"),
+      //       password: Joi.string()
+      //         .required()
+      //         .example("PassW0rd")
+      //     })
+      //     .required()
+      //     .label("loginRequest")
+      // },
       response: {
         status: {
           200: loginResponseSchema
