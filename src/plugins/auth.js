@@ -1,4 +1,5 @@
 const Boom = require("@hapi/boom");
+const Bell = require("@hapi/bell");
 
 module.exports = {
   name: "auth",
