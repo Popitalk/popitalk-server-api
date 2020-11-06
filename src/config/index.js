@@ -27,5 +27,6 @@ module.exports = {
   cseCxYoutube: process.env.CSE_CX_YOUTUBE,
   youtubeApiKey: process.env.YOUTUBE_API_KEY,
   giphyApiKey: process.env.GIPHY_API_KEY,
-  googleClientId: process.env.GOOGLE_CLIENT_ID
+  googleClientId: process.env.GOOGLE_CLIENT_ID,
+  googleClientSecret: process.env.GOOGLE_CLIENT_SECRET
 };
