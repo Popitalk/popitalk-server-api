@@ -1,4 +1,5 @@
 const Boom = require("@hapi/boom");
+const { googleClientId } = require("../config");
 
 module.exports = {
   name: "auth",
@@ -18,7 +19,7 @@ module.exports = {
       provider: "google",
       password: "cookie_encryption_password_secure",
       isSecure: false,
-      clientId: "",
+      clientId: googleClientId,
       clientSecret: "",
       location: server.info.uri
     });
