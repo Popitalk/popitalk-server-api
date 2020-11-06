@@ -15,5 +15,13 @@ module.exports = {
       }
     }));
     server.auth.strategy("simple", "basic");
+    server.auth.strategy("google", "bell", {
+      provider: "google",
+      password: "cookie_encryption_password_secure",
+      isSecure: false,
+      clientId: "",
+      clientSecret: "",
+      location: server.info.uri
+    });
   }
 };
