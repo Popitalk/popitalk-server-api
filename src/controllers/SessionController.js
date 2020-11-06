@@ -74,7 +74,7 @@ const controllers = [
       mode: "try",
       // auth: false,
       description: "Authenticate Google user",
-      tags: ["api"],
+      tags: ["api"]
       // validate: {
       //   payload: Joi.object()
       //     .keys({
@@ -88,11 +88,11 @@ const controllers = [
       //     .required()
       //     .label("loginRequest")
       // },
-      response: {
-        status: {
-          200: loginResponseSchema
-        }
-      }
+      // response: {
+      //   status: {
+      //     200: loginResponseSchema
+      //   }
+      // }
     },
     async handler(req, res) {
       if (!req.auth.isAuthenticated) {
