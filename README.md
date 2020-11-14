@@ -67,4 +67,7 @@ popitalk/popitalk-server-ws/
 ```
 
 ### Server Schematic Diagram
+
+Follow this link: https://dbdiagram.io/d/5faed2db3a78976d7b7bd5b5
+
 ![](https://i.ibb.co/2P65Q36/Untitled.png)
