@@ -67,4 +67,4 @@ popitalk/popitalk-server-ws/
 ```
 
 ### Server Schematic Diagram
-![](https://i.ibb.co/FXK0CT9/Popitalk-Server-Schematic-Diagram.jpg)
+![](https://i.ibb.co/2P65Q36/Untitled.png)
