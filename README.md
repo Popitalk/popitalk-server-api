@@ -66,3 +66,5 @@ popitalk/popitalk-server-ws/
 └── Placeholder # placeholder explanation
 ```
 
+### Server Schematic Diagram
+![](https://i.ibb.co/FXK0CT9/Popitalk-Server-Schematic-Diagram.jpg)
