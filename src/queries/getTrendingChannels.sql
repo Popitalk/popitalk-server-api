@@ -58,13 +58,13 @@ SELECT
               FROM (
                 SELECT
                   x.*,
-                  SUM(x.length) OVER () AS quelen,
+                  SUM(x.length + 3) OVER () AS quelen,
                   SUM(x.cumlen) FILTER (WHERE queue_position = chans.queue_start_position) OVER () AS startlen
                 FROM (
                   SELECT
                     videos.length,
                     videos.video_info,
-                    COALESCE(SUM(videos.length) OVER (ORDER BY channel_videos.queue_position ROWS BETWEEN UNBOUNDED PRECEDING AND 1 PRECEDING), 0) AS cumlen,
+                    COALESCE(SUM(videos.length + 3) OVER (ORDER BY channel_videos.queue_position ROWS BETWEEN UNBOUNDED PRECEDING AND 1 PRECEDING), 0) AS cumlen,
                     channel_videos.queue_position
                   FROM
                     videos
@@ -102,3 +102,4 @@ WHERE
       members.channel_id = chans.id
       AND NOT (members.user_id = $1 AND members.banned)
   )
+  
