@@ -53,23 +53,32 @@ SELECT
                 vids.video_info
               FROM (
                 SELECT
-                  videos.length,
-                  videos.video_info,
-                  SUM(videos.length) OVER (ORDER BY channel_videos.queue_position) AS cumlen
-                FROM
-                  videos
-                JOIN
-                  channel_videos
-                ON
-                  channel_videos.video_id = videos.id
-                WHERE
-                  channel_videos.channel_id = chans.id
-                  AND chans.queue_start_position <= channel_videos.queue_position
+                  x.*,
+                  SUM(x.length + 3) OVER () AS quelen,
+                  SUM(x.cumlen) FILTER (WHERE queue_position = chans.queue_start_position) OVER () AS startlen
+                FROM (
+                  SELECT
+                    videos.length,
+                    videos.video_info,
+                    COALESCE(SUM(videos.length + 3) OVER (ORDER BY channel_videos.queue_position ROWS BETWEEN UNBOUNDED PRECEDING AND 1 PRECEDING), 0) AS cumlen,
+                    channel_videos.queue_position
+                  FROM
+                    videos
+                  JOIN
+                    channel_videos
+                  ON
+                    channel_videos.video_id = videos.id
+                  WHERE
+                    channel_videos.channel_id = chans.id
+                  ORDER BY
+                    channel_videos.queue_position
+                ) AS x
                 ORDER BY
-                  channel_videos.queue_position
+                  x.queue_position DESC
               ) AS vids
               WHERE
-                vids.cumlen - chans.video_start_time > EXTRACT(epoch from (NOW() - chans.clock_start_time))
+                vids.cumlen <
+                (((EXTRACT(epoch FROM (NOW() - chans.clock_start_time))::BIGINT) + vids.startlen + (chans.video_start_time)::BIGINT) % vids.quelen)
               LIMIT
                 1
             )
