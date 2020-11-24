@@ -299,12 +299,12 @@ const controllers = [
         fromUser,
         toUser
       });
-      // publisher({
-      //   type: CHANNEL_EVENTS.WS_DELETE_ADMIN,
-      //   channelId,
-      //   initiator: fromUser,
-      //   payload: { channelId, userId: toUser }
-      // });
+      publisher({
+        type: WS_EVENTS.CHANNEL.DELETE_ADMIN,
+        channelId,
+        initiator: fromUser,
+        payload: { channelId, userId: toUser }
+      });
       return { channelId, ...memberInfo };
     }
   },
@@ -361,12 +361,12 @@ const controllers = [
         fromUser,
         toUser
       });
-      // publisher({
-      //   type: CHANNEL_EVENTS.WS_ADD_BAN,
-      //   channelId,
-      //   initiator: fromUser,
-      //   payload: { channelId, userId: toUser }
-      // });
+      publisher({
+        type: WS_EVENTS.CHANNEL.ADD_BAN,
+        channelId,
+        initiator: fromUser,
+        payload: { channelId, userId: toUser }
+      });
       return res.response({ channelId, ...memberInfo }).code(201);
     }
   },
@@ -418,12 +418,12 @@ const controllers = [
         fromUser,
         toUser
       });
-      // publisher({
-      //   type: CHANNEL_EVENTS.WS_DELETE_BAN,
-      //   channelId,
-      //   initiator: fromUser,
-      //   payload: { channelId, userId: toUser }
-      // });
+      publisher({
+        type: WS_EVENTS.CHANNEL.DELETE_BAN,
+        channelId,
+        initiator: fromUser,
+        payload: { channelId, userId: toUser }
+      });
       return { channelId, ...memberInfo };
     }
   }
