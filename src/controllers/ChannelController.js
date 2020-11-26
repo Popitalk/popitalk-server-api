@@ -1,10 +1,13 @@
 const Joi = require("@hapi/joi");
+const { v4: uuidv4 } = require("uuid");
+
 const { WS_EVENTS } = require("../config/constants");
 const publisher = require("../config/publisher");
+const redis = require("../config/redis");
 const ChannelService = require("../services/ChannelService");
 const UserService = require("../services/UserService");
-const { playerStatusJoi } = require("../helpers/commonJois");
-const redis = require("../config/redis");
+
+// const { playerStatusJoi } = require("../helpers/commonJois");
 
 const playerValidation = {
   params: Joi.object()
@@ -617,6 +620,7 @@ const controllers = [
     method: "GET",
     path: "/discover",
     options: {
+      auth: false,
       description: "Discover channels",
       tags: ["api"]
       // response: {
@@ -626,7 +630,11 @@ const controllers = [
       // }
     },
     async handler(req, res) {
-      const { id: userId } = req.auth.credentials;
+      const { credentials } = req.auth;
+      // userId is needed for the query condition
+      // in case of anonymous user, random id is generate to pass the query condition
+      const userId = credentials ? credentials.id : uuidv4();
+
       const discoveredChannels = await ChannelService.discoverChannels({
         userId
       });
@@ -638,6 +646,7 @@ const controllers = [
     method: "GET",
     path: "/trending",
     options: {
+      auth: false,
       description: "Trending channels",
       tags: ["api"]
       // response: {
@@ -647,7 +656,11 @@ const controllers = [
       // }
     },
     async handler(req, res) {
-      const { id: userId } = req.auth.credentials;
+      const { credentials } = req.auth;
+      // userId is needed for the query condition
+      // in case of anonymous user, random id is generate to pass the query condition
+      const userId = credentials ? credentials.id : uuidv4();
+
       const trendingChannels = await ChannelService.trendingChannels({
         userId
       });
@@ -680,6 +693,7 @@ const controllers = [
     method: "GET",
     path: "/search",
     options: {
+      auth: false,
       description: "Searches channel",
       tags: ["api"],
       validate: {
@@ -707,7 +721,11 @@ const controllers = [
       // }
     },
     async handler(req, res) {
-      const { id: userId } = req.auth.credentials;
+      const { credentials } = req.auth;
+      // userId is needed for the query condition
+      // in case of anonymous user, random id is generate to pass the query condition
+      const userId = credentials ? credentials.id : uuidv4();
+
       const { channelName, page } = req.query;
       const channels = await ChannelService.searchChannels({
         channelName,
