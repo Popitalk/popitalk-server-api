@@ -626,7 +626,7 @@ const controllers = [
     method: "GET",
     path: "/discover",
     options: {
-      auth: false,
+      auth: { mode: "optional" },
       description: "Discover channels",
       tags: ["api"]
       // response: {
@@ -652,7 +652,7 @@ const controllers = [
     method: "GET",
     path: "/trending",
     options: {
-      auth: false,
+      auth: { mode: "optional" },
       description: "Trending channels",
       tags: ["api"]
       // response: {
