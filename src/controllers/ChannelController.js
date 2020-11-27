@@ -231,7 +231,7 @@ const controllers = [
     method: "GET",
     path: "/channel",
     options: {
-      auth: false,
+      auth: { mode: "optional" },
       description: "Gets channel",
       tags: ["api"],
       validate: {
