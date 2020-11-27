@@ -1,10 +1,13 @@
 const Joi = require("@hapi/joi");
+const { v4: uuidv4 } = require("uuid");
+
 const { WS_EVENTS } = require("../config/constants");
 const publisher = require("../config/publisher");
+const redis = require("../config/redis");
 const ChannelService = require("../services/ChannelService");
 const UserService = require("../services/UserService");
-const { playerStatusJoi } = require("../helpers/commonJois");
-const redis = require("../config/redis");
+
+// const { playerStatusJoi } = require("../helpers/commonJois");
 
 const playerValidation = {
   params: Joi.object()
@@ -228,6 +231,7 @@ const controllers = [
     method: "GET",
     path: "/channel",
     options: {
+      auth: { mode: "try" },
       description: "Gets channel",
       tags: ["api"],
       validate: {
@@ -246,47 +250,54 @@ const controllers = [
     // Joi.object().keys({ users: Joi.array().items(mySchema) })
     // multiple response schemas
     async handler(req, res) {
-      const { id: userId } = req.auth.credentials;
+      // userId is needed for the query condition
+      // in case of anonymous user, random id is generated to pass the query condition
+      const { credentials } = req.auth;
+      const userId = credentials ? credentials.id : uuidv4();
       const { channelId, leave } = req.query;
+
       const channelInfo = await ChannelService.getChannel({
         userId,
-        channelId
-      });
-
-      await redis.sadd(`viewers:${channelId}`, userId);
-
-      let user = await UserService.getUser({ userId });
-
-      user = {
-        username: user.username,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        avatar: user.avatar
-      };
-
-      publisher({
-        type: WS_EVENTS.USER_CHANNEL.JOIN_CHANNEL,
-        userId,
         channelId,
-        initiator: userId,
-        payload: { userId, channelId, user, type: channelInfo.type }
+        isViewer: !credentials
       });
 
-      if (leave) {
-        const chanInfo = await ChannelService.getChannel({
-          userId,
-          channelId: leave
-        });
+      if (credentials) {
+        await redis.sadd(`viewers:${channelId}`, userId);
 
-        await redis.srem(`viewers:${leave}`, userId);
+        let user = await UserService.getUser({ userId });
+
+        user = {
+          username: user.username,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          avatar: user.avatar
+        };
 
         publisher({
-          type: WS_EVENTS.USER_CHANNEL.LEAVE_CHANNEL,
+          type: WS_EVENTS.USER_CHANNEL.JOIN_CHANNEL,
           userId,
-          channelId: leave,
+          channelId,
           initiator: userId,
-          payload: { userId, channelId: leave, type: chanInfo.type }
+          payload: { userId, channelId, user, type: channelInfo.type }
         });
+
+        if (leave) {
+          const chanInfo = await ChannelService.getChannel({
+            userId,
+            channelId: leave
+          });
+
+          await redis.srem(`viewers:${leave}`, userId);
+
+          publisher({
+            type: WS_EVENTS.USER_CHANNEL.LEAVE_CHANNEL,
+            userId,
+            channelId: leave,
+            initiator: userId,
+            payload: { userId, channelId: leave, type: chanInfo.type }
+          });
+        }
       }
 
       return { channelId, ...channelInfo };
@@ -617,6 +628,7 @@ const controllers = [
     method: "GET",
     path: "/discover",
     options: {
+      auth: { mode: "try" },
       description: "Discover channels",
       tags: ["api"]
       // response: {
@@ -626,7 +638,11 @@ const controllers = [
       // }
     },
     async handler(req, res) {
-      const { id: userId } = req.auth.credentials;
+      const { credentials } = req.auth;
+      // userId is needed for the query condition
+      // in case of anonymous user, random id is generated to pass the query condition
+      const userId = credentials ? credentials.id : uuidv4();
+
       const discoveredChannels = await ChannelService.discoverChannels({
         userId
       });
@@ -638,6 +654,7 @@ const controllers = [
     method: "GET",
     path: "/trending",
     options: {
+      auth: { mode: "try" },
       description: "Trending channels",
       tags: ["api"]
       // response: {
@@ -647,7 +664,11 @@ const controllers = [
       // }
     },
     async handler(req, res) {
-      const { id: userId } = req.auth.credentials;
+      const { credentials } = req.auth;
+      // userId is needed for the query condition
+      // in case of anonymous user, random id is generated to pass the query condition
+      const userId = credentials ? credentials.id : uuidv4();
+
       const trendingChannels = await ChannelService.trendingChannels({
         userId
       });
@@ -680,6 +701,7 @@ const controllers = [
     method: "GET",
     path: "/search",
     options: {
+      auth: { mode: "try" },
       description: "Searches channel",
       tags: ["api"],
       validate: {
@@ -707,7 +729,11 @@ const controllers = [
       // }
     },
     async handler(req, res) {
-      const { id: userId } = req.auth.credentials;
+      const { credentials } = req.auth;
+      // userId is needed for the query condition
+      // in case of anonymous user, random id is generated to pass the query condition
+      const userId = credentials ? credentials.id : uuidv4();
+
       const { channelName, page } = req.query;
       const channels = await ChannelService.searchChannels({
         channelName,

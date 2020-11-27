@@ -67,7 +67,7 @@ module.exports.addRoom = async ({ userId, userIds }) => {
   });
 };
 
-module.exports.getChannel = async ({ channelId, userId }) => {
+module.exports.getChannel = async ({ channelId, userId, isViewer }) => {
   return db.task(async t => {
     let channelInfo;
     const chMemInfo = await t.ChannelRepository.getChannelAndMemberInfo({
@@ -76,6 +76,7 @@ module.exports.getChannel = async ({ channelId, userId }) => {
     });
 
     if (!chMemInfo) throw Boom.notFound("Channel doesn't exist");
+    if (isViewer && !chMemInfo.isPublic) throw Boom.unauthorized();
 
     const { type, isPublic, isOwner, isAdmin, isMember, isBanned } = chMemInfo;
 
