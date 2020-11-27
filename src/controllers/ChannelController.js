@@ -231,7 +231,7 @@ const controllers = [
     method: "GET",
     path: "/channel",
     options: {
-      auth: { mode: "optional" },
+      auth: { mode: "try" },
       description: "Gets channel",
       tags: ["api"],
       validate: {
@@ -250,6 +250,8 @@ const controllers = [
     // Joi.object().keys({ users: Joi.array().items(mySchema) })
     // multiple response schemas
     async handler(req, res) {
+      // userId is needed for the query condition
+      // in case of anonymous user, random id is generated to pass the query condition
       const { credentials } = req.auth;
       const userId = credentials ? credentials.id : uuidv4();
       const { channelId, leave } = req.query;
@@ -626,7 +628,7 @@ const controllers = [
     method: "GET",
     path: "/discover",
     options: {
-      auth: { mode: "optional" },
+      auth: { mode: "try" },
       description: "Discover channels",
       tags: ["api"]
       // response: {
@@ -638,7 +640,7 @@ const controllers = [
     async handler(req, res) {
       const { credentials } = req.auth;
       // userId is needed for the query condition
-      // in case of anonymous user, random id is generate to pass the query condition
+      // in case of anonymous user, random id is generated to pass the query condition
       const userId = credentials ? credentials.id : uuidv4();
 
       const discoveredChannels = await ChannelService.discoverChannels({
@@ -652,7 +654,7 @@ const controllers = [
     method: "GET",
     path: "/trending",
     options: {
-      auth: { mode: "optional" },
+      auth: { mode: "try" },
       description: "Trending channels",
       tags: ["api"]
       // response: {
@@ -664,7 +666,7 @@ const controllers = [
     async handler(req, res) {
       const { credentials } = req.auth;
       // userId is needed for the query condition
-      // in case of anonymous user, random id is generate to pass the query condition
+      // in case of anonymous user, random id is generated to pass the query condition
       const userId = credentials ? credentials.id : uuidv4();
 
       const trendingChannels = await ChannelService.trendingChannels({
@@ -699,7 +701,7 @@ const controllers = [
     method: "GET",
     path: "/search",
     options: {
-      auth: false,
+      auth: { mode: "try" },
       description: "Searches channel",
       tags: ["api"],
       validate: {
@@ -729,7 +731,7 @@ const controllers = [
     async handler(req, res) {
       const { credentials } = req.auth;
       // userId is needed for the query condition
-      // in case of anonymous user, random id is generate to pass the query condition
+      // in case of anonymous user, random id is generated to pass the query condition
       const userId = credentials ? credentials.id : uuidv4();
 
       const { channelName, page } = req.query;
