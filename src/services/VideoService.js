@@ -46,7 +46,9 @@ module.exports.addVideo = async ({
       // Auto play playlist when the first video in the queue is added
       playerStatus = await tx.ChannelRepository.updatePlayerStatus({
         ...playerStatus,
-        clockStartTime: moment().add(BUFFER_TIME, "seconds").format(),
+        clockStartTime: moment()
+          .add(BUFFER_TIME, "seconds")
+          .format(),
         status: "Playing",
         channelId
       });
@@ -65,7 +67,7 @@ module.exports.addVideo = async ({
 
 module.exports.deleteVideo = async ({ userId, channelId, channelVideoId }) => {
   return db.tx(async tx => {
-    await tx.VideoRepository.getHasPermission({ userId, channelId });
+    // await tx.VideoRepository.getHasPermission({ userId, channelId });
 
     let playerStatus = await getCurrentPlayerStatus({
       db: tx,
