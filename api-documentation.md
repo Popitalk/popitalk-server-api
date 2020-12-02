@@ -245,3 +245,227 @@ Examples:
   }
 }
 ```
+
+---
+
+**POST** /users
+
+```json
+{
+  "auth": false,
+  "payload": {
+    "firstName": "min(1) max(50) required",
+    "lastName": "min(1) max(50) required",
+    "username": "min(3) max(30) required",
+    "dateOfBirth": "max(new Date() - 1000 * 60 * 60 * 24 * 365 * 13) required",
+    "email": "email@email.com required",
+    "password": "min(6) regex(/[a-z]/) regex(/[A-Z]/) regex(/\\d+/) required"
+  }
+}
+```
+
+Examples:
+
+- ```json
+  {
+    "payload": {
+      "username": "already used username",
+      "...": "..."
+    },
+    "status": 409,
+    "response": {
+      "statusCode": 409,
+      "error": "Conflict",
+      "message": "Username already in use"
+    }
+  }
+  ```
+
+- ```json
+  {
+    "payload": {
+      "email": "already used email",
+      "...": "..."
+    },
+    "status": 409,
+    "response": {
+      "statusCode": 409,
+      "error": "Conflict",
+      "message": "Email already in use"
+    }
+  }
+  ```
+
+- ```json
+  {
+    "payload": {
+      "...": "..."
+    },
+    "status": 201,
+    "response": {
+      "id": "...",
+      "firstName": "...",
+      "lastName": "...",
+      "username": "...",
+      "dateOfBirth": "...",
+      "avatar": null,
+      "email": "...",
+      "emailVerified": false,
+      "createdAt": "...",
+      "newUser": true
+    }
+  }
+  ```
+
+---
+
+**GET** /users/{userID}
+
+```json
+{
+  "auth": true,
+  "params": {
+    "userId": "uuid"
+  },
+  "status": 200,
+  "response": {
+    "id": "...",
+    "firstName": "...",
+    "lastName": "...",
+    "username": "...",
+    "avatar": "..."
+  }
+}
+```
+
+---
+
+**PUT** /users
+
+```json
+{
+  "auth": true,
+  "payload": {
+    "key to update": "new value"
+  },
+  "status": 200,
+  "response": {
+    "id": "...",
+    "firstName": "...",
+    "lastName": "...",
+    "username": "...",
+    "dateOfBirth": "...",
+    "avatar": null,
+    "email": "...",
+    "emailVerified": false,
+    "createdAt": "...",
+    "newUser": true
+  }
+}
+```
+
+Note: the same validation of `POST /users` is applied.
+
+---
+
+**DELETE** /users
+
+```json
+{
+  "auth": true,
+  "payload": {},
+  "status": 204,
+  "response": {}
+}
+```
+
+Note: the user session will be removed after deleting the account
+
+---
+
+**GET** /users
+
+```json
+{
+  "auth": true,
+  "query": {
+    "username": "min(1) required"
+  },
+  "response": [
+    {
+      "id": "...",
+      "username": "...",
+      "firstName": "...",
+      "lastName": "...",
+      "avatar": "..."
+    },
+    "..."
+  ]
+}
+```
+
+---
+
+**POST** /users/friendRequests
+
+```json
+{
+  "auth": true,
+  "payload": {
+    "requesteeId": "uuid required"
+  },
+  "status": 201,
+  "response": {
+    "userId": "requestee id",
+    "user": {
+      "id": "requester id",
+      "username": "...",
+      "firstName": "...",
+      "lastName": "...",
+      "avatar": "..."
+    }
+  }
+}
+```
+
+Note: this will publish an event to the requestee
+
+---
+
+**DELETE** /users/friendRequests/{requesteeId}/cancel
+
+```json
+{
+  "auth": true,
+  "params": {
+    "requesteeId": "uuid required"
+  },
+  "status": 200,
+  "response": {
+    "userId": "requestee id"
+  }
+}
+```
+
+Note: this will publish an event to the requestee
+
+---
+
+**DELETE** /friendRequests/{requesterId}/reject
+
+```json
+{
+  "auth": true,
+  "params": {
+    "requester": "uuid required"
+  },
+  "status": 200,
+  "response": {
+    "userId": "requester id"
+  }
+}
+```
+
+Note: this will publish an event to the requester
+
+---
