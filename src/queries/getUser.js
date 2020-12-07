@@ -19,7 +19,7 @@ module.exports = ({
     .select("users.created_at AS createdAt")
     .select(
       knex.raw(
-        `COUNT(CASE user_relationships.type WHEN 'friend_both' THEN 1 ELSE NULL END) AS friends_count`
+        `COUNT(DISTINCT CASE user_relationships.type WHEN 'friend_both' THEN 1 ELSE NULL END) AS friends_count`
       )
     )
     .select(
@@ -28,11 +28,12 @@ module.exports = ({
       )
     )
     .from("users")
-    .leftJoin(
-      "user_relationships",
-      "users.id",
-      "user_relationships.first_user_id"
-    )
+    .leftJoin("user_relationships", function join() {
+      this.on("users.id", "user_relationships.first_user_id").orOn(
+        "users.id",
+        "user_relationships.second_user_id"
+      );
+    })
     .leftJoin("members", "users.id", "members.user_id")
     .leftJoin("channels", "channels.id", "members.channel_id")
     .whereNull("deleted_at")
@@ -56,6 +57,8 @@ module.exports = ({
   if (withPassword) {
     query.select("password");
   }
+
+  console.log(query.toString());
 
   return query.toString();
 };
