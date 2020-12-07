@@ -19,12 +19,12 @@ module.exports = ({
     .select("users.created_at AS createdAt")
     .select(
       knex.raw(
-        `count(case user_relationships.type when 'friend_both' then 1 else null end) as friendsCount`
+        `COUNT(CASE user_relationships.type WHEN 'friend_both' THEN 1 ELSE NULL END) AS friends_count`
       )
     )
     .select(
       knex.raw(
-        `count(case when members.banned = false and channels.public = true and channels.owner_id != users.id then 1 else null end) as followingCount`
+        `COUNT(CASE WHEN members.banned = false AND channels.public = true AND channels.owner_id != users.id THEN 1 ELSE NULL END) AS following_count`
       )
     )
     .from("users")
