@@ -8,7 +8,7 @@ module.exports = ({
   withPassword
 }) => {
   const query = knex
-    .select("id")
+    .select("users.id")
     .select("first_name AS firstName")
     .select("last_name AS lastName")
     .select("username")
@@ -16,9 +16,27 @@ module.exports = ({
     .select("avatar")
     .select("email")
     .select("email_verified AS emailVerified")
-    .select("created_at AS createdAt")
+    .select("users.created_at AS createdAt")
+    .select(
+      knex.raw(
+        `count(case user_relationships.type when 'friend_both' then 1 else null end) as friendsCount`
+      )
+    )
+    .select(
+      knex.raw(
+        `count(case when members.banned = false and channels.public = true and channels.owner_id != users.id then 1 else null end) as followingCount`
+      )
+    )
     .from("users")
-    .whereNull("deleted_at");
+    .leftJoin(
+      "user_relationships",
+      "users.id",
+      "user_relationships.first_user_id"
+    )
+    .leftJoin("members", "users.id", "members.user_id")
+    .leftJoin("channels", "channels.id", "members.channel_id")
+    .whereNull("deleted_at")
+    .groupBy("users.id");
 
   if (usernameOrEmail) {
     query.andWhereRaw(
@@ -28,7 +46,7 @@ module.exports = ({
       [usernameOrEmail, usernameOrEmail]
     );
   } else if (userId) {
-    query.andWhere("id", userId);
+    query.andWhere("users.id", userId);
   } else if (username) {
     query.andWhere("username", username);
   } else if (email) {
