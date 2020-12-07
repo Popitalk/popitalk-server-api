@@ -131,7 +131,9 @@ const controllers = [
         firstName: user.firstName,
         lastName: user.lastName,
         username: user.username,
-        avatar: user.avatar
+        avatar: user.avatar,
+        followingCount: user.following_count,
+        friendsCount: user.friends_count
       };
     }
   },
