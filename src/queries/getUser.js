@@ -7,6 +7,31 @@ module.exports = ({
   usernameOrEmail,
   withPassword
 }) => {
+  const friendsCountQuery = knex
+    .select(
+      knex.raw("COUNT(DISTINCT user_relationships.created_at) AS friends_count")
+    )
+    .from("user_relationships")
+    .where("user_relationships.type", "friend_both")
+    .andWhere(function() {
+      this.whereRaw("?? = ??", [
+        "users.id",
+        "user_relationships.first_user_id"
+      ]).orWhereRaw("?? = ??", [
+        "users.id",
+        "user_relationships.second_user_id"
+      ]);
+    });
+
+  const followingCountQuery = knex
+    .select(knex.raw("COUNT(DISTINCT members.channel_id) AS following_count"))
+    .from("members")
+    .innerJoin("channels", "channels.id", "members.channel_id")
+    .whereRaw("?? = ??", ["members.user_id", "users.id"])
+    .andWhereRaw("?? != ??", ["channels.owner_id", "users.id"])
+    .andWhere("members.banned", false)
+    .andWhere("channels.public", true);
+
   const query = knex
     .select("users.id")
     .select("first_name AS firstName")
@@ -17,27 +42,10 @@ module.exports = ({
     .select("email")
     .select("email_verified AS emailVerified")
     .select("users.created_at AS createdAt")
-    .select(
-      knex.raw(
-        `COUNT(DISTINCT CASE user_relationships.type WHEN 'friend_both' THEN 1 ELSE NULL END) AS friends_count`
-      )
-    )
-    .select(
-      knex.raw(
-        `COUNT(CASE WHEN members.banned = false AND channels.public = true AND channels.owner_id != users.id THEN 1 ELSE NULL END) AS following_count`
-      )
-    )
+    .select(knex.raw(`(${followingCountQuery.toString()})`)) // sub-query
+    .select(knex.raw(`(${friendsCountQuery.toString()})`)) // sub-query
     .from("users")
-    .leftJoin("user_relationships", function join() {
-      this.on("users.id", "user_relationships.first_user_id").orOn(
-        "users.id",
-        "user_relationships.second_user_id"
-      );
-    })
-    .leftJoin("members", "users.id", "members.user_id")
-    .leftJoin("channels", "channels.id", "members.channel_id")
-    .whereNull("deleted_at")
-    .groupBy("users.id");
+    .whereNull("deleted_at");
 
   if (usernameOrEmail) {
     query.andWhereRaw(
@@ -47,7 +55,7 @@ module.exports = ({
       [usernameOrEmail, usernameOrEmail]
     );
   } else if (userId) {
-    query.andWhere("users.id", userId);
+    query.andWhere("id", userId);
   } else if (username) {
     query.andWhere("username", username);
   } else if (email) {
@@ -57,8 +65,6 @@ module.exports = ({
   if (withPassword) {
     query.select("password");
   }
-
-  console.log(query.toString());
 
   return query.toString();
 };
