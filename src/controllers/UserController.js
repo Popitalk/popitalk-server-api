@@ -378,62 +378,6 @@ const controllers = [
               .required()
           })
           .required()
-      },
-      response: {
-        status: {
-          201: Joi.object()
-            .keys({
-              userId: Joi.string()
-                .uuid()
-                .required(),
-              channelId: Joi.string()
-                .uuid()
-                .required(),
-              channel: Joi.object()
-                .keys({
-                  id: Joi.string()
-                    .uuid()
-                    .required(),
-                  type: Joi.string().required(),
-                  name: Joi.string()
-                    .valid(null)
-                    .required(),
-                  public: Joi.boolean()
-                    .valid(false)
-                    .required(),
-                  ...playerStatusJoi,
-                  createdAt: Joi.date()
-                    .iso()
-                    .required(),
-                  firstMessageId: Joi.string()
-                    .valid(null)
-                    .required(),
-                  lastMessageId: Joi.string()
-                    .valid(null)
-                    .required(),
-                  lastMessageAt: Joi.string()
-                    .valid(null)
-                    .required(),
-                  members: Joi.array()
-                    .items(
-                      Joi.string()
-                        .uuid()
-                        .required()
-                    )
-                    .length(2)
-                    .required()
-                })
-                .required(),
-              users: Joi.object()
-                .length(2)
-                .required(),
-              messages: Joi.array()
-                .length(0)
-                .required()
-            })
-            .required()
-            .label("addFriendResponse")
-        }
       }
     },
     async handler(req, res) {
@@ -482,15 +426,7 @@ const controllers = [
           messages
         }
       });
-      return res
-        .response({
-          userId: toUser,
-          channelId: channel.id,
-          channel,
-          users,
-          messages
-        })
-        .code(201);
+      return res.response({}).code(201);
     }
   },
   {
