@@ -1,5 +1,7 @@
 **POST** /users
 
+**description:** sign up new user
+
 ```json
 {
   "auth": false,
@@ -71,6 +73,8 @@ Examples:
 
 **GET** /users/{userID}
 
+**description:** get user info
+
 ```json
 {
   "auth": true,
@@ -83,7 +87,9 @@ Examples:
     "firstName": "...",
     "lastName": "...",
     "username": "...",
-    "avatar": "..."
+    "avatar": "...",
+    "friendsCount": "...",
+    "followingCount": "..."
   }
 }
 ```
@@ -91,6 +97,8 @@ Examples:
 ---
 
 **PUT** /users
+
+**description:** update user(password, email, etc...)
 
 ```json
 {
@@ -120,6 +128,8 @@ Note: the same validation of `POST /users` is applied.
 
 **DELETE** /users
 
+**description:** delete user account
+
 ```json
 {
   "auth": true,
@@ -134,6 +144,8 @@ Note: the user session will be removed after deleting the account
 ---
 
 **GET** /users
+
+**description:** search for users by name
 
 ```json
 {
@@ -158,6 +170,8 @@ Note: the user session will be removed after deleting the account
 
 **POST** /users/friendRequests
 
+**description:** send friendship request
+
 ```json
 {
   "auth": true,
@@ -180,9 +194,27 @@ Note: the user session will be removed after deleting the account
 
 Note: this will publish an event to the requestee
 
+```json
+{
+  "type": "ADD_RECEIVED_FRIEND_REQUEST",
+  "payload": {
+    "userId": "(requester id) 987db161-8313-4dda-a49b-2d106b68c1c5",
+    "user": {
+      "id": "987db161-8313-4dda-a49b-2d106b68c1c5",
+      "username": "tester",
+      "firstName": "ahmed",
+      "lastName": "safi",
+      "avatar": null
+    }
+  }
+}
+```
+
 ---
 
 **DELETE** /users/friendRequests/{requesteeId}/cancel
+
+**description:** cancel friendship request
 
 ```json
 {
@@ -199,9 +231,18 @@ Note: this will publish an event to the requestee
 
 Note: this will publish an event to the requestee
 
+```json
+{
+  "type": "DELETE_RECEIVED_FRIEND_REQUEST",
+  "payload": { "userId": "(requester id) 987db161-8313-4dda-a49b-2d106b68c1c5" }
+}
+```
+
 ---
 
 **DELETE** /users/friendRequests/{requesterId}/reject
+
+**description:** reject friendship request
 
 ```json
 {
@@ -217,6 +258,13 @@ Note: this will publish an event to the requestee
 ```
 
 Note: this will publish an event to the requester
+
+```json
+{
+  "type": "DELETE_SENT_FRIEND_REQUEST",
+  "payload": { "userId": "d46b0dcd-d169-414e-8ba6-3c8d295304a8" }
+}
+```
 
 ---
 
