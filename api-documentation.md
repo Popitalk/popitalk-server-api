@@ -2,3 +2,4 @@
 
 - [sessions](./documentation/sessions.md)
 - [users](./documentation/users.md)
+- [messages](./documentation/messages.md)
