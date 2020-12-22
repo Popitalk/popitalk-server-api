@@ -5,6 +5,8 @@ const config = require("../config");
 const { WS_EVENTS } = require("../config/constants");
 const publisher = require("../config/publisher");
 const VideoService = require("../services/VideoService");
+const YoutubeSource = require("../sources/YoutubeSource");
+const VimeoSource = require("../sources/VimeoSource");
 
 const controllers = [
   {
@@ -24,49 +26,25 @@ const controllers = [
       }
     },
     async handler(req, res) {
-      const { terms, page } = req.query;
+      const { source, terms, page } = req.query;
 
       const api = terms && terms !== "" ? "search" : "videos";
 
-      const parameters = {
-        part: "snippet",
-        maxResults: 25,
-        key: config.youtubeApiKey
-      };
-      if (terms && terms !== "") {
-        parameters.q = terms;
-        parameters.type = "video";
-      } else {
-        parameters.chart = "mostPopular";
-      }
-      if (page) {
-        parameters.pageToken = page;
-      }
-
       try {
-        const youtube = google.youtube("v3");
-        const response = await youtube[api].list(parameters);
 
-        const results = response.data.items.map(i => {
-          const id = i.id.videoId ? i.id.videoId : i.id;
+        var sourceResponse = null;
+        switch (source) {
+          case "youtube":
+            sourceResponse = await YoutubeSource.searchVideos(terms, page);
+            break;
+          case "vimeo":
+            sourceResponse = await VimeoSource.searchVideos(terms, page);
+            break;
+          default:
+            break;
+        }
 
-          return {
-            id,
-            url: `https://www.youtube.com/watch?v=${id}`,
-            publishedAt: i.snippet.publishedAt,
-            title: i.snippet.title,
-            thumbnail: i.snippet.thumbnails.high.url
-          };
-        });
-
-        return res
-          .response({
-            nextPageToken: response.data.nextPageToken,
-            prevPageToken: response.data.prevPageToken,
-            totalResults: response.data.pageInfo.totalResults,
-            results
-          })
-          .code(201);
+        return res.response(sourceResponse).code(201);
       } catch (err) {
         return res
           .response({
