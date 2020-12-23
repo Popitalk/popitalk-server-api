@@ -1,6 +1,7 @@
 WITH chans AS (
   SELECT
-    channels.*
+    channels.*,
+    COUNT(channels.id) AS members_count
   FROM
     members
   JOIN
@@ -14,7 +15,7 @@ WITH chans AS (
   GROUP BY
     channels.id
   ORDER BY
-    COUNT(*) DESC, channels.updated_at DESC 
+    members_count DESC, channels.updated_at DESC 
   OFFSET 
     $2 ROWS
   LIMIT
