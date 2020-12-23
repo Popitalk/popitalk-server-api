@@ -14,7 +14,9 @@ WITH chans AS (
   GROUP BY
     channels.id
   ORDER BY
-    COUNT(*) DESC, channels.created_at DESC
+    COUNT(*) DESC, channels.updated_at DESC 
+  OFFSET 
+    0 ROWS
   LIMIT
     30
 )
