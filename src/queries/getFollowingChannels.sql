@@ -13,6 +13,10 @@ WITH chans AS (
     AND channels.public
     AND NOT channels.owner_id = $1
     AND NOT members.banned
+  OFFSET 
+    $2 ROWS
+  LIMIT
+    30  
 )
 SELECT
   COALESCE(JSON_OBJECT_AGG(

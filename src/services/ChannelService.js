@@ -225,21 +225,11 @@ module.exports.searchChannels = async ({ channelName, page, userId }) => {
   });
 };
 
-module.exports.discoverChannels = async ({ userId }) => {
+module.exports.discoverChannels = async ({ userId, offset }) => {
   return db.task(async t => {
-    let discoverChannels = await redis.get("discoverChannels");
-
-    if (!discoverChannels) {
-      discoverChannels = (await t.ChannelRepository.getDiscoverChannels())
-        .channelIds;
-      await redis.setex(
-        "discoverChannels",
-        86400,
-        JSON.stringify(discoverChannels)
-      );
-    } else {
-      discoverChannels = JSON.parse(discoverChannels);
-    }
+    const discoverChannels = (
+      await t.ChannelRepository.getDiscoverChannels({ offset })
+    ).channelIds;
 
     const { channels } = await t.VideoRepository.getVideosInfo({
       channelIds: discoverChannels,
@@ -285,10 +275,11 @@ module.exports.discoverChannels = async ({ userId }) => {
   });
 };
 
-module.exports.trendingChannels = async ({ userId }) => {
+module.exports.trendingChannels = async ({ userId, offset }) => {
   return db.task(async t => {
     const { channels } = await t.ChannelRepository.getTrendingChannels({
-      userId
+      userId,
+      offset
     });
 
     let response = {
@@ -330,10 +321,11 @@ module.exports.trendingChannels = async ({ userId }) => {
   });
 };
 
-module.exports.followingChannels = async ({ userId }) => {
+module.exports.followingChannels = async ({ userId, offset }) => {
   return db.task(async t => {
     const { channels } = await t.ChannelRepository.getFollowingChannels({
-      userId
+      userId,
+      offset
     });
 
     let response = {
