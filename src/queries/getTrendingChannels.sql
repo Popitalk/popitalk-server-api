@@ -16,7 +16,7 @@ WITH chans AS (
   ORDER BY
     COUNT(*) DESC, channels.updated_at DESC 
   OFFSET 
-    0 ROWS
+    $2 ROWS
   LIMIT
     30
 )
