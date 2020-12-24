@@ -634,11 +634,11 @@ const controllers = [
       validate: {
         query: Joi.object()
           .keys({
-            offset: Joi.number()
+            page: Joi.number()
               .integer()
               .positive()
               .min(1)
-              .default(0)
+              .default(1)
               .optional()
           })
           .required()
@@ -654,10 +654,10 @@ const controllers = [
       // userId is needed for the query condition
       // in case of anonymous user, random id is generated to pass the query condition
       const userId = credentials ? credentials.id : uuidv4();
-      const { offset } = req.query;
+      const { page } = req.query;
       const discoveredChannels = await ChannelService.discoverChannels({
         userId,
-        offset
+        page
       });
 
       return discoveredChannels;
@@ -673,11 +673,11 @@ const controllers = [
       validate: {
         query: Joi.object()
           .keys({
-            offset: Joi.number()
+            page: Joi.number()
               .integer()
               .positive()
               .min(1)
-              .default(0)
+              .default(1)
               .optional()
           })
           .required()
@@ -693,10 +693,10 @@ const controllers = [
       // userId is needed for the query condition
       // in case of anonymous user, random id is generated to pass the query condition
       const userId = credentials ? credentials.id : uuidv4();
-      const { offset } = req.query;
+      const { page } = req.query;
       const trendingChannels = await ChannelService.trendingChannels({
         userId,
-        offset
+        page
       });
 
       return trendingChannels;
@@ -711,11 +711,11 @@ const controllers = [
       validate: {
         query: Joi.object()
           .keys({
-            offset: Joi.number()
+            page: Joi.number()
               .integer()
               .positive()
               .min(1)
-              .default(0)
+              .default(1)
               .optional()
           })
           .required()
@@ -728,10 +728,10 @@ const controllers = [
     },
     async handler(req, res) {
       const { id: userId } = req.auth.credentials;
-      const { offset } = req.query;
+      const { page } = req.query;
       const followingChannels = await ChannelService.followingChannels({
         userId,
-        offset
+        page
       });
 
       return followingChannels;

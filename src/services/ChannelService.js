@@ -225,10 +225,10 @@ module.exports.searchChannels = async ({ channelName, page, userId }) => {
   });
 };
 
-module.exports.discoverChannels = async ({ userId, offset }) => {
+module.exports.discoverChannels = async ({ userId, page }) => {
   return db.task(async t => {
     const discoverChannels = (
-      await t.ChannelRepository.getDiscoverChannels({ offset })
+      await t.ChannelRepository.getDiscoverChannels({ page })
     ).channelIds;
 
     const { channels } = await t.VideoRepository.getVideosInfo({
@@ -275,11 +275,11 @@ module.exports.discoverChannels = async ({ userId, offset }) => {
   });
 };
 
-module.exports.trendingChannels = async ({ userId, offset }) => {
+module.exports.trendingChannels = async ({ userId, page }) => {
   return db.task(async t => {
     const { channels } = await t.ChannelRepository.getTrendingChannels({
       userId,
-      offset
+      page
     });
 
     let response = {
@@ -321,11 +321,11 @@ module.exports.trendingChannels = async ({ userId, offset }) => {
   });
 };
 
-module.exports.followingChannels = async ({ userId, offset }) => {
+module.exports.followingChannels = async ({ userId, page }) => {
   return db.task(async t => {
     const { channels } = await t.ChannelRepository.getFollowingChannels({
       userId,
-      offset
+      page
     });
 
     let response = {

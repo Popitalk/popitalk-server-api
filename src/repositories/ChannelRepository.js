@@ -105,16 +105,16 @@ class ChannelRepository {
     return this.db.manyOrNone(queries.getAvatars, [channelId]);
   }
 
-  async getDiscoverChannels({ offset }) {
-    return this.db.one(queries.getDiscoverChannels, [offset]);
+  async getDiscoverChannels({ page }) {
+    return this.db.one(queries.getDiscoverChannels, [page]);
   }
 
-  async getTrendingChannels({ userId, offset }) {
-    return this.db.one(queries.getTrendingChannels, [userId, offset]);
+  async getTrendingChannels({ userId, page }) {
+    return this.db.one(queries.getTrendingChannels, [userId, page]);
   }
 
-  async getFollowingChannels({ userId, offset }) {
-    return this.db.one(queries.getFollowingChannels, [userId, offset]);
+  async getFollowingChannels({ userId, page }) {
+    return this.db.one(queries.getFollowingChannels, [userId, page]);
   }
 }
 

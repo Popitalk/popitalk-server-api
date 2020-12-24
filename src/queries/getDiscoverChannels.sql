@@ -14,7 +14,8 @@ FROM (
     channels.id
   ORDER BY
     channels.created_at DESC 
-  OFFSET 
-    $1 ROWS
-  LIMIT 30  
+  LIMIT 
+    30  
+  OFFSET
+    ($1 - 1) * 30  
 ) AS chans

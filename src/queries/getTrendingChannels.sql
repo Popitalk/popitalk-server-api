@@ -15,10 +15,10 @@ WITH chans AS (
     channels.id
   ORDER BY
     COUNT(*) DESC
-  OFFSET 
-    $2 ROWS
   LIMIT
     30
+  OFFSET
+    ($2 - 1) * 30      
 )
 SELECT
   COALESCE(JSON_OBJECT_AGG(
