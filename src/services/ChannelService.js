@@ -264,6 +264,7 @@ module.exports.discoverChannels = async ({ userId, page }) => {
     });
 
     response = {
+      page,
       channels: response.channels,
       users: {
         ...response.users,
@@ -310,6 +311,7 @@ module.exports.trendingChannels = async ({ userId, page }) => {
     });
 
     response = {
+      page,
       channels: response.channels,
       users: {
         ...response.users,
@@ -356,6 +358,7 @@ module.exports.followingChannels = async ({ userId, page }) => {
     });
 
     response = {
+      page,
       channels: response.channels,
       users: {
         ...response.users,
