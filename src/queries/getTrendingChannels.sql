@@ -1,6 +1,7 @@
 WITH chans AS (
   SELECT
-    channels.*
+    channels.*,
+    MAX(members.created_at) AS last_joined
   FROM
     members
   JOIN
@@ -14,12 +15,11 @@ WITH chans AS (
   WHERE
     channels.type = 'channel'
     AND channels.public
-    AND members.created_at > (CURRENT_DATE - INTERVAL '10 days')
     AND channels.icon IS NOT NULL
   GROUP BY
     channels.id
   ORDER BY
-    COUNT(*) DESC, channels.created_at DESC
+    COUNT(*) DESC, last_joined DESC
   LIMIT
     30
   OFFSET
