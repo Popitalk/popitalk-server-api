@@ -5,7 +5,10 @@ FROM (
     channels.id AS ids
   FROM
     channels
-    INNER JOIN channel_videos ON channel_videos.channel_id = channels.id
+  INNER JOIN 
+    channel_videos 
+  ON 
+    channel_videos.channel_id = channels.id
   WHERE
     channels.type = 'channel'
     AND channels.public

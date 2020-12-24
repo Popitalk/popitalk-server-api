@@ -7,14 +7,19 @@ WITH chans AS (
     channels
   ON
     channels.id = members.channel_id
+  JOIN 
+    channel_videos 
+  ON 
+    channel_videos.channel_id = channels.id
   WHERE
     channels.type = 'channel'
     AND channels.public
     AND members.created_at > (CURRENT_DATE - INTERVAL '10 days')
+    AND channels.icon IS NOT NULL
   GROUP BY
     channels.id
   ORDER BY
-    COUNT(*) DESC
+    COUNT(*) DESC, channels.created_at DESC
   LIMIT
     30
   OFFSET
