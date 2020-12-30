@@ -119,5 +119,11 @@ module.exports = {
   /* -------------------------------------------------------------------------- */
 
   addChatNotification: sql("./addChatNotification.sql"),
-  deleteChatNotification: sql("./deleteChatNotification.sql")
+  deleteChatNotification: sql("./deleteChatNotification.sql"),
+
+  /* -------------------------------------------------------------------------- */
+  /*                                  Categories                                */
+  /* -------------------------------------------------------------------------- */
+
+  addCategory: sql("./addCategory.sql")
 };
