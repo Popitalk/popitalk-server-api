@@ -118,6 +118,10 @@ const manifest = {
       {
         plugin: require("./controllers/NotificationController"),
         routes: { prefix: `/notifications` }
+      },
+      {
+        plugin: require("./controllers/CategoryController"),
+        routes: { prefix: `/categories` }
       }
     ]
   }
