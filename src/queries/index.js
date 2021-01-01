@@ -119,5 +119,13 @@ module.exports = {
   /* -------------------------------------------------------------------------- */
 
   addChatNotification: sql("./addChatNotification.sql"),
-  deleteChatNotification: sql("./deleteChatNotification.sql")
+  deleteChatNotification: sql("./deleteChatNotification.sql"),
+
+  /* -------------------------------------------------------------------------- */
+  /*                                  Categories                                */
+  /* -------------------------------------------------------------------------- */
+
+  addCategory: sql("./addCategory.sql"),
+  getCategories: sql("./getCategories.sql"),
+  addChannelCategories: require("./addChannelCategories")
 };

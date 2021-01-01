@@ -56,7 +56,11 @@ const controllers = [
               .max(150)
               .required(),
             icon: Joi.optional().meta({ swaggerType: "file" }),
-            public: Joi.boolean().required()
+            public: Joi.boolean().required(),
+            categories: Joi.array()
+              .items(Joi.string())
+              .max(3)
+              .optional()
           })
           .required()
       }
@@ -143,7 +147,7 @@ const controllers = [
     },
     async handler(req, res) {
       const { id: userId } = req.auth.credentials;
-      const { name, description, icon, public } = req.payload;
+      const { name, description, icon, public, categories = [] } = req.payload;
       const {
         channel,
         users,
@@ -155,7 +159,8 @@ const controllers = [
         name,
         description,
         public,
-        icon
+        icon,
+        categories
       });
 
       publisher({

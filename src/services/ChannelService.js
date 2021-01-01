@@ -14,7 +14,8 @@ module.exports.addChannel = async ({
   name,
   description,
   public: publicChannel,
-  icon
+  icon,
+  categories
 }) => {
   return db.tx(async tx => {
     let uploadedIcon;
@@ -42,10 +43,19 @@ module.exports.addChannel = async ({
       admin: true
     });
 
+    if (categories.length > 0) {
+      await tx.CategoryRepository.addChannelCategories({
+        channelId: newChannel.id,
+        categories
+      });
+    }
+
     const channelInfo = await tx.ChannelRepository.getAdminChannel({
       channelId: newChannel.id,
       userId
     });
+
+    channelInfo.channel.categories = categories;
 
     return channelInfo;
   });
