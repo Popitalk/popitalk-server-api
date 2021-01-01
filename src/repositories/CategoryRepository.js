@@ -12,6 +12,13 @@ class CategoryRepository {
   async getCategories() {
     return this.db.manyOrNone(queries.getCategories, []);
   }
+
+  async addChannelCategories({ channelId, categories }) {
+    return this.db.many(queries.addChannelCategories, {
+      channelId,
+      categories
+    });
+  }
 }
 
 module.exports = CategoryRepository;
