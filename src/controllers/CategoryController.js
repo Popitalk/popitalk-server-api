@@ -20,11 +20,11 @@ const controllers = [
     async handler(req, res) {
       const { category } = req.payload;
 
-      const { id, name } = await CategoryService.addCategory({
+      const { name } = await CategoryService.addCategory({
         category
       });
 
-      return res.response({ id, name }).code(201);
+      return res.response({ category: name }).code(201);
     }
   }
 ];
