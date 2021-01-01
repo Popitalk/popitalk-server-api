@@ -10,7 +10,7 @@ class CategoryRepository {
   }
 
   async getCategories() {
-    return this.db.manyOrNone(queries.getCategories, []);
+    return this.db.manyOrNone(queries.getCategories);
   }
 
   async addChannelCategories({ channelId, categories }) {

@@ -15,5 +15,3 @@ ON
 GROUP BY 
   categories.name, 
   channel_categories.channel_id
-
-
