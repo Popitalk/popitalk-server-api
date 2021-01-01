@@ -26,6 +26,20 @@ const controllers = [
 
       return res.response({ category: name }).code(201);
     }
+  },
+  {
+    method: "GET",
+    path: "/",
+    options: {
+      description:
+        "Get categories with the count of channels within each category",
+      tags: ["api"]
+    },
+    async handler(req, res) {
+      const categories = await CategoryService.getCategories();
+
+      return res.response({ categories });
+    }
   }
 ];
 
