@@ -8,3 +8,11 @@ module.exports.addCategory = async ({ category }) => {
     return a;
   });
 };
+
+module.exports.getCategories = async () => {
+  return db.task(async t => {
+    const categories = await t.CategoryRepository.getCategories();
+
+    return categories;
+  });
+};

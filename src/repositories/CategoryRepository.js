@@ -8,6 +8,10 @@ class CategoryRepository {
   async addCategory({ category }) {
     return this.db.one(queries.addCategory, [category]);
   }
+
+  async getCategories() {
+    return this.db.manyOrNone(queries.getCategories, []);
+  }
 }
 
 module.exports = CategoryRepository;

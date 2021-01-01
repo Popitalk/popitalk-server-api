@@ -125,5 +125,6 @@ module.exports = {
   /*                                  Categories                                */
   /* -------------------------------------------------------------------------- */
 
-  addCategory: sql("./addCategory.sql")
+  addCategory: sql("./addCategory.sql"),
+  getCategories: sql("./getCategories.sql")
 };
