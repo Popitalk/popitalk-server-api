@@ -18,7 +18,7 @@ FROM (
   ORDER BY
     channels.created_at DESC 
   LIMIT 
-    30  
+    24  
   OFFSET
-    ($1 - 1) * 30  
+    ($1 - 1) * 24  
 ) AS chans

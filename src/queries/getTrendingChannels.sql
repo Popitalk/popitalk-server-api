@@ -21,9 +21,9 @@ WITH chans AS (
   ORDER BY
     COUNT(*) DESC, last_joined DESC
   LIMIT
-    30
+    24
   OFFSET
-    ($2 - 1) * 30      
+    ($2 - 1) * 24      
 )
 SELECT
   COALESCE(JSON_OBJECT_AGG(

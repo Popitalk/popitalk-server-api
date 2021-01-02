@@ -18,9 +18,9 @@ WITH chans AS (
   ORDER BY
     channels.name <-> $1 ASC
   LIMIT
-    9
+    12
   OFFSET
-    ($2 -1) * 9
+    ($2 -1) * 12
 )
 SELECT
   COALESCE(JSON_OBJECT_AGG(

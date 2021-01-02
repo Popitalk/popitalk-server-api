@@ -14,9 +14,9 @@ WITH chans AS (
     AND NOT channels.owner_id = $1
     AND NOT members.banned
   LIMIT
-    30  
+    24  
   OFFSET
-    ($2 - 1) * 30  
+    ($2 - 1) * 24  
 )
 SELECT
   COALESCE(JSON_OBJECT_AGG(
