@@ -110,7 +110,13 @@ module.exports.getChannel = async ({ channelId, userId, isViewer }) => {
       });
     }
 
+    const categories = await t.CategoryRepository.getChannelCategories({
+      channelId
+    });
+
     const channelWithViewers = await addViewers(t, channelInfo);
+
+    channelWithViewers.channel.categories = categories.map(({ name }) => name);
 
     return { ...channelWithViewers, ...chMemInfo };
   });

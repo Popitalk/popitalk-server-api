@@ -19,6 +19,10 @@ class CategoryRepository {
       categories
     });
   }
+
+  async getChannelCategories({ channelId }) {
+    return this.db.manyOrNone(queries.getChannelCategories, [channelId]);
+  }
 }
 
 module.exports = CategoryRepository;

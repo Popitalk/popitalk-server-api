@@ -127,5 +127,6 @@ module.exports = {
 
   addCategory: sql("./addCategory.sql"),
   getCategories: sql("./getCategories.sql"),
-  addChannelCategories: require("./addChannelCategories")
+  addChannelCategories: require("./addChannelCategories"),
+  getChannelCategories: sql("./getChannelCategories.sql")
 };
