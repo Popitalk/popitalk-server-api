@@ -57,7 +57,10 @@ const controllers = [
               .required(),
             icon: Joi.optional().meta({ swaggerType: "file" }),
             public: Joi.boolean().required(),
-            categories: Joi.optional().meta({ swaggerType: "array" })
+            categories: Joi.string()
+              .regex(/^([a-zA-Z0-9]+)(,[a-zA-Z0-9]+){0,2}$/)
+              .allow("")
+              .optional()
           })
           .required()
       }
@@ -408,7 +411,11 @@ const controllers = [
               .optional(),
             public: Joi.boolean().optional(),
             icon: Joi.optional().meta({ swaggerType: "file" }),
-            removeIcon: Joi.boolean().optional()
+            removeIcon: Joi.boolean().optional(),
+            categories: Joi.string()
+              .regex(/^([a-zA-Z0-9]+)(,[a-zA-Z0-9]+){0,2}$/)
+              .allow("")
+              .optional()
           })
           .oxor("icon", "removeIcon")
           .required()
