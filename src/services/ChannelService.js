@@ -129,30 +129,51 @@ module.exports.updateChannel = async ({
   description,
   public: publicChannel,
   icon,
-  removeIcon
+  removeIcon,
+  categories
 }) => {
-  let uploadedIcon;
+  return db.tx(async tx => {
+    let uploadedIcon;
 
-  if (icon) {
-    const { payload: buffer } = icon;
-    const type = fileType(buffer);
-    const fileName = `icon-${userId}_${new Date().getTime()}`;
-    const uploadedImage = await uploadFile(buffer, fileName, type);
-    if (!uploadedImage) throw Boom.internal("Couldn't upload avatar");
-    uploadedIcon = uploadedImage.Location;
-  }
+    if (icon) {
+      const { payload: buffer } = icon;
+      const type = fileType(buffer);
+      const fileName = `icon-${userId}_${new Date().getTime()}`;
+      const uploadedImage = await uploadFile(buffer, fileName, type);
+      if (!uploadedImage) throw Boom.internal("Couldn't upload avatar");
+      uploadedIcon = uploadedImage.Location;
+    }
+    const updatedChannel = await tx.ChannelRepository.updateChannel({
+      channelId,
+      userId,
+      name,
+      description,
+      public: publicChannel,
+      icon: uploadedIcon,
+      removeIcon,
+      categories
+    });
 
-  const updatedChannel = await db.ChannelRepository.updateChannel({
-    channelId,
-    userId,
-    name,
-    description,
-    public: publicChannel,
-    icon: uploadedIcon,
-    removeIcon
+    let parsedCategories;
+
+    if (typeof categories !== "undefined") {
+      parsedCategories = categories ? categories.split(",") : [];
+    }
+
+    if (parsedCategories) {
+      await tx.CategoryRepository.removeChannelCategories({ channelId });
+      if (categories.length > 0) {
+        await tx.CategoryRepository.addChannelCategories({
+          channelId,
+          categories: parsedCategories
+        });
+      }
+
+      updatedChannel.categories = parsedCategories;
+    }
+
+    return updatedChannel;
   });
-
-  return updatedChannel;
 };
 
 module.exports.updatePlayerStatus = async newPlayerStatus => {

@@ -23,6 +23,10 @@ class CategoryRepository {
   async getChannelCategories({ channelId }) {
     return this.db.manyOrNone(queries.getChannelCategories, [channelId]);
   }
+
+  async removeChannelCategories({ channelId }) {
+    return this.db.none(queries.removeChannelCategories, [channelId]);
+  }
 }
 
 module.exports = CategoryRepository;
