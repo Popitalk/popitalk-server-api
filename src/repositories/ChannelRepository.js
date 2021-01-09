@@ -116,6 +116,10 @@ class ChannelRepository {
   async getFollowingChannels({ userId, page }) {
     return this.db.one(queries.getFollowingChannels, [userId, page]);
   }
+
+  async getRecommendedChannels({ categories }) {
+    return this.db.one(queries.getRecommendedChannels, { categories });
+  }
 }
 
 module.exports = ChannelRepository;

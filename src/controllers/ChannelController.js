@@ -675,6 +675,39 @@ const controllers = [
   },
   {
     method: "GET",
+    path: "/recommended",
+    options: {
+      auth: { mode: "try" },
+      description: "Recommended channels",
+      tags: ["api"],
+      validate: {
+        query: Joi.object()
+          .keys({
+            categories: Joi.string()
+              .regex(/^([a-zA-Z0-9]+)(,[a-zA-Z0-9]+){0,2}$/)
+              .optional()
+          })
+          .required()
+      }
+    },
+    async handler(req, res) {
+      const { credentials } = req.auth;
+      // userId is needed for the query condition
+      // in case of anonymous user, random id is generated to pass the query condition
+      const userId = credentials ? credentials.id : uuidv4();
+      const categories = req.query.categories
+        ? req.query.categories.split(",")
+        : null;
+      const recommendedChannels = await ChannelService.recommendedChannels({
+        userId,
+        categories
+      });
+
+      return recommendedChannels;
+    }
+  },
+  {
+    method: "GET",
     path: "/trending",
     options: {
       auth: { mode: "try" },

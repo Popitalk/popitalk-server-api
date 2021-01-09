@@ -313,6 +313,56 @@ module.exports.discoverChannels = async ({ userId, page }) => {
   });
 };
 
+module.exports.recommendedChannels = async ({ userId, categories }) => {
+  return db.task(async t => {
+    const recommendedChannels = (
+      await t.ChannelRepository.getRecommendedChannels({ categories })
+    ).channelIds;
+
+    const { channels } = await t.VideoRepository.getVideosInfo({
+      channelIds: recommendedChannels,
+      userId
+    });
+
+    let response = {
+      channels
+    };
+
+    const channelIds = Object.keys(response.channels);
+    const allViewersIds = new Set();
+
+    for await (const cid of channelIds) {
+      const viewers = await redis.smembers(`viewers:${cid}`);
+      viewers.forEach(allViewersIds.add, allViewersIds);
+
+      response = {
+        ...response,
+        channels: {
+          ...response.channels,
+          [cid]: {
+            ...response.channels[cid],
+            viewers
+          }
+        }
+      };
+    }
+
+    const { users } = await t.UserRepository.getUsers({
+      userIds: [...allViewersIds]
+    });
+
+    response = {
+      channels: response.channels,
+      users: {
+        ...response.users,
+        ...users
+      }
+    };
+
+    return response;
+  });
+};
+
 module.exports.trendingChannels = async ({ userId, page }) => {
   return db.task(async t => {
     const { channels } = await t.ChannelRepository.getTrendingChannels({
