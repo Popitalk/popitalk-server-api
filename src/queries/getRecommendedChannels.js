@@ -4,7 +4,7 @@ module.exports = ({ categories }) => {
   const innerQuery = knex
     .select("channels.id AS ids")
     .from("channels")
-    .innerJoin(
+    .leftJoin(
       "channel_categories",
       "channels.id",
       "channel_categories.channel_id"
