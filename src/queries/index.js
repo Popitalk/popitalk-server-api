@@ -53,6 +53,7 @@ module.exports = {
   getDiscoverChannels: sql("./getDiscoverChannels.sql"),
   getTrendingChannels: sql("./getTrendingChannels.sql"),
   getFollowingChannels: sql("./getFollowingChannels.sql"),
+  getRecommendedChannels: require("./getRecommendedChannels"),
 
   /* -------------------------------------------------------------------------- */
   /*                                    VIDEOS                                  */
