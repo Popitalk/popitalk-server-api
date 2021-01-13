@@ -13,7 +13,9 @@ const controllers = [
         payload: Joi.object()
           .required()
           .keys({
-            category: Joi.string().required()
+            category: Joi.string()
+              .regex(/^[^,]+$/)
+              .required()
           })
       }
     },
