@@ -16,3 +16,11 @@ module.exports.getCategories = async () => {
     return categories;
   });
 };
+
+module.exports.getTopCategories = async () => {
+  return db.task(async t => {
+    const categories = await t.CategoryRepository.getTopCategories();
+
+    return categories;
+  });
+};

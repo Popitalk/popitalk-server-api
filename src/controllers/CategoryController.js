@@ -40,6 +40,20 @@ const controllers = [
 
       return res.response({ categories });
     }
+  },
+  {
+    method: "GET",
+    path: "/top",
+    options: {
+      description: "Get top categories",
+      tags: ["api"]
+    },
+    async handler(req, res) {
+      console.log("HERE");
+      const categories = await CategoryService.getTopCategories();
+
+      return res.response({ categories });
+    }
   }
 ];
 

@@ -13,6 +13,10 @@ class CategoryRepository {
     return this.db.manyOrNone(queries.getCategories);
   }
 
+  async getTopCategories() {
+    return this.db.manyOrNone(queries.getTopCategories);
+  }
+
   async addChannelCategories({ channelId, categories }) {
     return this.db.many(queries.addChannelCategories, {
       channelId,
