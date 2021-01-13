@@ -33,6 +33,7 @@ const controllers = [
     method: "GET",
     path: "/",
     options: {
+      auth: false,
       description:
         "Get categories with the count of channels within each category",
       tags: ["api"]
@@ -47,6 +48,7 @@ const controllers = [
     method: "GET",
     path: "/top",
     options: {
+      auth: false,
       description: "Get top categories",
       tags: ["api"]
     },
