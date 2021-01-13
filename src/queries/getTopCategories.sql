@@ -11,6 +11,6 @@ GROUP BY
   categories.name
 ORDER BY    
     count DESC
-LIMIT 3
+LIMIT 5
             
             
