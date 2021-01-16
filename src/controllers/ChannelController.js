@@ -56,7 +56,11 @@ const controllers = [
               .max(150)
               .required(),
             icon: Joi.optional().meta({ swaggerType: "file" }),
-            public: Joi.boolean().required()
+            public: Joi.boolean().required(),
+            categories: Joi.string()
+              .regex(/^([^,]+)(,[^,]+){0,2}$/)
+              .allow("")
+              .optional()
           })
           .required()
       }
@@ -143,7 +147,8 @@ const controllers = [
     },
     async handler(req, res) {
       const { id: userId } = req.auth.credentials;
-      const { name, description, icon, public } = req.payload;
+      const { name, description, icon, public, categories } = req.payload;
+      const parsedCategories = categories ? categories.split(",") : [];
       const {
         channel,
         users,
@@ -155,7 +160,8 @@ const controllers = [
         name,
         description,
         public,
-        icon
+        icon,
+        categories: parsedCategories
       });
 
       publisher({
@@ -405,7 +411,11 @@ const controllers = [
               .optional(),
             public: Joi.boolean().optional(),
             icon: Joi.optional().meta({ swaggerType: "file" }),
-            removeIcon: Joi.boolean().optional()
+            removeIcon: Joi.boolean().optional(),
+            categories: Joi.string()
+              .regex(/^([^,]+)(,[^,]+){0,2}$/)
+              .allow("")
+              .optional()
           })
           .oxor("icon", "removeIcon")
           .required()
@@ -630,7 +640,19 @@ const controllers = [
     options: {
       auth: { mode: "try" },
       description: "Discover channels",
-      tags: ["api"]
+      tags: ["api"],
+      validate: {
+        query: Joi.object()
+          .keys({
+            page: Joi.number()
+              .integer()
+              .positive()
+              .min(1)
+              .default(1)
+              .optional()
+          })
+          .required()
+      }
       // response: {
       //   status: {
       //     200: loginResponseSchema
@@ -642,12 +664,46 @@ const controllers = [
       // userId is needed for the query condition
       // in case of anonymous user, random id is generated to pass the query condition
       const userId = credentials ? credentials.id : uuidv4();
-
+      const { page } = req.query;
       const discoveredChannels = await ChannelService.discoverChannels({
-        userId
+        userId,
+        page
       });
 
       return discoveredChannels;
+    }
+  },
+  {
+    method: "GET",
+    path: "/recommended",
+    options: {
+      auth: { mode: "try" },
+      description: "Recommended channels",
+      tags: ["api"],
+      validate: {
+        query: Joi.object()
+          .keys({
+            categories: Joi.string()
+              .regex(/^([^,]+)(,[^,]+){0,2}$/)
+              .optional()
+          })
+          .required()
+      }
+    },
+    async handler(req, res) {
+      const { credentials } = req.auth;
+      // userId is needed for the query condition
+      // in case of anonymous user, random id is generated to pass the query condition
+      const userId = credentials ? credentials.id : uuidv4();
+      const categories = req.query.categories
+        ? req.query.categories.split(",")
+        : null;
+      const recommendedChannels = await ChannelService.recommendedChannels({
+        userId,
+        categories
+      });
+
+      return recommendedChannels;
     }
   },
   {
@@ -656,7 +712,19 @@ const controllers = [
     options: {
       auth: { mode: "try" },
       description: "Trending channels",
-      tags: ["api"]
+      tags: ["api"],
+      validate: {
+        query: Joi.object()
+          .keys({
+            page: Joi.number()
+              .integer()
+              .positive()
+              .min(1)
+              .default(1)
+              .optional()
+          })
+          .required()
+      }
       // response: {
       //   status: {
       //     200: loginResponseSchema
@@ -668,9 +736,10 @@ const controllers = [
       // userId is needed for the query condition
       // in case of anonymous user, random id is generated to pass the query condition
       const userId = credentials ? credentials.id : uuidv4();
-
+      const { page } = req.query;
       const trendingChannels = await ChannelService.trendingChannels({
-        userId
+        userId,
+        page
       });
 
       return trendingChannels;
@@ -681,7 +750,19 @@ const controllers = [
     path: "/following",
     options: {
       description: "Following channels",
-      tags: ["api"]
+      tags: ["api"],
+      validate: {
+        query: Joi.object()
+          .keys({
+            page: Joi.number()
+              .integer()
+              .positive()
+              .min(1)
+              .default(1)
+              .optional()
+          })
+          .required()
+      }
       // response: {
       //   status: {
       //     200: loginResponseSchema
@@ -690,8 +771,10 @@ const controllers = [
     },
     async handler(req, res) {
       const { id: userId } = req.auth.credentials;
+      const { page } = req.query;
       const followingChannels = await ChannelService.followingChannels({
-        userId
+        userId,
+        page
       });
 
       return followingChannels;

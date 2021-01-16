@@ -14,7 +14,8 @@ module.exports.addChannel = async ({
   name,
   description,
   public: publicChannel,
-  icon
+  icon,
+  categories
 }) => {
   return db.tx(async tx => {
     let uploadedIcon;
@@ -42,10 +43,19 @@ module.exports.addChannel = async ({
       admin: true
     });
 
+    if (categories.length > 0) {
+      await tx.CategoryRepository.addChannelCategories({
+        channelId: newChannel.id,
+        categories
+      });
+    }
+
     const channelInfo = await tx.ChannelRepository.getAdminChannel({
       channelId: newChannel.id,
       userId
     });
+
+    channelInfo.channel.categories = categories;
 
     return channelInfo;
   });
@@ -100,7 +110,13 @@ module.exports.getChannel = async ({ channelId, userId, isViewer }) => {
       });
     }
 
+    const categories = await t.CategoryRepository.getChannelCategories({
+      channelId
+    });
+
     const channelWithViewers = await addViewers(t, channelInfo);
+
+    channelWithViewers.channel.categories = categories.map(({ name }) => name);
 
     return { ...channelWithViewers, ...chMemInfo };
   });
@@ -113,30 +129,51 @@ module.exports.updateChannel = async ({
   description,
   public: publicChannel,
   icon,
-  removeIcon
+  removeIcon,
+  categories
 }) => {
-  let uploadedIcon;
+  return db.tx(async tx => {
+    let uploadedIcon;
 
-  if (icon) {
-    const { payload: buffer } = icon;
-    const type = fileType(buffer);
-    const fileName = `icon-${userId}_${new Date().getTime()}`;
-    const uploadedImage = await uploadFile(buffer, fileName, type);
-    if (!uploadedImage) throw Boom.internal("Couldn't upload avatar");
-    uploadedIcon = uploadedImage.Location;
-  }
+    if (icon) {
+      const { payload: buffer } = icon;
+      const type = fileType(buffer);
+      const fileName = `icon-${userId}_${new Date().getTime()}`;
+      const uploadedImage = await uploadFile(buffer, fileName, type);
+      if (!uploadedImage) throw Boom.internal("Couldn't upload avatar");
+      uploadedIcon = uploadedImage.Location;
+    }
+    const updatedChannel = await tx.ChannelRepository.updateChannel({
+      channelId,
+      userId,
+      name,
+      description,
+      public: publicChannel,
+      icon: uploadedIcon,
+      removeIcon,
+      categories
+    });
 
-  const updatedChannel = await db.ChannelRepository.updateChannel({
-    channelId,
-    userId,
-    name,
-    description,
-    public: publicChannel,
-    icon: uploadedIcon,
-    removeIcon
+    let parsedCategories;
+
+    if (typeof categories !== "undefined") {
+      parsedCategories = categories ? categories.split(",") : [];
+    }
+
+    if (parsedCategories) {
+      await tx.CategoryRepository.removeChannelCategories({ channelId });
+      if (categories.length > 0) {
+        await tx.CategoryRepository.addChannelCategories({
+          channelId,
+          categories: parsedCategories
+        });
+      }
+
+      updatedChannel.categories = parsedCategories;
+    }
+
+    return updatedChannel;
   });
-
-  return updatedChannel;
 };
 
 module.exports.updatePlayerStatus = async newPlayerStatus => {
@@ -225,21 +262,11 @@ module.exports.searchChannels = async ({ channelName, page, userId }) => {
   });
 };
 
-module.exports.discoverChannels = async ({ userId }) => {
+module.exports.discoverChannels = async ({ userId, page }) => {
   return db.task(async t => {
-    let discoverChannels = await redis.get("discoverChannels");
-
-    if (!discoverChannels) {
-      discoverChannels = (await t.ChannelRepository.getDiscoverChannels())
-        .channelIds;
-      await redis.setex(
-        "discoverChannels",
-        86400,
-        JSON.stringify(discoverChannels)
-      );
-    } else {
-      discoverChannels = JSON.parse(discoverChannels);
-    }
+    const discoverChannels = (
+      await t.ChannelRepository.getDiscoverChannels({ page })
+    ).channelIds;
 
     const { channels } = await t.VideoRepository.getVideosInfo({
       channelIds: discoverChannels,
@@ -274,6 +301,7 @@ module.exports.discoverChannels = async ({ userId }) => {
     });
 
     response = {
+      page,
       channels: response.channels,
       users: {
         ...response.users,
@@ -285,10 +313,61 @@ module.exports.discoverChannels = async ({ userId }) => {
   });
 };
 
-module.exports.trendingChannels = async ({ userId }) => {
+module.exports.recommendedChannels = async ({ userId, categories }) => {
+  return db.task(async t => {
+    const recommendedChannels = (
+      await t.ChannelRepository.getRecommendedChannels({ categories })
+    ).channelIds;
+
+    const { channels } = await t.VideoRepository.getVideosInfo({
+      channelIds: recommendedChannels,
+      userId
+    });
+
+    let response = {
+      channels
+    };
+
+    const channelIds = Object.keys(response.channels);
+    const allViewersIds = new Set();
+
+    for await (const cid of channelIds) {
+      const viewers = await redis.smembers(`viewers:${cid}`);
+      viewers.forEach(allViewersIds.add, allViewersIds);
+
+      response = {
+        ...response,
+        channels: {
+          ...response.channels,
+          [cid]: {
+            ...response.channels[cid],
+            viewers
+          }
+        }
+      };
+    }
+
+    const { users } = await t.UserRepository.getUsers({
+      userIds: [...allViewersIds]
+    });
+
+    response = {
+      channels: response.channels,
+      users: {
+        ...response.users,
+        ...users
+      }
+    };
+
+    return response;
+  });
+};
+
+module.exports.trendingChannels = async ({ userId, page }) => {
   return db.task(async t => {
     const { channels } = await t.ChannelRepository.getTrendingChannels({
-      userId
+      userId,
+      page
     });
 
     let response = {
@@ -319,6 +398,7 @@ module.exports.trendingChannels = async ({ userId }) => {
     });
 
     response = {
+      page,
       channels: response.channels,
       users: {
         ...response.users,
@@ -330,10 +410,11 @@ module.exports.trendingChannels = async ({ userId }) => {
   });
 };
 
-module.exports.followingChannels = async ({ userId }) => {
+module.exports.followingChannels = async ({ userId, page }) => {
   return db.task(async t => {
     const { channels } = await t.ChannelRepository.getFollowingChannels({
-      userId
+      userId,
+      page
     });
 
     let response = {
@@ -364,6 +445,7 @@ module.exports.followingChannels = async ({ userId }) => {
     });
 
     response = {
+      page,
       channels: response.channels,
       users: {
         ...response.users,

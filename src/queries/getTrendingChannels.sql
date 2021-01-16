@@ -1,22 +1,29 @@
 WITH chans AS (
   SELECT
-    channels.*
+    channels.*,
+    MAX(members.created_at) AS last_joined
   FROM
     members
   JOIN
     channels
   ON
     channels.id = members.channel_id
+  JOIN 
+    channel_videos 
+  ON 
+    channel_videos.channel_id = channels.id
   WHERE
     channels.type = 'channel'
     AND channels.public
-    AND members.created_at > (CURRENT_DATE - INTERVAL '10 days')
+    AND channels.icon IS NOT NULL
   GROUP BY
     channels.id
   ORDER BY
-    COUNT(*) DESC, channels.created_at DESC
+    COUNT(*) DESC, last_joined DESC
   LIMIT
-    30
+    24
+  OFFSET
+    ($2 - 1) * 24      
 )
 SELECT
   COALESCE(JSON_OBJECT_AGG(

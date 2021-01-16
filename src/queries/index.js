@@ -53,6 +53,7 @@ module.exports = {
   getDiscoverChannels: sql("./getDiscoverChannels.sql"),
   getTrendingChannels: sql("./getTrendingChannels.sql"),
   getFollowingChannels: sql("./getFollowingChannels.sql"),
+  getRecommendedChannels: require("./getRecommendedChannels"),
 
   /* -------------------------------------------------------------------------- */
   /*                                    VIDEOS                                  */
@@ -119,5 +120,16 @@ module.exports = {
   /* -------------------------------------------------------------------------- */
 
   addChatNotification: sql("./addChatNotification.sql"),
-  deleteChatNotification: sql("./deleteChatNotification.sql")
+  deleteChatNotification: sql("./deleteChatNotification.sql"),
+
+  /* -------------------------------------------------------------------------- */
+  /*                                  Categories                                */
+  /* -------------------------------------------------------------------------- */
+
+  addCategory: sql("./addCategory.sql"),
+  getCategories: sql("./getCategories.sql"),
+  getTopCategories: sql("./getTopCategories.sql"),
+  addChannelCategories: require("./addChannelCategories"),
+  removeChannelCategories: sql("./removeChannelCategories.sql"),
+  getChannelCategories: sql("./getChannelCategories.sql")
 };
