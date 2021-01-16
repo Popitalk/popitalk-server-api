@@ -6,3 +6,4 @@
 - [channels](./documentation/channels.md)
 - [videos](./documentation/videos.md)
 - [members](./documentation/members.md)
+- [posts](./documentation/posts.md)
