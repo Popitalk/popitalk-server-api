@@ -58,7 +58,7 @@ const controllers = [
             icon: Joi.optional().meta({ swaggerType: "file" }),
             public: Joi.boolean().required(),
             categories: Joi.string()
-              .regex(/^([a-zA-Z0-9]+)(,[a-zA-Z0-9]+){0,2}$/)
+              .regex(/^([^,]+)(,[^,]+){0,2}$/)
               .allow("")
               .optional()
           })
@@ -413,7 +413,7 @@ const controllers = [
             icon: Joi.optional().meta({ swaggerType: "file" }),
             removeIcon: Joi.boolean().optional(),
             categories: Joi.string()
-              .regex(/^([a-zA-Z0-9]+)(,[a-zA-Z0-9]+){0,2}$/)
+              .regex(/^([^,]+)(,[^,]+){0,2}$/)
               .allow("")
               .optional()
           })
@@ -684,7 +684,7 @@ const controllers = [
         query: Joi.object()
           .keys({
             categories: Joi.string()
-              .regex(/^([a-zA-Z0-9]+)(,[a-zA-Z0-9]+){0,2}$/)
+              .regex(/^([^,]+)(,[^,]+){0,2}$/)
               .optional()
           })
           .required()
