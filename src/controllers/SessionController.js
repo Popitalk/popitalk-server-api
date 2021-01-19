@@ -11,7 +11,13 @@ const wsBooth = async loginData => {
     channels: Object.entries(loginData.channels).map(ch => ({
       id: ch[0],
       type: ch[1].type
-    }))
+    })),
+    friends: Object.entries(loginData.channels)
+      .filter(ch => ch[1].type === "friend")
+      .reduce((acc, [key, value]) => {
+        acc[key] = value.members.find(mem => mem !== loginData.id);
+        return acc;
+      }, {})
   };
   await redis.setex(wsTicket, 120, JSON.stringify(wsLoginData));
   return wsTicket;
