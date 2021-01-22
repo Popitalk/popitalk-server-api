@@ -268,44 +268,6 @@ const controllers = [
         isViewer: !credentials
       });
 
-      if (credentials) {
-        await redis.sadd(`viewers:${channelId}`, userId);
-
-        let user = await UserService.getUser({ userId });
-
-        user = {
-          username: user.username,
-          firstName: user.firstName,
-          lastName: user.lastName,
-          avatar: user.avatar
-        };
-
-        publisher({
-          type: WS_EVENTS.USER_CHANNEL.JOIN_CHANNEL,
-          userId,
-          channelId,
-          initiator: userId,
-          payload: { userId, channelId, user, type: channelInfo.type }
-        });
-
-        if (leave) {
-          const chanInfo = await ChannelService.getChannel({
-            userId,
-            channelId: leave
-          });
-
-          await redis.srem(`viewers:${leave}`, userId);
-
-          publisher({
-            type: WS_EVENTS.USER_CHANNEL.LEAVE_CHANNEL,
-            userId,
-            channelId: leave,
-            initiator: userId,
-            payload: { userId, channelId: leave, type: chanInfo.type }
-          });
-        }
-      }
-
       return { channelId, ...channelInfo };
     }
   },
@@ -376,7 +338,7 @@ const controllers = [
         });
       }
 
-      return {};
+      return { visit, leave, self: userId };
     }
   },
   {
