@@ -1,5 +1,6 @@
 const Joi = require("@hapi/joi");
 const { v4: uuidv4 } = require("uuid");
+const Boom = require("@hapi/boom");
 
 const { WS_EVENTS } = require("../config/constants");
 const publisher = require("../config/publisher");
@@ -275,6 +276,7 @@ const controllers = [
     method: "POST",
     path: "/visitAndLeave",
     options: {
+      auth: { mode: "try" },
       description: "Visits and leaves channel",
       tags: ["api"],
       validate: {
@@ -285,15 +287,25 @@ const controllers = [
               .optional(),
             leave: Joi.string()
               .uuid()
-              .optional()
+              .optional(),
+            anonymousId: Joi.string().optional()
           })
           .or("visit", "leave")
           .required()
       }
     },
     async handler(req, res) {
-      const { id: userId } = req.auth.credentials;
-      const { visit, leave } = req.payload;
+      const { visit, leave, anonymousId } = req.payload;
+      const { credentials } = req.auth;
+      let userId;
+
+      if (credentials) {
+        userId = credentials.id;
+      } else if (anonymousId) {
+        userId = anonymousId;
+      } else {
+        throw Boom.unauthorized();
+      }
 
       if (visit) {
         const channelInfo = await ChannelService.getChannel({
@@ -305,12 +317,21 @@ const controllers = [
 
         let user = await UserService.getUser({ userId });
 
-        user = {
-          username: user.username,
-          firstName: user.firstName,
-          lastName: user.lastName,
-          avatar: user.avatar
-        };
+        if (user) {
+          user = {
+            username: user.username,
+            firstName: user.firstName,
+            lastName: user.lastName,
+            avatar: user.avatar
+          };
+        } else {
+          user = {
+            username: "anonymous",
+            firstName: "anonymous",
+            lastName: "anonymous",
+            avatar: null
+          };
+        }
 
         publisher({
           type: WS_EVENTS.USER_CHANNEL.JOIN_CHANNEL,
