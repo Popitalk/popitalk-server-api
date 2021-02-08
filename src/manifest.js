@@ -21,6 +21,10 @@ const manifest = {
       }
     ],
     routes: {
+      state: {
+        parse: true,
+        failAction: "ignore"
+      },
       cors: {
         credentials: true,
         origin: config.mode === "production" ? config.corsOrigin : ["*"]

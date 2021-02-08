@@ -55,7 +55,7 @@ const controllers = [
             password: Joi.string()
               .min(6)
               .regex(/[a-z]/)
-              .regex(/[A-Z]/)
+              // .regex(/[A-Z]/)
               .regex(/\d+/)
               .required()
               .example("PassW0rd")
@@ -172,7 +172,7 @@ const controllers = [
               .example("oldPassword123"),
             newPassword: Joi.string()
               .regex(/[a-z]/)
-              .regex(/[A-Z]/)
+              // .regex(/[A-Z]/)
               .regex(/\d+/)
               .disallow(Joi.ref("password"))
               .optional()
