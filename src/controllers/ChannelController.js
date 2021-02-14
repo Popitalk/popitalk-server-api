@@ -261,7 +261,7 @@ const controllers = [
       // in case of anonymous user, random id is generated to pass the query condition
       const { credentials } = req.auth;
       const userId = credentials ? credentials.id : uuidv4();
-      const { channelId, leave } = req.query;
+      const { channelId } = req.query;
 
       const channelInfo = await ChannelService.getChannel({
         userId,
