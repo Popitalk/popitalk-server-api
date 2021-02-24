@@ -163,14 +163,30 @@ module.exports.addFriend = async ({ userId1, userId2 }) => {
       (userRelationship.type === "friend_second_first" &&
         userId1 === userRelationship.firstUserId)
     ) {
-      await tx.UserRepository.addFriend({ userId1, userId2 });
-      const newChannel = await tx.ChannelRepository.addFriendRoom();
-      await tx.MemberRepository.addMembers({
-        channelId: newChannel.id,
-        userIds: [userId1, userId2]
+      const alreadyStranger = await tx.UserRepository.getPreviousStranger({
+        userId1,
+        userId2
       });
+
+      let channelId;
+
+      await tx.UserRepository.addFriend({ userId1, userId2 });
+
+      if (alreadyStranger) {
+        await tx.ChannelRepository.updateStrangerRoom();
+        channelId = alreadyStranger.channel_id;
+      } else {
+        const newChannel = await tx.ChannelRepository.addFriendRoom();
+        await tx.MemberRepository.addMembers({
+          channelId: newChannel.id,
+          userIds: [userId1, userId2]
+        });
+
+        channelId = newChannel.id;
+      }
+
       const channelInfo = await tx.ChannelRepository.getRoomChannel({
-        channelId: newChannel.id
+        channelId
       });
       return channelInfo;
     }
@@ -283,5 +299,38 @@ module.exports.deleteBlock = async ({ fromUser, toUser }) => {
     }
 
     return blockInfo;
+  });
+};
+
+module.exports.addStranger = async ({ userId1, userId2 }) => {
+  return db.tx(async tx => {
+    const alreadyStranger = await tx.UserRepository.getPreviousStranger({
+      userId1,
+      userId2
+    });
+
+    const userRelationship = await tx.UserRepository.getUserRelationship({
+      userId1,
+      userId2
+    });
+    const canBeStranger = userRelationship
+      ? userRelationship.type !== "friend_both" &&
+        userRelationship.type !== "block_first_second" &&
+        userRelationship.type !== "block_second_first" &&
+        userRelationship.type !== "block_both"
+      : true;
+
+    if (canBeStranger && !alreadyStranger) {
+      const newChannel = await tx.ChannelRepository.addStrangerRoom();
+      await tx.MemberRepository.addMembers({
+        channelId: newChannel.id,
+        userIds: [userId1, userId2]
+      });
+      const channelInfo = await tx.ChannelRepository.getRoomChannel({
+        channelId: newChannel.id
+      });
+
+      return channelInfo;
+    }
   });
 };

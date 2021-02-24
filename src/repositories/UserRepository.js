@@ -114,6 +114,10 @@ class UserRepository {
   async getUsers({ userIds }) {
     return this.db.one(queries.getUsers, [userIds]);
   }
+
+  async getPreviousStranger({ userId1, userId2 }) {
+    return this.db.oneOrNone(queries.getPreviousStranger, [userId1, userId2]);
+  }
 }
 
 module.exports = UserRepository;

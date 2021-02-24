@@ -25,6 +25,7 @@ module.exports = {
   getUserRelationship: sql("./getUserRelationship.sql"),
   updateUserRelationship: sql("./updateUserRelationship.sql"),
   deleteUserRelationship: sql("./deleteUserRelationship.sql"),
+  getPreviousStranger: sql("./getPreviousStranger.sql"),
 
   /* -------------------------------------------------------------------------- */
   /*                                  SESSIONS                                  */
@@ -54,6 +55,7 @@ module.exports = {
   getTrendingChannels: sql("./getTrendingChannels.sql"),
   getFollowingChannels: sql("./getFollowingChannels.sql"),
   getRecommendedChannels: require("./getRecommendedChannels"),
+  updateStrangerChannel: sql("./updateStrangerChannel.sql"),
 
   /* -------------------------------------------------------------------------- */
   /*                                    VIDEOS                                  */

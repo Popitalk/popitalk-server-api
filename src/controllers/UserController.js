@@ -549,6 +549,71 @@ const controllers = [
 
       return { userId: toUser };
     }
+  },
+  {
+    method: "POST",
+    path: "/friends/stranger",
+    options: {
+      description: "create channel with a stranger",
+      tags: ["api"],
+      validate: {
+        payload: Joi.object()
+          .keys({
+            strangerId: Joi.string()
+              .uuid()
+              .required()
+          })
+          .required()
+      }
+    },
+    async handler(req, res) {
+      const { id: fromUser } = req.auth.credentials;
+      const { strangerId: toUser } = req.payload;
+      const { channel, users, messages } = await UserService.addStranger({
+        userId1: fromUser,
+        userId2: toUser
+      });
+      publisher({
+        type: WS_EVENTS.USER.SUBSCRIBE_CHANNEL,
+        userId: toUser,
+        channelId: channel.id,
+        payload: {
+          userId: fromUser,
+          channelId: channel.id,
+          type: "stranger"
+        }
+      });
+      // Sends event to user who accepts the friendship
+      publisher({
+        type: WS_EVENTS.USER.ADD_FRIEND,
+        userId: fromUser,
+        channelId: channel.id,
+        payload: {
+          userId: toUser,
+          channelId: channel.id,
+          type: "stranger",
+          channel,
+          users,
+          messages
+        }
+      });
+      // Sends event to user who requested the friendship
+      publisher({
+        type: WS_EVENTS.USER.ADD_FRIEND,
+        userId: toUser,
+        channelId: channel.id,
+        payload: {
+          userId: fromUser,
+          channelId: channel.id,
+          type: "stranger",
+          channel,
+          users,
+          messages
+        }
+      });
+
+      return res.response({ channelId: channel.id }).code(201);
+    }
   }
 ];
 

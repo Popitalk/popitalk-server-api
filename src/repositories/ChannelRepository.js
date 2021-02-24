@@ -13,6 +13,14 @@ class ChannelRepository {
     return this.db.one(queries.addRoom, ["friend"]);
   }
 
+  async addStrangerRoom() {
+    return this.db.one(queries.addRoom, ["stranger"]);
+  }
+
+  async updateStrangerRoom(channelId) {
+    return this.db.none(queries.updateStrangerChannel, [channelId]);
+  }
+
   async addGroupRoom() {
     return this.db.one(queries.addRoom, ["group"]);
   }
