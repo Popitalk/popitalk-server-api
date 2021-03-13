@@ -26,7 +26,8 @@ module.exports = {
   updateUserRelationship: sql("./updateUserRelationship.sql"),
   deleteUserRelationship: sql("./deleteUserRelationship.sql"),
   getPreviousStranger: sql("./getPreviousStranger.sql"),
-
+  getUsername: sql("./getUsername.sql"),
+  getUserChannelsCount: sql("./getUserChannelsCount.sql"),
   /* -------------------------------------------------------------------------- */
   /*                                  SESSIONS                                  */
   /* -------------------------------------------------------------------------- */

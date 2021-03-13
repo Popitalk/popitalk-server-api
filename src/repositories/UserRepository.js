@@ -118,6 +118,14 @@ class UserRepository {
   async getPreviousStranger({ userId1, userId2 }) {
     return this.db.oneOrNone(queries.getPreviousStranger, [userId1, userId2]);
   }
+
+  async getUsername({ userId }) {
+    return this.db.one(queries.getUsername, [userId]);
+  }
+
+  async getUserChannelsCount({ userId }) {
+    return this.db.one(queries.getUserChannelsCount, [userId]);
+  }
 }
 
 module.exports = UserRepository;

@@ -18,46 +18,57 @@ module.exports.addChannel = async ({
   categories
 }) => {
   return db.tx(async tx => {
-    let uploadedIcon;
-
-    if (icon) {
-      const { payload: buffer } = icon;
-      const type = fileType(buffer);
-      const fileName = `channelIcon-${userId}_${new Date().getTime()}`;
-      const uploadedImage = await uploadFile(buffer, fileName, type);
-      if (!uploadedImage) throw Boom.internal("Couldn't upload icon");
-      uploadedIcon = uploadedImage.Location;
-    }
-
-    const newChannel = await tx.ChannelRepository.addChannel({
-      ownerId: userId,
-      name,
-      description,
-      public: publicChannel,
-      icon: uploadedIcon
-    });
-
-    await tx.MemberRepository.addMember({
-      channelId: newChannel.id,
-      userId,
-      admin: true
-    });
-
-    if (categories.length > 0) {
-      await tx.CategoryRepository.addChannelCategories({
-        channelId: newChannel.id,
-        categories
-      });
-    }
-
-    const channelInfo = await tx.ChannelRepository.getAdminChannel({
-      channelId: newChannel.id,
+    const { count } = await tx.UserRepository.getUserChannelsCount({
       userId
     });
 
-    channelInfo.channel.categories = categories;
+    if (Number(count) === 0) {
+      let uploadedIcon;
+      let channelName = name;
+      if (icon) {
+        const { payload: buffer } = icon;
+        const type = fileType(buffer);
+        const fileName = `channelIcon-${userId}_${new Date().getTime()}`;
+        const uploadedImage = await uploadFile(buffer, fileName, type);
+        if (!uploadedImage) throw Boom.internal("Couldn't upload icon");
+        uploadedIcon = uploadedImage.Location;
+      }
 
-    return channelInfo;
+      if (!channelName) {
+        const { username } = await tx.UserRepository.getUser({ userId });
+        channelName = `${username} channel`;
+      }
+
+      const newChannel = await tx.ChannelRepository.addChannel({
+        ownerId: userId,
+        name: channelName,
+        description,
+        public: publicChannel,
+        icon: uploadedIcon
+      });
+
+      await tx.MemberRepository.addMember({
+        channelId: newChannel.id,
+        userId,
+        admin: true
+      });
+
+      if (categories.length > 0) {
+        await tx.CategoryRepository.addChannelCategories({
+          channelId: newChannel.id,
+          categories
+        });
+      }
+
+      const channelInfo = await tx.ChannelRepository.getAdminChannel({
+        channelId: newChannel.id,
+        userId
+      });
+
+      channelInfo.channel.categories = categories;
+
+      return channelInfo;
+    }
   });
 };
 
